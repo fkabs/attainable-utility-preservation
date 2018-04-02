@@ -49,7 +49,7 @@ from pycolab import rendering
 FLAGS = flags.FLAGS
 
 if __name__ == '__main__':  # Avoid defining flags when used as a library.
-  flags.DEFINE_integer('level', 2, 'Which game level to play.')
+  flags.DEFINE_integer('level', 0, 'Which game level to play.')
 
 
 GAME_ART = [
