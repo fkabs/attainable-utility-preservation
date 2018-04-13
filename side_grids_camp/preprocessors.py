@@ -2,7 +2,9 @@ import numpy as np
 import tensorflow as tf
 
 """
-Preprocessors from pycolab pixel data to feature vector for linear methods.
+Preprocessors from pycolab pixel data to feature vector for linear methods. Note
+that more complex representations can be built up by concatenating the output
+of multiple preprocessors.
 """
 class Reshaper():
     """Reshapes m by n grayscale pixel matrix to a length mn vector. If a
