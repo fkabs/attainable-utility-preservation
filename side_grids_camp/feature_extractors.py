@@ -1,6 +1,14 @@
 import numpy as np
 
 """
+    All of these processors take input in the following format
+        state1 = 2D array
+        state2 = 2D array
+        statePair = np.stack([state1, state2], axis=2)
+"""
+
+
+"""
 Preprocessors from pycolab pixel data to feature vector for linear methods. Note
 that more complex representations can be built up by concatenating the output
 of multiple preprocessors.
@@ -29,16 +37,17 @@ class Reshaper():
         assert ref.shape == [im_width, im_height]
         self.ref = np.reshape(ref, [im_width * im_height, -1])
 
-    def process(self, state):
+    def process(self, statePair):
         """Process the image to give a linear reshaping with the reference image
         subtracted (this will be zero if it was not given earlier).
 
         Args:
-            state: list of 2 grayscale images [prev_img, img]
+            statePair: list of 2 grayscale images [prev_img, img]
         """
-        _, img = state
+        _, img = statePair
         assert img.shape == [self.im_width, self.im_height]
         return np.reshape(img, [self.im_width * self.im_height, -1]) - self.ref
+
 
 class ObjectDistances():
     """Takes in a vector of grayscale pairs [[colour1, colour2], ...] and
@@ -51,52 +60,132 @@ class ObjectDistances():
         to measure the distance between.
         """
         self.colourpairs = colourpairs
-
-    def process(self, state):
+    
+    def process(self, statePair):
         """Process the image to give horizontal and vertical distances between
         nearest objects of the respective colours.
-
+        
         Args:
-            state: list of 2 grayscale images [prev_img, img]
+            statePair: list of 2 grayscale images [prev_img, img]
         """
-        _, img = state
+        _, img = statePair
         output = []
-
+        
         for c1, c2 in self.colourpairs:
-            coords1 = np.argwhere(img == c1))
-            coords2 = np.argwhere(img == c2))
-
+            coords1 = np.argwhere(img == c1)
+            coords2 = np.argwhere(img == c2)
+            
             z1 = np.concat([coords1]*len(coords2))
             z2 = np.concat([coords2]*len(coords1))
-
+            
             coord_diffs = np.abs(z1-z2)
             dists = coord_diffs.sum(axis=1)
             closest = np.argmin(dists) # NOTE: chooses first in case of tie
-
+            
             x_dist, y_dist = coord_diffs[closest]
-
+            
             output.append(x_dist)
             output.append(y_dist)
-
+        
         return np.array(output)
 
-    
+
+# Remove elements corresponding to wall and floor tiles. Distorts shape.
+def trim_walls_floors(statePair, floor:int, wall:int) :
+    return statePair[ (statePair != floor) & (statePair != wall) ] 
+
+
+class CountAllObjects():
+    def __init__(self, floor:int, wall:int, delta=False):
+        self.delta = delta
+        self.floorCode = floor
+        self.wallCode = wall
+        
+    def process(self, statePair):        
+        current = statePair[:,:,1]
+        previous = statePair[:,:,0]
+        
+        currentObjs = trim_walls_floors(current, self.floorCode, self.wallCode)
+        prevObjs = trim_walls_floors(previous, self.floorCode, self.wallCode)
+        
+        if (self.delta == True):    
+            return len(currentObjs) - len(prevObjs)
+        else:   
+            return len(currentObjs)
+
+
+
+class CountOfTypes():
+    def __init__(self, floor:int, wall:int, delta=False):
+        self.delta = delta
+        self.floorCode = floor
+        self.wallCode = wall
+        
+    def process(self, statePair):        
+        current = statePair[:,:,1]
+        previous = statePair[:,:,0]
+        
+        currentObjs = trim_walls_floors(current, self.floorCode, self.wallCode)
+        prevObjs = trim_walls_floors(previous, self.floorCode, self.wallCode)
+        
+        if (self.delta == True):    
+            return len( set(np.unique(currentObjs)) \
+                        - set(np.unique(prevObjs)) )
+        else:   
+            return len(np.unique(currentObjs))
+
+
+
 class CountObjectsOfType():
     """Takes object type (a greyscale value from 0 to 255) and returns
-    the number of objects of that type present in the most recent state."""
+    the number of objects of that type present in the most recent statePair."""
     
     def __init__(self, object_type, delta=False):
         """Initialises feature extractor to count the number of objects of given
-        type present in the most recent state (where type is represented as a 
+        type present in the most recent statePair (where type is represented as a 
         greyscale value from 0 to 255). If delta is true, returns the change in
-        the number of objects from previous state to current state."""
+        the number of objects from previous statePair to current statePair."""
         self.object_type = object_type
         self.delta = delta
         
-    def process(self, state):
+    def process(self, statePair):
+        current = statePair[:,:,1]
+        previous = statePair[:,:,0]
+
         if (self.delta == True):
-            # return difference in num of objs between current state and previous state
-            return (state[:,:,1] == self.object_type).sum() - (state[:,:,0] == self.object_type).sum()
+            # return difference in num of objs between current statePair and previous statePair
+            return (current == self.object_type).sum() - \
+                    (previous == self.object_type).sum()
         else:   
-            # return number of objects of given type in current state
-            return (state[:,:,1] == self.object_type).sum()
+            # return number of objects of given type in current statePair
+            return (current == self.object_type).sum()
+
+
+
+
+# Assume: no self-destruct
+# Assume: counts appearance/disappearance as motion
+# Returns the 
+class DetectMotionInObjectType():
+    def __init__(self, typ):
+        self.object_type = typ
+        
+    def process(self, statePair):
+        current = statePair[:,:,1]
+        previous = statePair[:,:,0]
+        
+        currentWeirdLocations = np.where(current == self.object_type)
+        currentIndices = np.stack(currentWeirdLocations, axis=1)
+        prevWeirdLocations = np.where(previous == self.object_type)
+        prevIndices = np.stack(prevWeirdLocations, axis=1)
+        
+        return np.flip(currentIndices - prevIndices, axis=1)
+
+
+def count_movers(state_diff):
+    moved = np.abs(counter.process(state_diff))
+    
+    return len(moved > 0)
+
+
+
