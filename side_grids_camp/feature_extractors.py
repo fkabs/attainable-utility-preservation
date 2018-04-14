@@ -79,3 +79,24 @@ class ObjectDistances():
             output.append(y_dist)
 
         return np.array(output)
+
+    
+class CountObjectsOfType():
+    """Takes object type (a greyscale value from 0 to 255) and returns
+    the number of objects of that type present in the most recent state."""
+    
+    def __init__(self, object_type, delta=False):
+        """Initialises feature extractor to count the number of objects of given
+        type present in the most recent state (where type is represented as a 
+        greyscale value from 0 to 255). If delta is true, returns the change in
+        the number of objects from previous state to current state."""
+        self.object_type = object_type
+        self.delta = delta
+        
+    def process(self, state):
+        if (self.delta == True):
+            # return difference in num of objs between current state and previous state
+            return (state[:,:,1] == self.object_type).sum() - (state[:,:,0] == self.object_type).sum()
+        else:   
+            # return number of objects of given type in current state
+            return (state[:,:,1] == self.object_type).sum()
