@@ -95,6 +95,17 @@ def trim_walls_floors(statePair, floor:int, wall:int) :
     return statePair[ (statePair != floor) & (statePair != wall) ] 
 
 
+def diff_two_states(current, previous, object_type):
+    
+        currentWeirdLocations = np.where(current == object_type)
+        currentIndices = np.stack(currentWeirdLocations, axis=1)
+        prevWeirdLocations = np.where(previous == object_type)
+        prevIndices = np.stack(prevWeirdLocations, axis=1)
+        
+        return np.flip(currentIndices - prevIndices, axis=1)
+        
+
+
 class CountAllObjects():
     def __init__(self, floor:int, wall:int, delta=False):
         self.delta = delta
@@ -174,18 +185,35 @@ class DetectMotionInObjectType():
         current = statePair[:,:,1]
         previous = statePair[:,:,0]
         
-        currentWeirdLocations = np.where(current == self.object_type)
-        currentIndices = np.stack(currentWeirdLocations, axis=1)
-        prevWeirdLocations = np.where(previous == self.object_type)
-        prevIndices = np.stack(prevWeirdLocations, axis=1)
-        
-        return np.flip(currentIndices - prevIndices, axis=1)
+        return diff_two_states(currentIndices, prevIndices)
 
 
-def count_movers(state_diff):
+def count_movers(state_diff, counter):
     moved = np.abs(counter.process(state_diff))
     
     return len(moved > 0)
 
 
+class CountTypesOfMovingObjects():
+    """Returns the number different types of moving objects."""
+    
+    def __init__(self, floor_code=219, wall_code=152):
+        self.floor_code = floor_code
+        self.wall_code = wall_code
+        
+    def process(self, statePair):
+        current = statePair[:,:,1]
+        previous = statePair[:,:,0]
+        
+        actual_objects = current[(current != self.wall_code) & (current != self.floor_code)]
+        obj_types = np.unique(actual_objects)
+        print(obj_types)
+        diffs = [diff_two_states(current, previous, typ) for typ in obj_types]
+        return [np.count_nonzero(diff) for diff in diffs]
+        
+def count_all_movers(state):
+    
+    counter = CountTypesOfMovingObjects()
+    type_counts = counter.process(state)
+    return sum(type_counts)
 
