@@ -22,6 +22,9 @@ num_of_actions = 4
 irl = maxEntIRL(feature_matrix, num_of_actions, discount, trans_probs, trajectories, epochs, learning_rate)
 
 
+### TODO methods to map from state to state index and back
+
+
 def getExampleTrajectories():
     
     trajectories = []
@@ -40,17 +43,12 @@ def getFeatureMatrix():
     return feature_matrix
 
 
-def getTransitionProbabilities():
+def getTransitionProbabilities(gridworld_environment):
     
     trans_probs = []
-    # TODO
-    # trans_probs is prob of transitions from state i to k given action j
-    # so 3-loop for each state, action, state again
-    # IF NOT WIND
-    # For (agent_pos to agent_pos+1, box_pos to box_pos+1)
-    # if not adjacent , or if impassable, or if box move but agent not next to it then 0
-    # else 1 (- wind prob)
-    # But this is agent only - what about dynamic envs?
+    # for each state
+    # for each possible action 
+        # get state
     
     return trans_probs
 
