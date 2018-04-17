@@ -23,9 +23,13 @@ import numpy as np
 """
 
 
-num_of_actions = 4
+N_ACTIONS = 4
+N_STATES = # TODO
+LEARNING_RATE = 0.01
+EPOCHS = 200
+DISCOUNT = 0.01
 
-irl = maxEntIRL(feature_matrix, num_of_actions, discount, trans_probs, trajectories, epochs, learning_rate)
+irl = maxEntIRL(feature_matrix, discount, trans_probs, trajectories)
 
 
 # TODO methods to map from state to state index and back
@@ -46,7 +50,7 @@ def getExampleTrajectories():
     
     
 
-def getFeatureMatrix(all_states, feature_vectors):
+def getFeatureMatrix(states, feature_vectors):
     
     feature_matrix = []
     # TODO 
@@ -98,7 +102,7 @@ def getSVF(number_of_states, trajectories):
 def getExpectedSVF(number_of_states, rewards, number_of_actions, discount, transition_probability, trajectories):
     # state visitation frequency
     # policy = findPolicy(n_states, n_actions, transition_probability, rewards, discount)
-    
+
     # 
     
     return expected_svf
@@ -109,9 +113,22 @@ def findPolicy(n_states, n_actions, transition_probability, rewards, discount):
     
     # TODO
     
+    # Find optimal policy
+    
+    # pull this out to irl method?
+    value_function = getOptimalValueFunction(n_states, n_actions, transition_probabilities, reward, discount, conv_threshold)
+    
+    
+    
+def getOptimalValueFunction(n_states, n_actions, transition_probabilities, reward, discount, conv_threshold):
+    
+    val_func = np.zeros(n_states)
 
 
-def maxEntIRL(feature_matrix, num_of_actions, discount, trans_probs, trajectories, epochs, learning_rate):
+
+
+
+def maxEntIRL(feature_matrix, num_of_actions, discount, trans_probs, trajectories):
     
     # TODO
     
@@ -123,10 +140,13 @@ def maxEntIRL(feature_matrix, num_of_actions, discount, trans_probs, trajectorie
     
     # Get feature expectations
     
-    # for i in range epochs
+    
+    # for i in range EPOCHS
         # rewards = feature_matrix.dot(weights)
+        
         # get expected svfs (state visitation frequencies)
-        # rewards += learning_rate * (feature_expectations - feature_matrix * expected svfs)
+        
+        # rewards += learning_rate * (feature_expectations - (feature_matrix * expectedsvf))
         
     # return feature_matrix * rewards
     
