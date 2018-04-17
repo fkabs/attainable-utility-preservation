@@ -29,7 +29,7 @@ LEARNING_RATE = 0.01
 EPOCHS = 200
 DISCOUNT = 0.01
 
-irl = maxEntIRL(feature_matrix, discount, trans_probs, trajectories)
+irl = maxEntIRL(feature_matrix, trans_probs, trajectories)
 
 
 # TODO methods to map from state to state index and back
@@ -44,7 +44,7 @@ def getExampleTrajectories():
     
     trajectories = []
     # TODO
-    # (each state in traj is tuple (state, action, reward obtained)
+    # (each state in traj is state action pair (state, action)
     # Could generate (take num, len, policy)or do by hand here   
     return trajectories
     
@@ -85,7 +85,7 @@ def getFeatureExpectations(feature_matrix, trajectories):
     return feature_expectations
 
 
-def getSVF(number_of_states, trajectories):
+def getSVF(trajectories):
     # State visitiation frequencies
     
     svf = np.zeros(n_states)
@@ -99,9 +99,9 @@ def getSVF(number_of_states, trajectories):
     return svf
 
 
-def getExpectedSVF(number_of_states, rewards, number_of_actions, discount, transition_probability, trajectories):
+def getExpectedSVF(rewards, transition_probability, trajectories):
     # state visitation frequency
-    # policy = findPolicy(n_states, n_actions, transition_probability, rewards, discount)
+    # policy = findPolicy(transition_probability, rewards)
 
     # 
     
@@ -109,18 +109,18 @@ def getExpectedSVF(number_of_states, rewards, number_of_actions, discount, trans
     
     
 
-def findPolicy(n_states, n_actions, transition_probability, rewards, discount):
+def findPolicy(transition_probability, rewards):
     
     # TODO
     
     # Find optimal policy
     
     # pull this out to irl method?
-    value_function = getOptimalValueFunction(n_states, n_actions, transition_probabilities, reward, discount, conv_threshold)
+    value_function = getOptimalValueFunction(transition_probabilities, reward, conv_threshold)
     
     
     
-def getOptimalValueFunction(n_states, n_actions, transition_probabilities, reward, discount, conv_threshold):
+def getOptimalValueFunction(transition_probabilities, reward, conv_threshold):
     
     val_func = np.zeros(n_states)
 
@@ -128,7 +128,7 @@ def getOptimalValueFunction(n_states, n_actions, transition_probabilities, rewar
 
 
 
-def maxEntIRL(feature_matrix, num_of_actions, discount, trans_probs, trajectories):
+def maxEntIRL(feature_matrix, trans_probs, trajectories):
     
     # TODO
     
