@@ -132,35 +132,37 @@ def getSVF(trajectories):
     return svf
 
 
-def getExpectedSVF(rewards, transition_probability, trajectories):
+def getExpectedSVF(rewards, transition_probabilities, trajectories):
+    """Computes the expected state visitation frequency vector for a given set
+    of rewards by evaluating the policy and then using this to determine state
+    occupancy probabilities at a given time. These are then summed over time.
+
+    Reference code:
+    https://github.com/MatthewJA/Inverse-Reinforcement-Learning/blob/master/irl/maxent.py
+    """
     # expected state visitation frequencies
-    # policy = getPolicy(transition_probability, rewards)
+    policy = getPolicy(transition_probability, rewards)
 
-    # Get initial state frequencies
+    ## Initialisation
+    n_states, n_actions, _ = transition_probabilities.shape
+    num_traj, traj_length = trajectories.shape
+    expected_svf = np.zeros((n_states, traj_length))
 
-    # initial_state_frequencies = np.zeros(N_STATES)
-    # for each trajectory
-        # get initial state of trajectory (trajectory[0][0], 1st element in 1st state in trajectory)
-        # +1 to initial_state_frequencies at index of that state (so we get an array of frequencies of each state being the initial state)
-
-    # initial_state_probabilities = initial_state_frequencies/number of trajectories
+    ## Get initial state frequencies
+    for trajectory in trajectories:
+        ## second index to trajectory indicates using state, not action
+        expected_svf[trajectory[0, 0]] += 1./num_traj # freq, not count
 
     # (I guess initial_state_probabilities would look like this: [0,1,0,0,0,0...] because our agent always starts in same place? - BUT in dynamic envs with more objects could not be.
 
-    # expected_svf = np.tile(initial_state_probabilities, (trajectories.shape[1], 1)).T
+    ## I suspect there's a more efficient way to do this
+    for t in range(1, traj_length):
+        for i, j, k in product(range(n_states), range(n_actions), range(n_states)):
+            expected_svf[k, t] += (expected_svf[i, t-1] * policy[i,j] *
+                                   transition_probabilities[i,j,k])
 
-    # and then...
-    # for t in range(1, trajectories.shape[1])
-        # set all except initial svf to 0
-        # expected_svf[:,t] = 0
-        # for each state1, action, state2 (3-loop)
-
-            # the expected state vis freq for each state in each trajectory is the previous state vis freq * the probability of taking that action in that state * the probability of taking that action in the previous state leading to this state....??
-
-            # expected_svf[state2, t] += expected_svf[state1, t-1] * policy[state1, action] * transition_probabilities[state1, action, state2]
-
-
-    return expected_svf.sum(axis=1) # and return sum over all trajectories?
+    # Sum over time and return
+    return expected_svf.sum(axis=1)
 
 def getPolicy(transition_probabilities, rewards, value_function=None):
     """Computes the optimal policy for a given transition probability and reward
