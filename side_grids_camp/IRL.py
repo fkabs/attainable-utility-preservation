@@ -24,27 +24,57 @@ import numpy as np
 
 # policy = 
 
+
+# states = all possible states in environment
+
+
 """
 
 
 N_ACTIONS = 4
 N_STATES = # TODO
+N_FEATURES = # TODO
 LEARNING_RATE = 0.01
-EPOCHS = 200
+N_EPOCHS = 200
 DISCOUNT = 0.01
 
-irl = maxEntIRL(feature_matrix, trans_probs, trajectories)
+environment = gridworld_env
+feature_matrix = getFeatureMatrix(states, feature_vectors)
+states = getStatesFromEnv()
+transition_probabilities = getTransitionProbabilities(environment)
+trajectories = getTrajectories()
+    
+maxEntIRL(states, feature_matrix, transition_probabilities, trajectories)
 
 
-# TODO methods to map from state to state index and back
-# How are states represented here - location of agent and box? Hard to apply in complex envs. Feature array? Greyscale images?
+def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories):
+
+    weights = numpy.random.uniform(size=(N_FEATURES))
+    feature_expectations = getFeatureExpectations(feature_matrix, trajectories)
+    
+    for i in range N_EPOCHS        
+        rewards = feature_matrix.dot(weights)
+        expected_svf = getExpectedSVF(rewards, transition_probabilities, trajectories)
+
+        rewards += LEARNING_RATE * (feature_expectations - feature_matrix.T.dot(expected_svf))
+
+    return feature_matrix.dot(weights).reshape((N_STATES,))
+
+
+
+def getStatesFromEnv():
+    
+    # TODO
+    
+    return states
+
 
 def stateToInt(state):
     # TODO
     # Return int
 
 
-def getExampleTrajectories():
+def getTrajectories():
 
     trajectories = []
     # TODO
@@ -103,7 +133,7 @@ def getSVF(trajectories):
 
 def getExpectedSVF(rewards, transition_probability, trajectories):
     # expected state visitation frequencies
-    # policy = findPolicy(transition_probability, rewards)
+    # policy = getPolicy(transition_probability, rewards)
 
     # Get initial state frequencies
     
@@ -133,17 +163,23 @@ def getExpectedSVF(rewards, transition_probability, trajectories):
 
 
 
-def findPolicy(transition_probabilities, rewards):
+def getPolicy(transition_probabilities, rewards):
 
     # TODO
 
-    # Find optimal policy
+    # Get optimal policy
 
-    # pull this out to irl method?
     value_function = getOptimalValueFunction(transition_probabilities,
                                              reward,
                                              discount_factor,
                                              conv_threshold)
+    # If stochastic... do a thing
+    
+    #
+    
+    
+    
+    
 
 
 
@@ -187,30 +223,3 @@ def getOptimalValueFunction(transition_probabilities, reward, discount_factor,
 
     return V
 
-def maxEntIRL(feature_matrix, trans_probs, trajectories):
-
-    # TODO
-
-    # Initialise weights = numpy.random.uniform(size=(num_of_states,))
-
-    # Get feature matrix using all states and feature vectors
-
-    # Get expert demo trajectories
-
-    # Get feature expectations
-
-
-    # for i in range EPOCHS
-        # rewards = feature_matrix.dot(weights)
-
-        # get expected svfs (state visitation frequencies)
-
-        # rewards += learning_rate * (feature_expectations - (feature_matrix * expectedsvf))
-
-    # return feature_matrix * rewards
-
-
-
-
-
-    return rewards
