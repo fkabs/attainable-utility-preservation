@@ -109,18 +109,29 @@ def getExpectedSVF(rewards, transition_probability, trajectories):
 
 
 
-def findPolicy(transition_probability, rewards):
+def findPolicy(transition_probabilities, rewards, discount_factor):
+    """Computes the optimal policy for a given transition probability and reward
+    specification by first computing the value function and then taking greedy
+    actions based on this.
 
-    # TODO
-
-    # Find optimal policy
-
+    Reference code:
+    https://github.com/MatthewJA/Inverse-Reinforcement-Learning/blob/master/irl/value_iteration.py
+    """
+    conv_threshold = 1e-4
     # pull this out to irl method?
-    value_function = getOptimalValueFunction(transition_probabilities,
-                                             reward,
-                                             discount_factor,
-                                             conv_threshold)
+    v = getOptimalValueFunction(transition_probabilities,
+                                reward,
+                                discount_factor,
+                                conv_threshold)
 
+    n_states, n_actions, _ = transition_probabilities.shape
+    def _policy(s):
+        return max(range(n_actions),
+                   key=lambda a: sum(transition_probabilities[s, a, k] *
+                                     (rewards[k] + discount_factor * v[k])
+                                     for k in range(n_states)))
+    policy = np.array([_policy(s) for s in range(n_states)])
+    return policy
 
 
 def getOptimalValueFunction(transition_probabilities, reward, discount_factor,
