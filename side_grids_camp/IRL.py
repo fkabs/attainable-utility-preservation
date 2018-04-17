@@ -1,4 +1,6 @@
-# Major thanks to:
+"""
+Major thanks to:
+
 @misc{alger16,
   author       = {Matthew Alger},
   title        = {Inverse Reinforcement Learning},
@@ -7,29 +9,20 @@
   url          = {https://doi.org/10.5281/zenodo.555999}
 }
 
+and Dima Krasheninnikov.
+
+"""
 import numpy as np
 
 """
 # trajectories =  array of demonstration trajectories, each trajectory is an array of state action pairs
 # Trajectories must all be same length?
-
-
 # feature_matrix = array of feature vectors, each feature vector is associated with the state at that index
-
-
 # transition_probabilities = probability of moving from one state to another given action, 1 for legal moves, 0 for illegal moves
-
-
 # feature_expectations = sum feature vectors of every state visited in every demo trajectory, divide result by the number of trajectories, to get feature expectation (over all states) for an average demo trajectory?
-
 # policy = an array of length n_states containing which action to perform in corresponding state?
-
-
 # states = all possible states in environment
-
-
 """
-
 
 N_ACTIONS = 4
 N_STATES = # TODO
@@ -168,27 +161,29 @@ def getExpectedSVF(rewards, transition_probability, trajectories):
             
     return expected_svf.sum(axis=1) # and return sum over all trajectories?
 
-
-
 def getPolicy(transition_probabilities, rewards, value_function=None):
+    """Computes the optimal policy for a given transition probability and reward
+    specification by first computing the value function and then taking greedy
+    actions based on this.
 
-    # TODO
-
+    Reference code:
+    https://github.com/MatthewJA/Inverse-Reinforcement-Learning/blob/master/irl/value_iteration.py
+    """
     # Get optimal policy
     if value_function is None:
         value_function = getOptimalValueFunction(transition_probabilities, rewards, DISCOUNT, THRESHOLD)
         
         
     # If stochastic... do a thing here (see https://github.com/MatthewJA/Inverse-Reinforcement-Learning/blob/master/irl/value_iteration.py
-    
+
+    n_states, n_actions, _ = transition_probabilities.shape
     def _policy(s):
         return max(range(n_actions),
                    key=lambda a: sum(transition_probabilities[s, a, k] *
-                                     (reward[k] + discount * v[k])
+                                     (rewards[k] + discount_factor * v[k])
                                      for k in range(n_states)))
     policy = np.array([_policy(s) for s in range(n_states)])
     return policy
-
 
 
 def getOptimalValueFunction(transition_probabilities, reward, discount_factor,
