@@ -123,12 +123,17 @@ def getExpectedSVF(rewards, transition_probability, trajectories):
         # set all except initial svf to 0
         # expected_svf[:,t] = 0
         # for each state1, action, state2 (3-loop)
-            # expected_svf[state2, t] += expected_svf[i, t-1] * policy[state1, action]
-    return expected_svf
+           
+            # the expected state vis freq for each state in each trajectory is the previous state vis freq * the probability of taking that action in that state * the probability of taking that action in the previous state leading to this state....??
+            
+            # expected_svf[state2, t] += expected_svf[state1, t-1] * policy[state1, action] * transition_probabilities[state1, action, state2]
+            
+            
+    return expected_svf.sum(axis=1) # and return sum over all trajectories?
 
 
 
-def findPolicy(transition_probability, rewards):
+def findPolicy(transition_probabilities, rewards):
 
     # TODO
 
