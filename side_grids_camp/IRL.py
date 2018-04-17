@@ -1,4 +1,5 @@
-#Thanks to:
+"""
+Thanks to:
 @misc{alger16,
   author       = {Matthew Alger},
   title        = {Inverse Reinforcement Learning},
@@ -7,6 +8,9 @@
   url          = {https://doi.org/10.5281/zenodo.555999}
 }
 
+and Dima Krasheninnikov
+
+"""
 import numpy as np
 
 """
