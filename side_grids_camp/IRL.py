@@ -9,19 +9,18 @@
 
 import numpy as np
 
+"""
+# trajectories =  array of demonstration trajectories, each trajectory is an array of state action pairs
 
-# Instantiate gridworld
 
-# Each state represented by integer? and associated feature vector
+# feature_matrix = array of feature vectors, each feature vector is associated with the state at that index
 
-# array of trajectories, each trajectory is an array of state action pairs
-trajectories = getExampleTrajectories()
 
-# array of feature vectors, each feature vector is associated with the state at that index
-feature_matrix = getFeatureMatrix()
+# transition_probabilities = probability of moving from one state to another given action, 1 for legal moves, 0 for illegal moves
 
-# probability of moving from one state to another given action, 1 for legal moves, 0 for illegal moves
-trans_probs = getTransitionProbabilities()
+# feature_expectations = sum feature vectors of every state visited in every demo trajectory, divide result by the number of trajectories, to get feature expectation (over all states) for an average demo trajectory?
+
+"""
 
 
 num_of_actions = 4
@@ -37,7 +36,6 @@ def stateToInt(state):
     # Return int
     
 
-
 def getExampleTrajectories():
     
     trajectories = []
@@ -46,6 +44,8 @@ def getExampleTrajectories():
     # Could generate (take num, len, policy)or do by hand here   
     return trajectories
     
+    
+
 def getFeatureMatrix(all_states, feature_vectors):
     
     feature_matrix = []
@@ -68,7 +68,7 @@ def getTransitionProbabilities(gridworld_environment):
 
 def getFeatureExpectations(feature_matrix, trajectories):
     
-    # the average feature vector?
+    # feature_expectations = sum feature vectors of every state visited in every demo trajectory, divide result by the number of trajectories, to get feature expectation (over all states) for an average demo trajectory?
     
     feature_expectations = np.zeros(feature_matrix.shape[1])
 
@@ -82,6 +82,7 @@ def getFeatureExpectations(feature_matrix, trajectories):
 
 
 def getSVF(number_of_states, trajectories):
+    # State visitiation frequencies
     
     svf = np.zeros(n_states)
 
@@ -115,14 +116,19 @@ def maxEntIRL(feature_matrix, num_of_actions, discount, trans_probs, trajectorie
     # TODO
     
     # Initialise weights = numpy.random.uniform(size=(num_of_states,))
+    
     # Get feature matrix using all states and feature vectors
+    
+    # Get expert demo trajectories
+    
+    # Get feature expectations
     
     # for i in range epochs
         # rewards = feature_matrix.dot(weights)
         # get expected svfs (state visitation frequencies)
         # rewards += learning_rate * (feature_expectations - feature_matrix * expected svfs)
         
-    # return feature_matrix* rewards
+    # return feature_matrix * rewards
     
         
     
