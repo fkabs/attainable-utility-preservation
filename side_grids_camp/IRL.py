@@ -62,7 +62,7 @@ def trajectory_from_demo(demo, env, board_mapper, board_state_map):
                                  board_state_map,
                                  agent_gs,
                                  box_gs)
-                                 
+
         states.append(state_idx)
         actions.append(action.value)
 
@@ -70,8 +70,8 @@ def trajectory_from_demo(demo, env, board_mapper, board_state_map):
     trajectory = np.stack((states, actions))
     return trajectory
 
-def make_trajectories(demos, env, board_mapper):
-    trajectories = [trajectory_from_demo(demo, env, board_mapper) for demo in demos]
+def make_trajectories(demos, env, board_mapper, board_state_map):
+    trajectories = [trajectory_from_demo(demo, env, board_mapper, board_state_map) for demo in demos]
     return np.array(trajectories)
 
 def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
