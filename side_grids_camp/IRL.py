@@ -17,9 +17,9 @@ import numpy as np
 """
 # trajectories =  array of demonstration trajectories, each trajectory is an array of state action pairs
 # Trajectories must all be same length?
-# feature_matrix = array of feature vectors, each feature vector is associated with the state at that index
+# TODO: feature_matrix = array of feature vectors, each feature vector is associated with the state at that index
 # transition_probabilities = probability of moving from one state to another given action, 1 for legal moves, 0 for illegal moves
-# feature_expectations = sum feature vectors of every state visited in every demo trajectory, divide result by the number of trajectories, to get feature expectation (over all states) for an average demo trajectory?
+# TODO: feature_expectations = sum feature vectors of every state visited in every demo trajectory, divide result by the number of trajectories, to get feature expectation (over all states) for an average demo trajectory?
 # policy = an array of length n_states containing which action to perform in corresponding state?
 # states = all possible states in environment
 """
@@ -31,6 +31,20 @@ LEARNING_RATE = 0.01
 N_EPOCHS = 200
 DISCOUNT = 0.01
 THRESHOLD = 1e-2
+
+"""
+def featureComputer(states, states_to_boards, features):
+    feature_matrix = []
+    for each state:
+        board = states_to_boards[state]
+        state_features = np.concat([i.process(board) for i in features])
+        feature_matrix.append(state_features)
+
+    feature_matrix = np.stack(feature_matrix)
+    return feature_matrix
+
+
+"""
 
 environment = gridworld_env
 feature_vectors = getFeatureVectors()
@@ -123,11 +137,11 @@ def getSVF(trajectories):
 
     svf = np.zeros(n_states)
 
-        for trajectory in trajectories:
-            for state, _, _ in trajectory:
-                svf[state] += 1
+    for trajectory in trajectories:
+        for state, _, _ in trajectory:
+            svf[state] += 1
 
-        svf /= trajectories.shape[0]
+    svf /= trajectories.shape[0]
 
     return svf
 
@@ -188,7 +202,7 @@ def getPolicy(transition_probabilities, rewards, value_function=None):
     return policy
 
 
-def getOptimalValueFunction(transition_probabilities, reward, discount_factor,
+def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
                             conv_threshold):
     """Iterates over states s performing policy evaluation with the standard
     Bellman backup equation for current policy \pi:
@@ -221,7 +235,7 @@ def getOptimalValueFunction(transition_probabilities, reward, discount_factor,
     while diff > threshold:
         V_prev = np.copy(V)
 
-        Q = reward + gamma * np.dot(transition_probabilities, V_prev)
+        Q = rewards + gamma * np.dot(transition_probabilities, V_prev)
         V = np.amax(Q, axis=1)
 
         diff = np.amax(abs(V_prev - V))
