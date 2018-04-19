@@ -52,6 +52,8 @@ maxEntIRL(states, feature_matrix, transition_probabilities, trajectories)
 
 """
 
+def trajectory_from_actions(action_seq, env):
+
 def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
               learning_rate=1e-2, n_epochs=1000):
     """Computes the weights for the features used in the construction of
