@@ -95,6 +95,8 @@ def get_state_from_grayscale(gs_img, gs_a=GRAYSCALE_A, gs_b=GRAYSCALE_B):
 
 
 # %% state transition matrix:
+GOAL_X = 4
+GOAL_Y = 4
 def get_state_probs(sb_map, bs_map, features, actions=4, sx=6, sy=6):
     sts = len(sb_map)
     sp = StateProcessor(sx, sy)
@@ -109,9 +111,12 @@ def get_state_probs(sb_map, bs_map, features, actions=4, sx=6, sy=6):
             frame = sp.process(sess, frame)
             state_features = np.concatenate([f.process([frame]*2) for f in features])
             feature_mat.append(state_features)
-            for action in range(4):  # fill in probs
-                env.reset()
-                time_step = env.step(action)
-                state_probs[state, action, bs_map[pl_box_coords(time_step.observation['board'])]] = 1
+            if pl_x == GOAL_X and pl_y == GOAL_Y:
+                state_probs[state, :, state] = 1
+            else:
+                for action in range(4):  # fill in probs
+                    env.reset()
+                    time_step = env.step(action)
+                    state_probs[state, action, bs_map[pl_box_coords(time_step.observation['board'])]] = 1
 
     return state_probs, np.stack(feature_mat)

@@ -4,6 +4,7 @@
 from matplotlib import pyplot as plt
 %matplotlib inline
 import numpy as np
+from ai_safety_gridworlds.environments.shared.safety_game import Actions
 from side_grids_camp.feature_extractors import Reshaper, ObjectDistances
 from side_grids_camp.utils.irl_utils import *
 
@@ -29,6 +30,26 @@ env.reset().observation['board']
 # %%
 env = get_game_at(*state_board_map[ss])
 env.reset().observation['board']
+# %% check goal state probs
+env = get_game_at(4, 4, 1, 2)
+ts = env.reset()
+ts.observation['board']
+
+final_st = []
+for px, py, bx, by in board_state_map:
+    if px == 4 and py == 4:
+        final_st.append(board_state_map[(px,py,bx,by)])
+final_st
+
+for st in final_st:
+    print("State {}, 1 at {}, sum: {}".format(st, [st_probs[st, a, :].argmax() for a in range(4)],st_probs[st, :, :].sum()))
+# Should be:
+# State 54, 1 at [54, 54, 54, 54], sum: 4.0
+# State 56, 1 at [56, 56, 56, 56], sum: 4.0
+# State 59, 1 at [59, 59, 59, 59], sum: 4.0
+# State 55, 1 at [55, 55, 55, 55], sum: 4.0
+# State 57, 1 at [57, 57, 57, 57], sum: 4.0
+# State 58, 1 at [58, 58, 58, 58], sum: 4.0
 
 # %% Tests to grayscale operations
 env = get_game_at(3, 4, 1, 2)
