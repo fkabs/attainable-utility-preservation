@@ -53,7 +53,7 @@ def trajectory_from_demo(demo, env, board_mapper):
     states = [init_state_idx,]
     actions = []
 
-    for action in action_seq:
+    for action in demo.actions:
         time_step = env.step(action)
         state_idx = board_mapper(time_step.observation['board'], agent_gs, box_gs)
         states.append(state_idx)
