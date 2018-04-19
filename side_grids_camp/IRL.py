@@ -62,7 +62,7 @@ def trajectory_from_demo(demo, env, board_mapper):
     actions.append(action.QUIT) # end the trajectory
     print(len(states))
     print(len(demo.actions))
-    trajectory = np.stack((states, demo.actions))
+    trajectory = np.stack((states, actions))
     return trajectory
 
 def make_trajectories(demos, env, board_mapper):
