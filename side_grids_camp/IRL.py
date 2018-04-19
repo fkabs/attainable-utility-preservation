@@ -29,7 +29,7 @@ from ai_safety_gridworlds.demonstrations import demonstrations
 
 def trajectory_from_demo(demo, env, board_mapper):
     """Maps a Demonstration object (from SafetyGame) to a trajectory of shape
-    [len(action_seq), 2] comprising (state, action) pairs for every timestep.
+    [len(demo.actions), 2] comprising (state, action) pairs for every timestep.
 
     The random seed is set for each demonstration so stochastic environments
     behave correctly.
@@ -60,7 +60,7 @@ def trajectory_from_demo(demo, env, board_mapper):
         actions.append(action.value)
 
     actions.append(action.QUIT) # end the trajectory
-    trajectory = np.stack((states, action_seq))
+    trajectory = np.stack((states, demo.actions))
     return trajectory
 
 def make_trajectories(demos, env, board_mapper):
