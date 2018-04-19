@@ -22,7 +22,6 @@ import numpy as np
 # TODO: feature_expectations = sum feature vectors of every state visited in every demo trajectory, divide result by the number of trajectories, to get feature expectation (over all states) for an average demo trajectory?
 # policy = an array of length n_states containing which action to perform in corresponding state?
 # states = all possible states in environment
-"""
 
 N_ACTIONS = 4
 N_STATES = # TODO
@@ -32,7 +31,6 @@ N_EPOCHS = 200
 DISCOUNT = 0.01
 THRESHOLD = 1e-2
 
-"""
 def featureComputer(states, states_to_boards, features):
     feature_matrix = []
     for each state:
@@ -43,9 +41,6 @@ def featureComputer(states, states_to_boards, features):
     feature_matrix = np.stack(feature_matrix)
     return feature_matrix
 
-
-"""
-
 environment = gridworld_env
 feature_vectors = getFeatureVectors()
 feature_matrix = getFeatureMatrix(states, feature_vectors)
@@ -55,20 +50,50 @@ trajectories = getTrajectories()
 
 maxEntIRL(states, feature_matrix, transition_probabilities, trajectories)
 
+"""
 
-def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories):
+def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
+              learning_rate=1e-2, n_epochs=1000):
+    """Computes the weights for the features used in the construction of
+    feature_matrix using maximum entropy IRL. The gradient step for the weights
+    \theta is given by the loss L:
 
-    weights = numpy.random.uniform(size=(N_FEATURES))
+    \grad_{\theta} L = \alpha(empirical feature counts - feature counts at current \theta)
+
+    with learning rate \alpha. Feature counts at current \theta are found by
+    solving the MDP with rewards given by the current weights. This requires
+    solving an MDP at every gradient step.
+
+    Args:
+        states: array of size (n_states)
+        feature_matrix: array of size (n_states, n_features)
+        transition_probabilities: array of size (n_states, n_actions, n_states)
+        trajectories: array of size (n_trajectories, traj_length, 2)
+        learning_rate: float
+        n_epochs: int
+
+    Returns:
+        rewards: array of size (n_states)
+        weights: array of size (n_features)
+    """
+    ## Initialisation
+    n_states, n_features = feature_matrix.shape
+    _, n_actions, _ = transition_probabilities.shape
+    weights = numpy.random.uniform(size=(n_features))
+
+    ## Get feature expectations
     feature_expectations = getFeatureExpectations(feature_matrix, trajectories)
 
-    for i in range(N_EPOCHS):
+    ## Gradient steps
+    for i in range(n_epochs):
         rewards = feature_matrix.dot(weights)
         expected_svf = getExpectedSVF(rewards, transition_probabilities, trajectories)
 
         ## Should this be weights rather than rewards?
-        rewards += LEARNING_RATE * (feature_expectations - feature_matrix.T.dot(expected_svf))
+        rewards += learning_rate * (feature_expectations - feature_matrix.T.dot(expected_svf))
 
-    return feature_matrix.dot(weights).reshape((N_STATES,))
+    ## Return rewards and weights
+    return feature_matrix.dot(weights).reshape((n_states,)), weights
 
 
 def getFeatureVectors(states?):
