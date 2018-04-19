@@ -96,7 +96,7 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
     return feature_matrix.dot(weights).reshape((n_states,)), weights
 
 
-def getFeatureVectors(states?):
+def getFeatureVectors(states):
 
     # TODO
     return feature_vectors
