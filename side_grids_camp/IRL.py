@@ -172,7 +172,7 @@ def getFeatureExpectations(feature_matrix, trajectories):
     feature_expectations = np.zeros(feature_matrix.shape[1])
 
     for trajectory in trajectories:
-        for state, _, _ in trajectory:
+        for state, _ in trajectory:
             feature_expectations += feature_matrix[state]
 
     feature_expectations /= trajectories.shape[0]
@@ -186,7 +186,7 @@ def getSVF(trajectories):
     svf = np.zeros(n_states)
 
     for trajectory in trajectories:
-        for state, _, _ in trajectory:
+        for state, _ in trajectory:
             svf[state] += 1
 
     svf /= trajectories.shape[0]
@@ -207,7 +207,7 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories):
 
     ## Initialisation
     n_states, n_actions, _ = transition_probabilities.shape
-    num_traj, traj_length = trajectories.shape
+    num_traj, traj_length, _ = trajectories.shape
     expected_svf = np.zeros((n_states, traj_length))
 
     ## Get initial state frequencies
