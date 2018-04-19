@@ -110,7 +110,7 @@ def get_state_probs(sb_map, bs_map, features, actions=4, sx=6, sy=6):
             env = get_game_at(pl_x, pl_y, box_x, box_y)
             frame = np.moveaxis(env.reset().observation['RGB'], 0, -1)
             frame = sp.process(sess, frame)
-            state_features = np.concatenate([f.process([frame]*2) for f in features])
+            state_features = np.concatenate(np.stack((frame, frame), axis=2))
             feature_mat.append(state_features)
             for action in range(4):  # fill in probs
                 env.reset()
