@@ -286,6 +286,8 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
         Q = rewards.reshape((-1,1)) + discount_factor * np.dot(transition_probabilities, V_prev)
         V = np.amax(Q, axis=1)
 
+        print('Dot product:\n', np.dot(transition_probabilities, V_prev))
+        print('Q:\n', Q)
         print('V_prev:\n', V_prev)
         print('V:\n', V)
 
