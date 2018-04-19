@@ -44,16 +44,18 @@ def trajectory_from_demo(demo, env, board_mapper):
     """
     np.random.seed(demo.seed)
     env.reset()
+    agent_gs = 2.
+    box_gs = 4.
 
     time_step = env.reset()
-    init_state_idx = board_mapper(time_step.observation['board'])
+    init_state_idx = board_mapper(time_step.observation['board'], agent_gs, box_gs)
 
     states = [init_state_idx,]
     actions = []
 
     for action in action_seq:
         time_step = env.step(action)
-        state_idx = board_mapper(time_step.observation['board'])
+        state_idx = board_mapper(time_step.observation['board'], agent_gs, box_gs)
         states.append(state_idx)
         actions.append(action.value)
 
