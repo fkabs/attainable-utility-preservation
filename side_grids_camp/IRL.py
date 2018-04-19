@@ -287,6 +287,6 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
         V = np.amax(Q, axis=1)
 
         diff = np.amax(abs(V_prev - V))
-        print(diff)
 
+    print('Converged one round')
     return V
