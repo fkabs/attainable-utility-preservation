@@ -52,7 +52,34 @@ maxEntIRL(states, feature_matrix, transition_probabilities, trajectories)
 
 """
 
-def trajectory_from_actions(action_seq, env):
+def trajectory_from_actions(action_seq, env, board_mapper):
+    """Maps a sequence of actions (e.g. [0, 0, 1, 2, 3]) to a trajectory of
+    shape [len(action_seq), 2] comprising (state, action) pairs for every
+    timestep. If the environment is stochastic, then the state sequence is not
+    guaranteed to be the same if the function is called twice on the same action
+    sequence. This could be guaranteed by (for instance) allowing a random seed
+    to be set as an optional argument when calling the function.
+
+    Args:
+        action_seq: array of size (len_traj)
+        env: a pycolab environment
+        board_mapper: a dictionary mapping boards to state indices
+
+    Returns:
+        trajectory: array of size (len_traj, 2)
+    """
+    time_step = env.reset()
+    init_state_idx = board_mapper[time_step.observation['board']]
+
+    states = [init_state_idx,]
+
+    for action in action_seq:
+        time_step = env.step(action)
+        state_idx = board_mapper[time_step.observation['board']]
+        states.append(state_idx)
+
+    trajectory = np.stack((states, action_seq))
+    return trajectory
 
 def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
               learning_rate=1e-2, n_epochs=1000):
