@@ -34,7 +34,7 @@ class Reshaper():
         if ref is None:
             ref = np.zeros([im_width, im_height])
 
-        assert ref.shape == [im_width, im_height]
+        assert ref.shape == (im_width, im_height)
         self.ref = np.reshape(ref, [im_width * im_height, -1])
 
     def process(self, statePair):
@@ -45,8 +45,8 @@ class Reshaper():
             statePair: list of 2 grayscale images [prev_img, img]
         """
         _, img = statePair
-        assert img.shape == [self.im_width, self.im_height]
-        return np.reshape(img, [self.im_width * self.im_height, -1]) - self.ref
+        assert img.shape == (self.im_width, self.im_height)
+        return np.squeeze(np.reshape(img, [self.im_width * self.im_height, -1]) - self.ref)
 
 
 class ObjectDistances():
@@ -74,9 +74,9 @@ class ObjectDistances():
         for c1, c2 in self.colourpairs:
             coords1 = np.argwhere(img == c1)
             coords2 = np.argwhere(img == c2)
-
-            z1 = np.concat([coords1]*len(coords2))
-            z2 = np.concat([coords2]*len(coords1))
+            
+            z1 = np.concatenate([coords1]*len(coords2))
+            z2 = np.concatenate([coords2]*len(coords1))
 
             coord_diffs = np.abs(z1-z2)
             dists = coord_diffs.sum(axis=1)
