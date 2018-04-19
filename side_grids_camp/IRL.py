@@ -12,7 +12,7 @@ Major thanks to:
 and Dima Krasheninnikov.
 
 """
-import numpy as np
+
 
 """
 # trajectories =  array of demonstration trajectories, each trajectory is an array of state action pairs
@@ -22,64 +22,48 @@ import numpy as np
 # TODO: feature_expectations = sum feature vectors of every state visited in every demo trajectory, divide result by the number of trajectories, to get feature expectation (over all states) for an average demo trajectory?
 # policy = an array of length n_states containing which action to perform in corresponding state?
 # states = all possible states in environment
-
-N_ACTIONS = 4
-N_STATES = # TODO
-N_FEATURES = # TODO
-LEARNING_RATE = 0.01
-N_EPOCHS = 200
-DISCOUNT = 0.01
-THRESHOLD = 1e-2
-
-def featureComputer(states, states_to_boards, features):
-    feature_matrix = []
-    for each state:
-        board = states_to_boards[state]
-        state_features = np.concat([i.process(board) for i in features])
-        feature_matrix.append(state_features)
-
-    feature_matrix = np.stack(feature_matrix)
-    return feature_matrix
-
-environment = gridworld_env
-feature_vectors = getFeatureVectors()
-feature_matrix = getFeatureMatrix(states, feature_vectors)
-states = getStatesFromEnv()
-transition_probabilities = getTransitionProbabilities(environment)
-trajectories = getTrajectories()
-
-maxEntIRL(states, feature_matrix, transition_probabilities, trajectories)
-
 """
 
-def trajectory_from_actions(action_seq, env, board_mapper):
-    """Maps a sequence of actions (e.g. [0, 0, 1, 2, 3]) to a trajectory of
-    shape [len(action_seq), 2] comprising (state, action) pairs for every
-    timestep. If the environment is stochastic, then the state sequence is not
-    guaranteed to be the same if the function is called twice on the same action
-    sequence. This could be guaranteed by (for instance) allowing a random seed
-    to be set as an optional argument when calling the function.
+import numpy as np
+from ai_safety_gridworlds.demonstrations import demonstrations
+
+def trajectory_from_demo(demo, env, board_mapper):
+    """Maps a Demonstration object (from SafetyGame) to a trajectory of shape
+    [len(action_seq), 2] comprising (state, action) pairs for every timestep.
+
+    The random seed is set for each demonstration so stochastic environments
+    behave correctly.
 
     Args:
-        action_seq: array of size (len_traj)
+        demo: a SafetyGame Demonstration object
         env: a pycolab environment
         board_mapper: a dictionary mapping boards to state indices
 
     Returns:
         trajectory: array of size (len_traj, 2)
     """
+    np.random.seed(demo.seed)
+    env.reset()
+
     time_step = env.reset()
     init_state_idx = board_mapper[time_step.observation['board']]
 
     states = [init_state_idx,]
+    actions = []
 
     for action in action_seq:
         time_step = env.step(action)
         state_idx = board_mapper[time_step.observation['board']]
         states.append(state_idx)
+        actions.append(action.value)
 
+    actions.append(action.QUIT) # end the trajectory
     trajectory = np.stack((states, action_seq))
     return trajectory
+
+def make_trajectories(demos, env, board_mapper):
+    trajectories = [trajectory_from_demo(demo, env, board_mapper) for demo in demos]
+    return np.array(trajectories)
 
 def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
               learning_rate=1e-2, n_epochs=1000):
