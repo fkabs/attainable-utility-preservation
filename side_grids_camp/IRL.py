@@ -112,6 +112,7 @@ def getStatesFromEnv():
 def stateToInt(state):
     # TODO
     # Return int
+    pass
 
 
 def getTrajectories():
