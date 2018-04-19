@@ -203,7 +203,7 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories):
     https://github.com/MatthewJA/Inverse-Reinforcement-Learning/blob/master/irl/maxent.py
     """
     # expected state visitation frequencies
-    policy = getPolicy(transition_probability, rewards)
+    policy = getPolicy(transition_probabilities, rewards)
 
     ## Initialisation
     n_states, n_actions, _ = transition_probabilities.shape
