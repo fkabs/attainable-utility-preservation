@@ -93,7 +93,7 @@ def get_game_at(pl_x, pl_y, box_x, box_y):
 # %% grayscale sokoban board to state index
 GRAYSCALE_A = 134
 GRAYSCALE_B = 78
-def get_state_from_grayscale(gs_img, gs_a=GRAYSCALE_A, gs_b=GRAYSCALE_B):
+def get_state_from_grayscale(gs_img, board_state_map, gs_a=GRAYSCALE_A, gs_b=GRAYSCALE_B):
     return board_state_map[pl_box_coords(gs_img, agent=gs_a, box=gs_b)]
 
 

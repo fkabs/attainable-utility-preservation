@@ -27,7 +27,7 @@ and Dima Krasheninnikov.
 import numpy as np
 from ai_safety_gridworlds.demonstrations import demonstrations
 
-def trajectory_from_demo(demo, env, board_mapper):
+def trajectory_from_demo(demo, env, board_mapper, board_state_map):
     """Maps a Demonstration object (from SafetyGame) to a trajectory of shape
     [len(demo.actions), 2] comprising (state, action) pairs for every timestep.
 
@@ -48,14 +48,21 @@ def trajectory_from_demo(demo, env, board_mapper):
     box_gs = 4.
 
     time_step = env.reset()
-    init_state_idx = board_mapper(time_step.observation['board'], agent_gs, box_gs)
+    init_state_idx = board_mapper(time_step.observation['board'],
+                                  board_state_map,
+                                  agent_gs,
+                                  box_gs)
 
     states = [init_state_idx,]
     actions = []
 
     for action in demo.actions:
         time_step = env.step(action)
-        state_idx = board_mapper(time_step.observation['board'], agent_gs, box_gs)
+        state_idx = board_mapper(time_step.observation['board'],
+                                 board_state_map,
+                                 agent_gs,
+                                 box_gs)
+                                 
         states.append(state_idx)
         actions.append(action.value)
 
