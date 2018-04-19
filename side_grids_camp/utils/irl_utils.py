@@ -40,25 +40,28 @@ def get_coords(i, size_x=6, size_y=6):
     return i % size_x, i // size_y
 
 
-# %% state maps:
-size_x, size_y = sokoban_game(level=0).observation_spec()['board'].shape
+def compute_maps():
+    # %% state maps:
+    size_x, size_y = sokoban_game(level=0).observation_spec()['board'].shape
 
-size = size_x * size_y
-board_state_map = {}
-state_board_map = {}
+    size = size_x * size_y
+    board_state_map = {}
+    state_board_map = {}
 
-state_i = 0
-for pl_i in range(size):
-    for box_i in range(size):
-        if pl_i == box_i:
-            continue
-        pl_x, pl_y = get_coords(pl_i)
-        box_x, box_y = get_coords(box_i)
-        if not box_mask[box_x, box_y] or not player_mask[pl_x, pl_y]:
-            continue
-        board_state_map[(pl_x, pl_y, box_x, box_y)] = state_i
-        state_board_map[state_i] = (pl_x, pl_y, box_x, box_y)
-        state_i += 1
+    state_i = 0
+    for pl_i in range(size):
+        for box_i in range(size):
+            if pl_i == box_i:
+                continue
+            pl_x, pl_y = get_coords(pl_i)
+            box_x, box_y = get_coords(box_i)
+            if not box_mask[box_x, box_y] or not player_mask[pl_x, pl_y]:
+                continue
+            board_state_map[(pl_x, pl_y, box_x, box_y)] = state_i
+            state_board_map[state_i] = (pl_x, pl_y, box_x, box_y)
+            state_i += 1
+
+    return board_state_map, state_board_map
 
 
 # %%
