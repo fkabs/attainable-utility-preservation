@@ -74,7 +74,7 @@ class ObjectDistances():
         for c1, c2 in self.colourpairs:
             coords1 = np.argwhere(img == c1)
             coords2 = np.argwhere(img == c2)
-
+            
             z1 = np.concatenate([coords1]*len(coords2))
             z2 = np.concatenate([coords2]*len(coords1))
 
