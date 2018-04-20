@@ -103,7 +103,8 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
     ## Initialisation
     n_states, n_features = feature_matrix.shape
     _, n_actions, _ = transition_probabilities.shape
-    weights = -1.*np.random.uniform(size=(n_features))
+    #weights = -1.*np.random.uniform(size=(n_features))
+    weights = np.random.normal(size=(n_features))
 
     ## Get feature expectations
     feature_expectations = getFeatureExpectations(feature_matrix, trajectories)
@@ -254,7 +255,7 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
                 ## Normal update:
                 else:
                     s_prime = np.argmax(transition_probabilities[s,a,:])
-                    Q[s,a] = rewards[s_prime] + discount_factor*V_prev[s_prime]
+                    Q[s,a] = rewards[s_prime] + discount_factor*V_prev[s_prime] - 1.
 
         V = np.amax(Q, axis=1)
         diff = np.amax(abs(V_prev-V))
