@@ -77,7 +77,8 @@ def make_trajectories(demos, env, board_mapper, board_state_map):
     return np.array(trajectories)
 
 def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
-              learning_rate=1e-2, n_epochs=1000, horizon=100, discount=1):
+              learning_rate=1e-2, n_epochs=1000, horizon=100, discount=1,
+              weight_init=*np.random.normal(size=(n_features))):
     """Computes the weights for the features used in the construction of
     feature_matrix using maximum entropy IRL. The gradient step for the weights
     \theta is given by the loss L:
@@ -104,7 +105,7 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
     n_states, n_features = feature_matrix.shape
     _, n_actions, _ = transition_probabilities.shape
     #weights = -1.*np.random.uniform(size=(n_features))
-    weights = np.random.normal(size=(n_features))
+    weights = weight_init
 
     ## Get feature expectations
     feature_expectations = getFeatureExpectations(feature_matrix, trajectories)
@@ -229,6 +230,7 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount,
         reward: (n_states) array containing rewards for each state
         discount: float in [0,1]
         conv_threshold: float setting convergence threshold
+        horizon: number of timesteps to evaluate out to
 
     Returns a vector of values of length n_states. The following code was used
     as a reference:
