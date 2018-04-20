@@ -77,7 +77,7 @@ def make_trajectories(demos, env, board_mapper, board_state_map):
     return np.array(trajectories)
 
 def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
-              learning_rate=1e-2, n_epochs=1000):
+              learning_rate=1e-2, n_epochs=1000, horizon=100):
     """Computes the weights for the features used in the construction of
     feature_matrix using maximum entropy IRL. The gradient step for the weights
     \theta is given by the loss L:
@@ -113,7 +113,10 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
         #print('Weights:\n{}'.format(weights))
         rewards = feature_matrix.dot(weights)
         #print('Rewards:\n{}'.format(rewards))
-        expected_svf = getExpectedSVF(rewards, transition_probabilities, trajectories)
+        expected_svf = getExpectedSVF(rewards,
+                                      transition_probabilities,
+                                      trajectories,
+                                      horizon=horizon)
         #print('Feature expectations:\n{}'.format(feature_expectations))
         #print('Expected SVF:\n{}'.format(expected_svf))
         #print('Dot:\n{}'.format(feature_matrix.T.dot(expected_svf)))
@@ -141,7 +144,7 @@ def getFeatureExpectations(feature_matrix, trajectories):
     return feature_expectations
 
 
-def getExpectedSVF(rewards, transition_probabilities, trajectories):
+def getExpectedSVF(rewards, transition_probabilities, trajectories, horizon):
     """Computes the expected state visitation frequency vector for a given set
     of rewards by evaluating the policy and then using this to determine state
     occupancy probabilities at a given time. These are then summed over time.
@@ -150,7 +153,7 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories):
     https://github.com/MatthewJA/Inverse-Reinforcement-Learning/blob/master/irl/maxent.py
     """
     # expected state visitation frequencies
-    policy = getPolicy(transition_probabilities, rewards)
+    policy = getPolicy(transition_probabilities, rewards, horizon=horizon)
 
     ## Initialisation
     n_states, n_actions, _ = transition_probabilities.shape
@@ -173,7 +176,8 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories):
     # Sum over time and return
     return expected_svf.sum(axis=1)
 
-def getPolicy(transition_probabilities, rewards, discount_factor=1, threshold=1e-4, value_function=None):
+def getPolicy(transition_probabilities, rewards, discount_factor=1,
+              threshold=1e-4, value_function=None, horizon=100):
     """Computes the optimal policy for a given transition probability and reward
     specification by first computing the value function and then taking greedy
     actions based on this.
@@ -183,7 +187,11 @@ def getPolicy(transition_probabilities, rewards, discount_factor=1, threshold=1e
     """
     # Get optimal policy
     if value_function is None:
-        value_function = getOptimalValueFunction(transition_probabilities, rewards, discount_factor, threshold)
+        value_function = getOptimalValueFunction(transition_probabilities,
+                                                 rewards,
+                                                 discount_factor,
+                                                 threshold,
+                                                 horizon)
 
     # If stochastic... do a thing here (see https://github.com/MatthewJA/Inverse-Reinforcement-Learning/blob/master/irl/value_iteration.py
 
