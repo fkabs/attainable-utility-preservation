@@ -207,6 +207,8 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories):
     """
     # expected state visitation frequencies
     policy = getPolicy(transition_probabilities, rewards)
+    print(policy.shape)
+    print(transition_probabilities.shape)
 
     ## Initialisation
     n_states, n_actions, _ = transition_probabilities.shape
@@ -300,9 +302,6 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
 
         V = np.amax(Q, axis=1)
         diff = np.amax(abs(V_prev-V))
-        print(V)
-        print(V_prev-V)
-        print(diff)
 
         """
         V_prev = np.copy(V)
