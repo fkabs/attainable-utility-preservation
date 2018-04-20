@@ -81,7 +81,7 @@ class ObjectDistances():
             print(len(coords1))
             print(coords2)
             print(len(coords2))
-            if coords1 == [] or coords2 == []:
+            if (len(coords1) == 0) or (len(coords2) == 0):
                 output.append(0)
                 output.append(0)
 
