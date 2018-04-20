@@ -115,6 +115,7 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
         expected_svf = getExpectedSVF(rewards, transition_probabilities, trajectories)
         print(feature_expectations)
         print(expected_svf)
+        print(feature_matrix.T.dot(expected_svf))
 
         ## Should this be weights rather than rewards?
         weights += learning_rate * (feature_expectations - feature_matrix.T.dot(expected_svf))
