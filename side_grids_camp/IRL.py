@@ -278,11 +278,22 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
 
     n_states, n_actions, _ = transition_probabilities.shape
     V = np.copy(rewards) # initialise value at rewards
+    Q = np.zeros(n_states, n_actions)
 
     diff = float("inf")
     while diff > conv_threshold:
+        V_prev = np.copy(V)
 
+        for s in range(n_states):
+            for a in range(n_actions):
+                s_prime = np.argmax(transition_probabilities[s,a,:])
+                Q[s,a] = rewards[s_prime] + discount_factor*V_prev[s_prime]
 
+            V[s] = np.amax(Q, axis=1)
+            diff = np.amax(abs(V_prev-V))
+            print(diff)
+
+        """
         V_prev = np.copy(V)
 
         Q = rewards.reshape((-1,1)) + discount_factor * np.tensordot(transition_probabilities, V_prev, axes=1)
@@ -295,5 +306,5 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
 
         diff = np.amax(abs(V_prev - V))
         print('Diff: ', diff)
-
+        """
     return V
