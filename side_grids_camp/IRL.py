@@ -252,7 +252,12 @@ def getPolicy(transition_probabilities, rewards, discount_factor=1, threshold=1e
                    key=lambda a: sum(transition_probabilities[s, a, k] *
                                      (rewards[k] + discount_factor * value_function[k])
                                      for k in range(n_states)))
-    policy = np.array([_policy(s) for s in range(n_states)])
+    policy_indices = np.array([_policy(s) for s in range(n_states)])
+
+    ## Should incorporate tie-breaking better
+    policy = np.zeros((n_states, n_actions))
+    for s, idx in policy_indices:
+        policy[s, idx] = 1
     return policy
 
 
