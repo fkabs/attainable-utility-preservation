@@ -251,6 +251,7 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
                 ## Special case for goal states - indicated by zero transitions
                 if np.array_equal(transition_probabilities[s,a,:], np.zeros(n_states)):
                     Q[s,a] = rewards[s]
+                    print(rewards[s])
 
                 ## Normal update:
                 else:
