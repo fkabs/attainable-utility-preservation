@@ -259,8 +259,8 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
 
         V = np.amax(Q, axis=1)
         diff = np.amax(abs(V_prev-V))
-        print(Q)
-        print(diff)
+        #print(Q)
+        #print(diff)
 
         t += 1
         if horizon is not None:
