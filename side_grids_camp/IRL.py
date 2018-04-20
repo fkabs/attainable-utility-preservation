@@ -289,8 +289,14 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
 
         for s in range(n_states):
             for a in range(n_actions):
-                s_prime = np.argmax(transition_probabilities[s,a,:])
-                Q[s,a] = rewards[s_prime] + discount_factor*V_prev[s_prime]
+                ## Special case for goal states - indicated by zero transitions
+                if transition_probabilities[s,a,:] == np.zeros(n_states):
+                    Q[s,a] = rewards[s]
+
+                ## Normal update:
+                else:
+                    s_prime = np.argmax(transition_probabilities[s,a,:])
+                    Q[s,a] = rewards[s_prime] + discount_factor*V_prev[s_prime]
 
         V = np.amax(Q, axis=1)
         diff = np.amax(abs(V_prev-V))
