@@ -220,7 +220,7 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories):
     ## Get initial state frequencies
     for trajectory in trajectories:
         ## second index to trajectory indicates using state, not action
-        expected_svf[trajectory[0, 0]] += 1./num_traj # freq, not count
+        expected_svf[trajectory[0, 0], 0] += 1./num_traj # freq, not count
 
     print('Initial SVF:\n', expected_svf)
 
