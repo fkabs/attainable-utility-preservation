@@ -44,7 +44,8 @@ class Reshaper():
         Args:
             statePair: list of 2 grayscale images [prev_img, img]
         """
-        _, img = statePair
+        #_, img = statePair
+        img = statePair[:,:,1]
         assert img.shape == (self.im_width, self.im_height)
         return np.squeeze(np.reshape(img, [self.im_width * self.im_height, -1]) - self.ref)
 
