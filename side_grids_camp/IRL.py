@@ -208,6 +208,7 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories):
     # expected state visitation frequencies
     policy = getPolicy(transition_probabilities, rewards)
     print(policy.shape)
+    print(policy)
     print(transition_probabilities.shape)
 
     ## Initialisation
