@@ -79,17 +79,24 @@ class ObjectDistances():
 
             print(coords1)
             print(coords2)
-            z1 = np.concatenate([coords1]*len(coords2))
-            z2 = np.concatenate([coords2]*len(coords1))
 
-            coord_diffs = np.abs(z1-z2)
-            dists = coord_diffs.sum(axis=1)
-            closest = np.argmin(dists) # NOTE: chooses first in case of tie
+            ## Assume that the distance is zero because one is on top
+            if coords1 == [] or coords2 == []:
+                output.append(0)
+                output.append(0)
 
-            x_dist, y_dist = coord_diffs[closest]
+            else:
+                z1 = np.concatenate([coords1]*len(coords2))
+                z2 = np.concatenate([coords2]*len(coords1))
 
-            output.append(x_dist)
-            output.append(y_dist)
+                coord_diffs = np.abs(z1-z2)
+                dists = coord_diffs.sum(axis=1)
+                closest = np.argmin(dists) # NOTE: chooses first in case of tie
+
+                x_dist, y_dist = coord_diffs[closest]
+
+                output.append(x_dist)
+                output.append(y_dist)
 
         return np.array(output)
 
