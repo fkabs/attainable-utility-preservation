@@ -242,4 +242,4 @@ class IsCornered() :
         xCorners = [state[el] == self.wallCode for el in leftRight]
         yCorners = [state[el] == self.wallCode for el in upDown]
 
-        return sum(xCorners) > 0 and sum(yCorners) > 0
+        return np.array([int(sum(xCorners) > 0 and sum(yCorners) > 0)])
