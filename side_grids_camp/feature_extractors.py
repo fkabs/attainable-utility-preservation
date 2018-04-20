@@ -79,6 +79,8 @@ class ObjectDistances():
             ## Assume that the distance is zero because one is on top
             print(coords1)
             print(len(coords1))
+            print(coords2)
+            print(len(coords2))
             if coords1 == [] or coords2 == []:
                 output.append(0)
                 output.append(0)
