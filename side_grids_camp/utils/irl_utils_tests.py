@@ -43,13 +43,13 @@ final_st
 
 for st in final_st:
     print("State {}, 1 at {}, sum: {}".format(st, [st_probs[st, a, :].argmax() for a in range(4)],st_probs[st, :, :].sum()))
-# Should be:
-# State 54, 1 at [54, 54, 54, 54], sum: 4.0
-# State 56, 1 at [56, 56, 56, 56], sum: 4.0
-# State 59, 1 at [59, 59, 59, 59], sum: 4.0
-# State 55, 1 at [55, 55, 55, 55], sum: 4.0
-# State 57, 1 at [57, 57, 57, 57], sum: 4.0
-# State 58, 1 at [58, 58, 58, 58], sum: 4.0
+# Should be (zero probs of going anywhere):
+# State 54, 1 at [0, 0, 0, 0], sum: 0.0
+# State 56, 1 at [0, 0, 0, 0], sum: 0.0
+# State 59, 1 at [0, 0, 0, 0], sum: 0.0
+# State 55, 1 at [0, 0, 0, 0], sum: 0.0
+# State 57, 1 at [0, 0, 0, 0], sum: 0.0
+# State 58, 1 at [0, 0, 0, 0], sum: 0.0
 
 # %% Tests to grayscale operations
 env = get_game_at(3, 4, 1, 2)
