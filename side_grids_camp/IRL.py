@@ -111,24 +111,18 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
 
     ## Gradient steps
     for i in range(n_epochs):
-        #print('Weights:\n{}'.format(weights))
         rewards = feature_matrix.dot(weights)
-        #print('Rewards:\n{}'.format(rewards))
+
         expected_svf = getExpectedSVF(rewards,
                                       transition_probabilities,
                                       trajectories,
                                       horizon=horizon,
                                       discount=discount)
-        #print('Feature expectations:\n{}'.format(feature_expectations))
-        #print('Expected SVF:\n{}'.format(expected_svf))
-        #print('Dot:\n{}'.format(feature_matrix.T.dot(expected_svf)))
 
         ## Should this be weights rather than rewards?
         weights += learning_rate * (feature_expectations - feature_matrix.T.dot(expected_svf))
 
     ## Return rewards and weights
-    print(expected_svf)
-    print(feature_matrix.T.dot(expected_svf))
     return feature_matrix.dot(weights).reshape((n_states,)), weights
 
 def getFeatureExpectations(feature_matrix, trajectories):
@@ -264,8 +258,6 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount,
 
         V = np.amax(Q, axis=1)
         diff = np.amax(abs(V_prev-V))
-        #print(Q)
-        #print(diff)
 
         t += 1
         if horizon is not None:
