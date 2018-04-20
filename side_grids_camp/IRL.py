@@ -202,7 +202,7 @@ def getPolicy(transition_probabilities, rewards, discount_factor=1, threshold=1e
 
 
 def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
-                            conv_threshold):
+                            conv_threshold, horizon=100):
     """Iterates over states s performing policy evaluation with the standard
     Bellman backup equation for current policy \pi:
 
@@ -231,6 +231,7 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
     V = np.copy(rewards) # initialise value at rewards
     Q = np.zeros((n_states, n_actions))
 
+    t = 0
     diff = float("inf")
     while diff > conv_threshold:
         V_prev = np.copy(V)
@@ -248,6 +249,10 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
 
         V = np.amax(Q, axis=1)
         diff = np.amax(abs(V_prev-V))
+
+        t += 1
+        if horizon is not None:
+            if t==horizon: break
 
         """
         V_prev = np.copy(V)
