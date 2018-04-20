@@ -222,8 +222,6 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories):
         ## second index to trajectory indicates using state, not action
         expected_svf[trajectory[0, 0], 0] += 1./num_traj # freq, not count
 
-    print('Initial SVF:\n', expected_svf)
-
     # (I guess initial_state_probabilities would look like this: [0,1,0,0,0,0...] because our agent always starts in same place? - BUT in dynamic envs with more objects could not be.
 
     ## I suspect there's a more efficient way to do this
@@ -231,8 +229,6 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories):
         for i, j, k in product(range(n_states), range(n_actions), range(n_states)):
             expected_svf[k, t] += (expected_svf[i, t-1] * policy[i,j] *
                                    transition_probabilities[i,j,k])
-
-        print(expected_svf)
 
     # Sum over time and return
     return expected_svf.sum(axis=1)
