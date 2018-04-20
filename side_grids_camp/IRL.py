@@ -104,7 +104,7 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
     ## Initialisation
     n_states, n_features = feature_matrix.shape
     _, n_actions, _ = transition_probabilities.shape
-    weights = np.random.uniform(size=(n_features))
+    weights = -1.*np.random.uniform(size=(n_features))
 
     ## Get feature expectations
     feature_expectations = getFeatureExpectations(feature_matrix, trajectories)
