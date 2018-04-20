@@ -281,9 +281,11 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
 
     diff = float("inf")
     while diff > conv_threshold:
+
+
         V_prev = np.copy(V)
 
-        Q = rewards.reshape((-1,1)) + discount_factor * np.dot(transition_probabilities, V_prev)
+        Q = rewards.reshape((-1,1)) + discount_factor * np.tensordot(transition_probabilities, V_prev, axis=1)
         V = np.amax(Q, axis=1)
 
         print('Dot product:\n', np.dot(transition_probabilities, V_prev))
