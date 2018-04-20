@@ -278,7 +278,7 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
 
     n_states, n_actions, _ = transition_probabilities.shape
     V = np.copy(rewards) # initialise value at rewards
-    Q = np.zeros(n_states, n_actions)
+    Q = np.zeros((n_states, n_actions))
 
     diff = float("inf")
     while diff > conv_threshold:
