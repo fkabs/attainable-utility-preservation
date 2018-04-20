@@ -71,14 +71,10 @@ class ObjectDistances():
         """
         img = statePair[:,:,1]
 
-        print(img)
         output = []
         for c1, c2 in self.colourpairs:
             coords1 = np.argwhere(img == c1)
             coords2 = np.argwhere(img == c2)
-
-            print(coords1)
-            print(coords2)
 
             ## Assume that the distance is zero because one is on top
             if coords1 == [] or coords2 == []:
