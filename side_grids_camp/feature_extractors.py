@@ -77,6 +77,8 @@ class ObjectDistances():
             coords2 = np.argwhere(img == c2)
 
             ## Assume that the distance is zero because one is on top
+            print(coords1)
+            print(len(coords1))
             if coords1 == [] or coords2 == []:
                 output.append(0)
                 output.append(0)
