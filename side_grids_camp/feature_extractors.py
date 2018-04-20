@@ -224,3 +224,22 @@ def count_all_movers(state):
     counter = CountTypesOfMovingObjects()
     type_counts = counter.process(state)
     return sum(type_counts)
+
+
+
+class IsCornered() :
+    def __init__(self, wall):
+        self.wallCode = wall
+    
+    def process(self, objectCode, state) :
+        coords = np.argwhere(state == objectCode)[0]
+        
+        leftRight = [ (coords[0], max(0, coords[1]+i)) for i in range(-1,2, 2) ]
+        upDown = [ (max(0, coords[0]+i), coords[1]) for i in range(-1,2, 2) ]
+        xCorners = [state[el] == self.wallCode for el in leftRight]
+        yCorners = [state[el] == self.wallCode for el in upDown]
+        
+        return sum(xCorners) > 0 and sum(yCorners) > 0
+
+
+
