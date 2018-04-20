@@ -291,9 +291,16 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
 
             V = np.amax(Q, axis=1)
             diff = np.amax(abs(V_prev-V))
-            print(V)
-            print(V_prev)
-            print(diff)
+
+            #print(V)
+            #print(V_prev)
+            #print(diff)
+
+        fig, axes = plt.subplots(1,3)
+        axes[0].imshow(V_prev)
+        axes[1].imshow(V)
+        axes[2].imshow(V_prev-V)
+        plt.show()
 
         """
         V_prev = np.copy(V)
