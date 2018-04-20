@@ -27,6 +27,8 @@ and Dima Krasheninnikov.
 import numpy as np
 from ai_safety_gridworlds.demonstrations import demonstrations
 import matplotlib.pyplot as plt
+from itertools import product
+
 
 def trajectory_from_demo(demo, env, board_mapper, board_state_map):
     """Maps a Demonstration object (from SafetyGame) to a trajectory of shape
@@ -245,7 +247,7 @@ def getPolicy(transition_probabilities, rewards, discount_factor=1, threshold=1e
     def _policy(s):
         return max(range(n_actions),
                    key=lambda a: sum(transition_probabilities[s, a, k] *
-                                     (rewards[k] + discount_factor * v[k])
+                                     (rewards[k] + discount_factor * value_function[k])
                                      for k in range(n_states)))
     policy = np.array([_policy(s) for s in range(n_states)])
     return policy
