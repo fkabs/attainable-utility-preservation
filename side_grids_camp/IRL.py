@@ -124,6 +124,7 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
 
     ## Return rewards and weights
     print(expected_svf)
+    print(feature_matrix.T.dot(expected_svf))
     return feature_matrix.dot(weights).reshape((n_states,)), weights
 
 def getFeatureExpectations(feature_matrix, trajectories):
