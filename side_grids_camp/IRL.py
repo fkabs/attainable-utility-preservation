@@ -256,7 +256,7 @@ def getPolicy(transition_probabilities, rewards, discount_factor=1, threshold=1e
 
     ## Should incorporate tie-breaking better
     policy = np.zeros((n_states, n_actions))
-    for s, idx in policy_indices:
+    for s, idx in enumerate(policy_indices):
         policy[s, idx] = 1
     return policy
 
