@@ -70,7 +70,8 @@ class ObjectDistances():
         """
         img = statePair[:,:,1]
 
-        print(img)
+        #print(img)
+        output = []
         for c1, c2 in self.colourpairs:
             coords1 = np.argwhere(img == c1)
             coords2 = np.argwhere(img == c2)
