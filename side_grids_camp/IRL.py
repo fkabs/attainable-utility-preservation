@@ -77,7 +77,7 @@ def make_trajectories(demos, env, board_mapper, board_state_map):
     return np.array(trajectories)
 
 def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
-              learning_rate=1e-2, n_epochs=1000, horizon=100):
+              learning_rate=1e-2, n_epochs=1000, horizon=100, discount=1):
     """Computes the weights for the features used in the construction of
     feature_matrix using maximum entropy IRL. The gradient step for the weights
     \theta is given by the loss L:
@@ -117,7 +117,8 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
         expected_svf = getExpectedSVF(rewards,
                                       transition_probabilities,
                                       trajectories,
-                                      horizon=horizon)
+                                      horizon=horizon,
+                                      discount=discount)
         #print('Feature expectations:\n{}'.format(feature_expectations))
         #print('Expected SVF:\n{}'.format(expected_svf))
         #print('Dot:\n{}'.format(feature_matrix.T.dot(expected_svf)))
@@ -145,7 +146,8 @@ def getFeatureExpectations(feature_matrix, trajectories):
     return feature_expectations
 
 
-def getExpectedSVF(rewards, transition_probabilities, trajectories, horizon):
+def getExpectedSVF(rewards, transition_probabilities, trajectories, horizon,
+                   discount=1):
     """Computes the expected state visitation frequency vector for a given set
     of rewards by evaluating the policy and then using this to determine state
     occupancy probabilities at a given time. These are then summed over time.
@@ -154,7 +156,10 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories, horizon):
     https://github.com/MatthewJA/Inverse-Reinforcement-Learning/blob/master/irl/maxent.py
     """
     # expected state visitation frequencies
-    policy = getPolicy(transition_probabilities, rewards, horizon=horizon)
+    policy = getPolicy(transition_probabilities,
+                       rewards,
+                       horizon=horizon,
+                       discount=discount)
 
     ## Initialisation
     n_states, n_actions, _ = transition_probabilities.shape
@@ -177,7 +182,7 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories, horizon):
     # Sum over time and return
     return expected_svf.sum(axis=1)
 
-def getPolicy(transition_probabilities, rewards, discount_factor=1,
+def getPolicy(transition_probabilities, rewards, discount=1,
               threshold=1e-4, value_function=None, horizon=100):
     """Computes the optimal policy for a given transition probability and reward
     specification by first computing the value function and then taking greedy
@@ -190,7 +195,7 @@ def getPolicy(transition_probabilities, rewards, discount_factor=1,
     if value_function is None:
         value_function = getOptimalValueFunction(transition_probabilities,
                                                  rewards,
-                                                 discount_factor,
+                                                 discount,
                                                  threshold,
                                                  horizon)
 
@@ -200,7 +205,7 @@ def getPolicy(transition_probabilities, rewards, discount_factor=1,
     def _policy(s):
         return max(range(n_actions),
                    key=lambda a: sum(transition_probabilities[s, a, k] *
-                                     (rewards[k] + discount_factor * value_function[k])
+                                     (rewards[k] + discount * value_function[k])
                                      for k in range(n_states)))
     policy_indices = np.array([_policy(s) for s in range(n_states)])
 
@@ -211,7 +216,7 @@ def getPolicy(transition_probabilities, rewards, discount_factor=1,
     return policy
 
 
-def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
+def getOptimalValueFunction(transition_probabilities, rewards, discount,
                             conv_threshold, horizon=100):
     """Iterates over states s performing policy evaluation with the standard
     Bellman backup equation for current policy \pi:
@@ -228,7 +233,7 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
     Args:
         transition_probabilities: (n_states, n_actions, n_states) array
         reward: (n_states) array containing rewards for each state
-        discount_factor: float in [0,1]
+        discount: float in [0,1]
         conv_threshold: float setting convergence threshold
 
     Returns a vector of values of length n_states. The following code was used
@@ -255,7 +260,7 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
                 ## Normal update:
                 else:
                     s_prime = np.argmax(transition_probabilities[s,a,:])
-                    Q[s,a] = rewards[s_prime] + discount_factor*V_prev[s_prime]
+                    Q[s,a] = rewards[s_prime] + discount * V_prev[s_prime]
 
         V = np.amax(Q, axis=1)
         diff = np.amax(abs(V_prev-V))
