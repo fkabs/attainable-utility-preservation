@@ -114,8 +114,8 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
         rewards = feature_matrix.dot(weights)
         expected_svf = getExpectedSVF(rewards, transition_probabilities, trajectories)
 
-        ## Should this be weights rather than rewards?
-        rewards += learning_rate * (feature_expectations - feature_matrix.T.dot(expected_svf))
+        ## TODO: Rewards are the wrong shape. Even so, should this be rewards rather than weights?
+        weights += learning_rate * (feature_expectations - feature_matrix.T.dot(expected_svf))
 
     ## Return rewards and weights
     return feature_matrix.dot(weights).reshape((n_states,)), weights
@@ -223,7 +223,7 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories):
     ## I suspect there's a more efficient way to do this
     for t in range(1, traj_length):
         for i, j, k in product(range(n_states), range(n_actions), range(n_states)):
-            expected_svf[k, t] += (expected_svf[i, t-1] * policy[i,j] *
+            expected_svf[k, t] += (expected_svf[i, t-1] * policy[i] *
                                    transition_probabilities[i,j,k])
 
     # Sum over time and return
