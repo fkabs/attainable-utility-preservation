@@ -112,7 +112,7 @@ def get_state_probs(sb_map, bs_map, features, actions=4, sx=6, sy=6):
             state_features = np.concatenate([f.process([frame]*2) for f in features])
             feature_mat.append(state_features)
             if pl_x == GOAL_X and pl_y == GOAL_Y:
-                state_probs[state, :, state] = 1
+                continue  # we leave all the probabilites 0 (you go nowhere from goal state!)
             else:
                 for action in range(4):  # fill in probs
                     env.reset()
