@@ -77,7 +77,8 @@ def make_trajectories(demos, env, board_mapper, board_state_map):
     return np.array(trajectories)
 
 def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
-              learning_rate=1e-2, n_epochs=1000, horizon=100, discount=1):
+              learning_rate=1e-2, n_epochs=1000, horizon=100, discount=1,
+              weight_init=None):
     """Computes the weights for the features used in the construction of
     feature_matrix using maximum entropy IRL. The gradient step for the weights
     \theta is given by the loss L:
@@ -103,32 +104,30 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
     ## Initialisation
     n_states, n_features = feature_matrix.shape
     _, n_actions, _ = transition_probabilities.shape
-    #weights = -1.*np.random.uniform(size=(n_features))
-    weights = np.random.normal(size=(n_features))
+    
+    if weight_init is None:
+        weights = -1.*np.random.uniform(size=(n_features))
+
+    else:
+        weights = weight_init
 
     ## Get feature expectations
     feature_expectations = getFeatureExpectations(feature_matrix, trajectories)
 
     ## Gradient steps
     for i in range(n_epochs):
-        #print('Weights:\n{}'.format(weights))
         rewards = feature_matrix.dot(weights)
-        #print('Rewards:\n{}'.format(rewards))
+
         expected_svf = getExpectedSVF(rewards,
                                       transition_probabilities,
                                       trajectories,
                                       horizon=horizon,
                                       discount=discount)
-        #print('Feature expectations:\n{}'.format(feature_expectations))
-        #print('Expected SVF:\n{}'.format(expected_svf))
-        #print('Dot:\n{}'.format(feature_matrix.T.dot(expected_svf)))
 
         ## Should this be weights rather than rewards?
         weights += learning_rate * (feature_expectations - feature_matrix.T.dot(expected_svf))
 
     ## Return rewards and weights
-    print(expected_svf)
-    print(feature_matrix.T.dot(expected_svf))
     return feature_matrix.dot(weights).reshape((n_states,)), weights
 
 def getFeatureExpectations(feature_matrix, trajectories):
@@ -235,6 +234,7 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount,
         reward: (n_states) array containing rewards for each state
         discount: float in [0,1]
         conv_threshold: float setting convergence threshold
+        horizon: number of timesteps to evaluate out to
 
     Returns a vector of values of length n_states. The following code was used
     as a reference:
@@ -253,19 +253,12 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount,
 
         for s in range(n_states):
             for a in range(n_actions):
-                ## Special case for goal states - indicated by zero transitions
-                if np.array_equal(transition_probabilities[s,a,:], np.zeros(n_states)):
-                    Q[s,a] = rewards[s] + discount * V_prev[s]
-
-                ## Normal update:
-                else:
-                    s_prime = np.argmax(transition_probabilities[s,a,:])
-                    Q[s,a] = rewards[s_prime] + discount * V_prev[s_prime]
+                ## Bellman update; goal states are sinks
+                s_prime = np.argmax(transition_probabilities[s,a,:])
+                Q[s,a] = rewards[s_prime] + discount * V_prev[s_prime]
 
         V = np.amax(Q, axis=1)
         diff = np.amax(abs(V_prev-V))
-        #print(Q)
-        #print(diff)
 
         t += 1
         if horizon is not None:
