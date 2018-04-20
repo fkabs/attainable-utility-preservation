@@ -26,6 +26,7 @@ and Dima Krasheninnikov.
 
 import numpy as np
 from ai_safety_gridworlds.demonstrations import demonstrations
+import matplotlib.pyplot as plt
 
 def trajectory_from_demo(demo, env, board_mapper, board_state_map):
     """Maps a Demonstration object (from SafetyGame) to a trajectory of shape
