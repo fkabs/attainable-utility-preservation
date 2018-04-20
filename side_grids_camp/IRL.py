@@ -114,6 +114,10 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
         rewards = feature_matrix.dot(weights)
         expected_svf = getExpectedSVF(rewards, transition_probabilities, trajectories)
 
+        print(expected_svf.shape)
+        print(feature_expectations.shape)
+        print(feature_matrix.shape)
+
         ## Should this be weights rather than rewards?
         rewards += learning_rate * (feature_expectations - feature_matrix.T.dot(expected_svf))
 
@@ -207,9 +211,6 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories):
     """
     # expected state visitation frequencies
     policy = getPolicy(transition_probabilities, rewards)
-    print(policy.shape)
-    print(policy)
-    print(transition_probabilities.shape)
 
     ## Initialisation
     n_states, n_actions, _ = transition_probabilities.shape
