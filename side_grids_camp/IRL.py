@@ -111,9 +111,9 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
 
     ## Gradient steps
     for i in range(n_epochs):
+        print(weights)
         rewards = feature_matrix.dot(weights)
         expected_svf = getExpectedSVF(rewards, transition_probabilities, trajectories)
-        print(weights)
         print(rewards)
         print(feature_expectations)
         print(expected_svf)
@@ -124,54 +124,6 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
 
     ## Return rewards and weights
     return feature_matrix.dot(weights).reshape((n_states,)), weights
-
-
-def getFeatureVectors(states):
-
-    # TODO
-    return feature_vectors
-
-
-def getStatesFromEnv():
-
-    # TODO
-
-    return states
-
-
-def stateToInt(state):
-    # TODO
-    # Return int
-    pass
-
-
-def getTrajectories():
-
-    trajectories = []
-    # TODO
-    # (each state in traj is state action pair (state, action)
-    # Could generate (take num, len, policy)or do by hand here
-    return trajectories
-
-def getFeatureMatrix(states, feature_vectors):
-
-    feature_matrix = []
-    # TODO
-    # Each state has associated feature vector
-    # for n in range (number of possible states)
-        # append feature vector
-    return feature_matrix
-
-
-def getTransitionProbabilities(gridworld_environment):
-
-    trans_probs = []
-    # for each state
-        # for each possible action
-            # get state
-
-    return trans_probs
-
 
 def getFeatureExpectations(feature_matrix, trajectories):
 
@@ -186,20 +138,6 @@ def getFeatureExpectations(feature_matrix, trajectories):
     feature_expectations /= trajectories.shape[0]
 
     return feature_expectations
-
-
-def getSVF(trajectories):
-    # State visitiation frequencies
-
-    svf = np.zeros(n_states)
-
-    for trajectory in trajectories:
-        for state, _ in trajectory:
-            svf[state] += 1
-
-    svf /= trajectories.shape[0]
-
-    return svf
 
 
 def getExpectedSVF(rewards, transition_probabilities, trajectories):
