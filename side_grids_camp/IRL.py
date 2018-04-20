@@ -247,14 +247,9 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount,
 
         for s in range(n_states):
             for a in range(n_actions):
-                ## Special case for goal states - indicated by zero transitions
-                if np.array_equal(transition_probabilities[s,a,:], np.zeros(n_states)):
-                    Q[s,a] = rewards[s] + discount * V_prev[s]
-
-                ## Normal update:
-                else:
-                    s_prime = np.argmax(transition_probabilities[s,a,:])
-                    Q[s,a] = rewards[s_prime] + discount * V_prev[s_prime]
+                ## Bellman update; goal states are sinks
+                s_prime = np.argmax(transition_probabilities[s,a,:])
+                Q[s,a] = rewards[s_prime] + discount * V_prev[s_prime]
 
         V = np.amax(Q, axis=1)
         diff = np.amax(abs(V_prev-V))
