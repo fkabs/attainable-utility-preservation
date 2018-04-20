@@ -251,15 +251,16 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
                 ## Special case for goal states - indicated by zero transitions
                 if np.array_equal(transition_probabilities[s,a,:], np.zeros(n_states)):
                     Q[s,a] = rewards[s]
-                    print(rewards[s])
 
                 ## Normal update:
                 else:
                     s_prime = np.argmax(transition_probabilities[s,a,:])
-                    Q[s,a] = rewards[s_prime] + discount_factor*V_prev[s_prime] - 2.
+                    Q[s,a] = rewards[s_prime] + discount_factor*V_prev[s_prime]
 
         V = np.amax(Q, axis=1)
         diff = np.amax(abs(V_prev-V))
+        print(Q)
+        print(diff)
 
         t += 1
         if horizon is not None:
