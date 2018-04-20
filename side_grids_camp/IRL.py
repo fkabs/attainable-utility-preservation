@@ -29,7 +29,6 @@ from ai_safety_gridworlds.demonstrations import demonstrations
 import matplotlib.pyplot as plt
 from itertools import product
 
-
 def trajectory_from_demo(demo, env, board_mapper, board_state_map):
     """Maps a Demonstration object (from SafetyGame) to a trajectory of shape
     [len(demo.actions), 2] comprising (state, action) pairs for every timestep.
