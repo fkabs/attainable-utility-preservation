@@ -298,7 +298,7 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
             #print(diff)
 
         fig, axes = plt.subplots(1)
-        axes[0].imshow(Q)
+        axes.imshow(Q)
         plt.show()
 
         """
