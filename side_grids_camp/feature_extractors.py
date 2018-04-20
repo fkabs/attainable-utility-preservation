@@ -77,14 +77,11 @@ class ObjectDistances():
             coords2 = np.argwhere(img == c2)
 
             ## Assume that the distance is zero because one is on top
-            print(coords1)
-            print(len(coords1))
-            print(coords2)
-            print(len(coords2))
             if (len(coords1) == 0) or (len(coords2) == 0):
                 output.append(0)
                 output.append(0)
 
+            ## Otherwise find the closest
             else:
                 z1 = np.concatenate([coords1]*len(coords2))
                 z2 = np.concatenate([coords2]*len(coords1))
