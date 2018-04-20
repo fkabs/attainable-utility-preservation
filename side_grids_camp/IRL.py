@@ -232,6 +232,8 @@ def getExpectedSVF(rewards, transition_probabilities, trajectories):
             expected_svf[k, t] += (expected_svf[i, t-1] * policy[i,j] *
                                    transition_probabilities[i,j,k])
 
+        print(expected_svf)
+
     # Sum over time and return
     return expected_svf.sum(axis=1)
 
