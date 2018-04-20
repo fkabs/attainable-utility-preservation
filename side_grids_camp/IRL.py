@@ -116,12 +116,12 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
 
 
         print(feature_expectations.shape)
-        print(feature_matrix.shape)
+        print(feature_matrix.T.shape)
         print(expected_svf.shape)
         print(feature_matrix.dot(expected_svf))
 
         ## Should this be weights rather than rewards?
-        rewards += learning_rate * (feature_expectations - feature_matrix.dot(expected_svf))
+        rewards += learning_rate * (feature_expectations - feature_matrix.T.dot(expected_svf))
 
     ## Return rewards and weights
     return feature_matrix.dot(weights).reshape((n_states,)), weights
