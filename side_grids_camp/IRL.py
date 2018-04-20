@@ -263,18 +263,4 @@ def getOptimalValueFunction(transition_probabilities, rewards, discount_factor,
         if horizon is not None:
             if t==horizon: break
 
-        """
-        V_prev = np.copy(V)
-
-        Q = rewards.reshape((-1,1)) + discount_factor * np.tensordot(transition_probabilities, V_prev, axes=1)
-        V = np.amax(Q, axis=1)
-
-        print('Dot product:\n', np.dot(transition_probabilities, V_prev))
-        print('Q:\n', Q)
-        print('V_prev:\n', V_prev)
-        print('V:\n', V)
-
-        diff = np.amax(abs(V_prev - V))
-        print('Diff: ', diff)
-        """
     return V
