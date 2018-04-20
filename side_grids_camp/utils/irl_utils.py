@@ -112,6 +112,7 @@ def get_state_probs(sb_map, bs_map, features, actions=4, sx=6, sy=6):
             env = get_game_at(pl_x, pl_y, box_x, box_y)
             frame = np.moveaxis(env.reset().observation['RGB'], 0, -1)
             frame = sp.process(sess, frame)
+            print([fe.process(np.stack((frame, frame), axis=2)) for fe in features])
             state_features = np.concatenate([fe.process(np.stack((frame, frame), axis=2)) for fe in features])
             feature_mat.append(state_features)
             if pl_x == GOAL_X and pl_y == GOAL_Y:
