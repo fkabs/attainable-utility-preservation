@@ -112,9 +112,9 @@ def maxEntIRL(states, feature_matrix, transition_probabilities, trajectories,
     ## Gradient steps
     for i in range(n_epochs):
         print('Weights:\n{}'.format(weights))
+        print('Rewards:\n{}'.format(rewards))
         rewards = feature_matrix.dot(weights)
         expected_svf = getExpectedSVF(rewards, transition_probabilities, trajectories)
-        print('Rewards:\n{}'.format(rewards))
         print('Feature expectations:\n{}'.format(feature_expectations))
         print('Expected SVF:\n{}'.format(expected_svf))
         print('Dot:\n{}'.format(feature_matrix.T.dot(expected_svf)))
