@@ -17,9 +17,9 @@ and Dima Krasheninnikov.
 """
 # trajectories =  array of demonstration trajectories, each trajectory is an array of state action pairs
 # Trajectories must all be same length?
-# TODO: feature_matrix = array of feature vectors, each feature vector is associated with the state at that index
+# feature_matrix = array of feature vectors, each feature vector is associated with the state at that index
 # transition_probabilities = probability of moving from one state to another given action, 1 for legal moves, 0 for illegal moves
-# TODO: feature_expectations = sum feature vectors of every state visited in every demo trajectory, divide result by the number of trajectories, to get feature expectation (over all states) for an average demo trajectory?
+# feature_expectations = sum feature vectors of every state visited in every demo trajectory, divide result by the number of trajectories, to get feature expectation (over all states) for an average demo trajectory?
 # policy = an array of length n_states containing which action to perform in corresponding state?
 # states = all possible states in environment
 """
