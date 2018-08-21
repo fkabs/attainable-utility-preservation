@@ -1,15 +1,10 @@
 from __future__ import print_function
-import itertools
 import numpy as np
 import os
-import random
-import sys
 import tensorflow as tf
-from collections import deque, namedtuple
-import datetime
+from collections import namedtuple
 
 
-# %% StateProcessor
 class StateProcessor():
     """
     Changes gridworld RGB frames to gray scale.
@@ -35,7 +30,6 @@ class StateProcessor():
         return sess.run(self.output, { self.input_state: state })
 
 
-# %% Estimator
 class Estimator():
     """
     Q-Value Estimator neural network.
@@ -180,7 +174,6 @@ EpisodeStats = namedtuple("EpisodeStats", ["episode_lengths", "episode_rewards"]
 Transition = namedtuple("Transition", ["state", "action", "reward", "next_state", "done"])
 
 
-# %% DQNAgent
 class DQNAgent():
     """
     DQNAgent adjusted to ai-safety-gridworlds.
@@ -225,7 +218,7 @@ class DQNAgent():
         self.experiment_dir = experiment_dir
         if experiment_dir:
             self.checkpoint_dir = os.path.join(experiment_dir, "checkpoints")
-            self.checkpoint_path = os.path.join(checkpoint_dir, "model")
+            self.checkpoint_path = os.path.join(self.checkpoint_dir, "model")
             if not os.path.exists(self.checkpoint_dir):
                 os.makedirs(self.checkpoint_dir)
             latest_checkpoint = tf.train.latest_checkpoint(self.checkpoint_dir)
