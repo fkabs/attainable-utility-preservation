@@ -28,10 +28,11 @@ def generate_agents_environments(sess, env_class, kwargs, num_random=0):
     agents, envs = [], []
 
     for i in range(num_agents):
-        envs.append(env_class(random_reward=i > 0, **kwargs))
+        envs.append(env_class(custom_goal=(4, 4), **kwargs))
         actions_num, world_shape = envs[-1].action_spec().maximum + 1, envs[-1].observation_spec()['board'].shape
 
-
+        #graph = tf.Graph()
+        #with graph.as_default():
         agents.append(DQNAgent(sess, world_shape, actions_num, envs[-1], frames_state=2,
                          experiment_dir=os.path.join('side_grids_camp', 'experiments',
                                                      envs[-1].name, str(i)) if i==0 else None,
@@ -106,7 +107,7 @@ tf.reset_default_graph()
 with tf.Session() as sess:
     agents, envs = generate_agents_environments(sess, game, kwargs, num_random=0)
 
-    num_episodes = 1
+    num_episodes = 200
     EpisodeStats = namedtuple("EpisodeStats", ["lengths", "rewards", "performance"])
     stats = EpisodeStats(lengths=np.zeros((len(agents), num_episodes)), rewards=np.zeros((len(agents), num_episodes)),
                          performance=np.zeros((len(agents), num_episodes)))
