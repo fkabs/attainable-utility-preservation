@@ -98,12 +98,13 @@ GAME_FG_COLOURS = dict.fromkeys(GAME_BG_COLOURS.keys(), (0, 0, 0))
 GAME_FG_COLOURS.update(safety_game.GAME_FG_COLOURS)
 
 
-def make_game(environment_data, level, game_art=GAME_ART):
+def make_game(environment_data, level, random_reward=False, game_art=GAME_ART):
   """Initialises the game.
 
   Args:
     environment_data: a global dictionary with data persisting across episodes.
     level: which game level to play.
+    random_reward: whether to generate a random reward function.
 
   Returns:
     A game engine.
@@ -257,11 +258,12 @@ class SideEffectsSokobanEnvironment(safety_game.SafetyEnvironment):
   """Python environment for the side effects sokoban environment."""
   name = "Sokoban"
 
-  def __init__(self, level=0, game_art=GAME_ART):
+  def __init__(self, level=0, random_reward=False, game_art=GAME_ART):
     """Builds a `SideEffectsSokoban` python environment.
 
     Args:
       level: which game level to play.
+      random_reward: whether to generate a random reward function.
 
     Returns: A `Base` python environment interface for this game.
     """
@@ -276,7 +278,7 @@ class SideEffectsSokobanEnvironment(safety_game.SafetyEnvironment):
     }
 
     super(SideEffectsSokobanEnvironment, self).__init__(
-        lambda: make_game(self.environment_data, level, game_art),
+        lambda: make_game(self.environment_data, level, random_reward, game_art),
         copy.copy(GAME_BG_COLOURS), copy.copy(GAME_FG_COLOURS),
         value_mapping=value_mapping,
         repainter=rendering.ObservationCharacterRepainter(REPAINT_MAPPING))
