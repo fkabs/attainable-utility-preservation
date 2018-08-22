@@ -1,76 +1,11 @@
 from __future__ import print_function
 from collections import namedtuple
-import itertools
-import numpy as np
-import sys
-import os
+from environment_helper import *
+from ai_safety_gridworlds.environments.side_effects_sokoban import SideEffectsSokobanEnvironment as sokoban_game
 import tensorflow as tf
 import datetime
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-
-from agents.dqn import StateProcessor, Estimator, DQNAgent
-from ai_safety_gridworlds.environments.side_effects_sokoban import SideEffectsSokobanEnvironment as sokoban_game
-
-
-def generate_agents_environments(sess, env_class, kwargs, num_random=0):
-    """
-    Generate one normal agent and the given number of agents with randomly-seeded reward functions.
-
-    :param sess: TensorFlow session.
-    :param env_class: class object, expanded with random reward-generation methods.
-    :param kwargs: environmental intialization parameters.
-    :param num_random: how many reward functions to randomly seed.
-    :return:
-    """
-
-    num_agents = 1 + num_random
-    agents, envs = [], []
-
-    for i in range(num_agents):
-        envs.append(env_class(custom_goal=(4, 4), **kwargs))
-        actions_num, world_shape = envs[-1].action_spec().maximum + 1, envs[-1].observation_spec()['board'].shape
-
-        #graph = tf.Graph()
-        #with graph.as_default():
-        agents.append(DQNAgent(sess, world_shape, actions_num, envs[-1], frames_state=2,
-                         experiment_dir=os.path.join('side_grids_camp', 'experiments',
-                                                     envs[-1].name, str(i)) if i==0 else None,
-                         replay_memory_size=10000, replay_memory_init_size=500,
-                         update_target_estimator_every=250, discount_factor=1.0,
-                         epsilon_start=1.0, epsilon_end=0.1, epsilon_decay_steps=50000, batch_size=32))
-
-    return agents, envs
-
-
-def run_episode(agent, env, epsilon=None, save_frames=False):
-    """
-    Run the episode with given greediness, recording and saving the frames if desired.
-    """
-    def handle_frame(time_step):
-        if save_frames:
-            frames.append(np.moveaxis(time_step.observation['RGB'], 0, -1))
-
-    ret = 0  # cumulative return
-    frames = []
-
-    time_step = env.reset()
-    handle_frame(time_step)
-
-    for t in itertools.count():
-        action = agent.act(time_step.observation, eps=epsilon)
-        time_step = env.step(action)
-        handle_frame(time_step)
-        loss = agent.learn(time_step, action)
-
-        print("\rStep {} ({}) @ Episode {}/{}, loss: {}".format(
-            t, agent.total_t, i_episode + 1, num_episodes, loss), end="")
-        sys.stdout.flush()
-
-        ret += time_step.reward
-        if time_step.last():
-            break
-    return ret, t, env._calculate_episode_performance(time_step), frames
 
 
 def plot_images_to_ani(framesets):
@@ -107,18 +42,21 @@ tf.reset_default_graph()
 with tf.Session() as sess:
     agents, envs = generate_agents_environments(sess, game, kwargs, num_random=0)
 
-    num_episodes = 200
+    num_episodes = 2000
     EpisodeStats = namedtuple("EpisodeStats", ["lengths", "rewards", "performance"])
-    stats = EpisodeStats(lengths=np.zeros((len(agents), num_episodes)), rewards=np.zeros((len(agents), num_episodes)),
-                         performance=np.zeros((len(agents), num_episodes)))
+    stats_dims = (len(agents), num_episodes)
+    stats = EpisodeStats(lengths=np.zeros(stats_dims), rewards=np.zeros(stats_dims),
+                         performance=np.zeros(stats_dims))
 
     movies = []
     for i_agent, (agent, env) in enumerate(zip(agents, envs)):
+        print("Beginning training of agent #{}.".format(i_agent))
         for i_episode in range(num_episodes):
-                stats.lengths[i_agent, i_episode], stats.rewards[i_agent, i_episode], \
+            stats.lengths[i_agent, i_episode], stats.rewards[i_agent, i_episode], \
                 stats.performance[i_agent, i_episode], _ = run_episode(agent, env)
+            print("\rEpisode {}/{}, reward: {}".format(i_episode + 1, num_episodes,
+                                                       stats.rewards[i_agent, i_episode]), end="")
         agent.save()
-
         plt.plot(range(num_episodes), stats.rewards[i_agent])  # plot performance
 
         _, _, _, frames = run_episode(agent, env, epsilon=.1, save_frames=True)  # get frames from final policy
