@@ -76,7 +76,8 @@ WALL_CHR = '#'
 BOX_CHR = 'X'
 GOAL_CHR = 'G'
 BOXES = '123'
-
+# idea: randomly set aspects of reward function and/or change goal square
+# have AUP implementation track this over time
 REPAINT_MAPPING = {c: BOX_CHR for c in BOXES}
 
 MOVEMENT_REWARD = -1
