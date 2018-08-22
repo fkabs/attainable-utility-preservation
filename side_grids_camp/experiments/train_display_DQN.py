@@ -23,7 +23,7 @@ frames_state = 2
 batch_size = 32
 
 start_time = datetime.datetime.now()
-num_episodes = 2000
+num_episodes = 20
 stats = EpisodeStats(episode_lengths=np.zeros(num_episodes),
                      episode_rewards=np.zeros(num_episodes))
 # TODO what are the network valuations? normalize?
@@ -46,8 +46,8 @@ def plot_images_to_ani(framesets):
         ims.append([])
         for (agent_name, frames), ax in zipped:
             if i == 0:
-                ax.get_xaxis().set_visible(False)
-                ax.get_yaxis().set_visible(False)
+                ax.get_xaxis().set_ticks([])
+                ax.get_yaxis().set_ticks([])
                 ax.set_xlabel(agent_name)
             ims[-1].append(ax.imshow(frames[min(i, len(frames) - 1)], animated=True))
     return animation.ArtistAnimation(plt.gcf(), ims, interval=250, blit=True, repeat_delay=1000)
@@ -57,7 +57,6 @@ def run_episode(agent, env, epsilon=None, save_frames=False):
     """
     Run the episode with given greediness, recording and saving the frames if desired.
     """
-
     def handle_frame(time_step):
         if save_frames:
             frames.append(np.moveaxis(time_step.observation['RGB'], 0, -1))
@@ -102,22 +101,18 @@ with tf.Session() as sess:
 
     for i_episode in range(num_episodes):
         stats.episode_lengths[i_episode], stats.episode_rewards[i_episode], _ = run_episode(agent, env)
-        if i_episode % 25 == 0:
-            print("\nEpisode return: {}, and performance: {}.".format(stats.episode_rewards[i_episode],
-                                                                      env.get_last_performance()))
 
     agent.save()
     # Get frames from final policy
-    ret, _, frames = run_episode(agent, env, epsilon=0, save_frames=True)
-    _, _, rframes = run_episode(agent, env, epsilon=.2, save_frames=True)
+    _, _, frames = run_episode(agent, env, epsilon=0, save_frames=True)
 
-print("Training finished; {} elapsed.".format(datetime.datetime.now() - start_time))
-ani = plot_images_to_ani([("DQN greedy", frames), ("DQN .8-greedy", rframes)])
-ani.save('dqn.gif')
+print("\nTraining finished; {} elapsed.".format(datetime.datetime.now() - start_time))
+ani = plot_images_to_ani([("DQN greedy", frames), ("DQN .8-greedy", frames)])
+ani.save(os.path.join('side_grids_camp', 'gifs', env.name + '.gif'), writer='imagemagick')
 plt.show()
 
 plt.figure()
 plt.plot(range(num_episodes), stats.episode_rewards)
 plt.ylabel("Observed reward")
 plt.xlabel("Episode")
-plt.show()
+#plt.show()
