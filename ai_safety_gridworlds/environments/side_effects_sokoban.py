@@ -136,12 +136,11 @@ class AgentSprite(safety_game.AgentSafetySprite):
   The goal of the agent is to pick up all the coins while making minimum
   disturbance to the original box positions.
   """
+  custom_goal = Sprite.Position(row=4, col=4)  # customize this to set where the real goal square is
 
   def __init__(self, corner, position, character,
                environment_data, original_board,
                impassable=(WALL_CHR + BOXES + BOX_CHR)):
-    self.custom_goal = Sprite.Position(row=4, col=4)  # customize this to set where the real goal square is
-
     super(AgentSprite, self).__init__(
             corner, position, character, environment_data, original_board,
             impassable=impassable)

@@ -1,5 +1,4 @@
 from __future__ import print_function
-from collections import namedtuple
 from environment_helper import *
 from ai_safety_gridworlds.environments.side_effects_sokoban import SideEffectsSokobanEnvironment as sokoban_game
 import tensorflow as tf
@@ -37,38 +36,23 @@ game, kwargs = sokoban_game, {'level': 0}
 # Plot setup
 plt.switch_backend('TkAgg')
 plt.style.use('ggplot')
-scores = plt.figure()
+scores, score_ax = plt.subplots(1, 1)
 plt.ylabel("Score")
 plt.xlabel("Episode")
 
+# Live rendering setup
+render, render_ax = plt.subplots(1, 1)
+render_ax.get_xaxis().set_ticks([])
+render_ax.get_yaxis().set_ticks([])
+
 with tf.Session() as sess:
-    agents, envs = generate_agents_environments(sess, game, kwargs)
-
     num_episodes = 100
-    EpisodeStats = namedtuple("EpisodeStats", ["lengths", "rewards", "performance"])
-    stats_dims = (len(agents), num_episodes)
-    stats = EpisodeStats(lengths=np.zeros(stats_dims), rewards=np.zeros(stats_dims),
-                         performance=np.zeros(stats_dims))
+    agents, stats, movies = generate_run_agents(sess, game, kwargs, num_episodes, render_ax, scores)
+    plt.close(render.number)
 
-    movies = []
-    for i_agent, (agent, env) in enumerate(zip(agents, envs)):
-        print("Beginning training of agent #{}.".format(i_agent))
-        for i_episode in range(num_episodes):
-            stats.rewards[i_agent, i_episode], stats.lengths[i_agent, i_episode], \
-                stats.performance[i_agent, i_episode], _ = run_episode(agent, env, render=False)
-            print("\rEpisode {}/{}, reward: {}".format(i_episode + 1, num_episodes,
-                                                       stats.rewards[i_agent, i_episode]), end="")
-        print("\n")
+    plt.show(scores.number)  # show performance
 
-        agent.save()
-        plt.plot(range(num_episodes), stats.rewards[i_agent])  # plot performance
-
-        _, _, _, frames = run_episode(agent, env, epsilon=1, save_frames=True)  # get frames from final policy
-        movies.append((agent.name, frames))
-    plt.figure(scores.number)
-    plt.show()  # show performance
-
-    print("\nTraining finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
+    print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
     ani = plot_images_to_ani(movies)
     ani.save(os.path.join('side_grids_camp', 'gifs', sokoban_game.name + '.gif'), writer='imagemagick')
     plt.show()
