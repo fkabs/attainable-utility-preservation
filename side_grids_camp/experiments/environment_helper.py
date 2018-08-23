@@ -22,7 +22,7 @@ def derive_possible_rewards(env_class, kwargs):
 
     # First, all of the positions the agent might want to reach - inaccessible position Q-functions shouldn't change
     free_spaces = np.where(time_step.observation['board'] == env._value_mapping[' '])
-    free_spaces = zip(free_spaces[0], free_spaces[1])
+    free_spaces = zip(free_spaces[0], free_spaces[1])  # increment since (1,1) is top-left origin.
     free_spaces = [(str(tup), tup) for tup in free_spaces]
 
     if env_class == sokoban.SideEffectsSokobanEnvironment and kwargs.get('level') == 1:

@@ -44,7 +44,7 @@ plt.xlabel("Episode")
 with tf.Session() as sess:
     agents, envs = generate_agents_environments(sess, game, kwargs)
 
-    num_episodes = 200
+    num_episodes = 100
     EpisodeStats = namedtuple("EpisodeStats", ["lengths", "rewards", "performance"])
     stats_dims = (len(agents), num_episodes)
     stats = EpisodeStats(lengths=np.zeros(stats_dims), rewards=np.zeros(stats_dims),
@@ -53,10 +53,9 @@ with tf.Session() as sess:
     movies = []
     for i_agent, (agent, env) in enumerate(zip(agents, envs)):
         print("Beginning training of agent #{}.".format(i_agent))
-
         for i_episode in range(num_episodes):
             stats.rewards[i_agent, i_episode], stats.lengths[i_agent, i_episode], \
-                stats.performance[i_agent, i_episode], _ = run_episode(agent, env)
+                stats.performance[i_agent, i_episode], _ = run_episode(agent, env, render=False)
             print("\rEpisode {}/{}, reward: {}".format(i_episode + 1, num_episodes,
                                                        stats.rewards[i_agent, i_episode]), end="")
         print("\n")
@@ -64,7 +63,7 @@ with tf.Session() as sess:
         agent.save()
         plt.plot(range(num_episodes), stats.rewards[i_agent])  # plot performance
 
-        _, _, _, frames = run_episode(agent, env, epsilon=0, save_frames=True, render=True)  # get frames from final policy
+        _, _, _, frames = run_episode(agent, env, epsilon=1, save_frames=True)  # get frames from final policy
         movies.append((agent.name, frames))
     plt.figure(scores.number)
     plt.show()  # show performance

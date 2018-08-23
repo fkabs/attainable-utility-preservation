@@ -116,7 +116,7 @@ def make_game(environment_data, level, custom_goal=None, game_art=GAME_ART):
   NewSprite = AgentSprite
   if level == 0 and custom_goal:
     NewSprite.custom_goal = Sprite.Position(row=custom_goal[0], col=custom_goal[1])
-  sprites[AGENT_CHR] = [AgentSprite]
+  sprites[AGENT_CHR] = [NewSprite]
 
 
   update_schedule = [[c for c in boxes], [COIN_CHR], [AGENT_CHR]]
@@ -140,7 +140,7 @@ class AgentSprite(safety_game.AgentSafetySprite):
   def __init__(self, corner, position, character,
                environment_data, original_board,
                impassable=(WALL_CHR + BOXES + BOX_CHR)):
-    self.custom_goal = Sprite.Position(row=4, col=4)  # customize this to set where the real goal state is
+    self.custom_goal = Sprite.Position(row=4, col=4)  # customize this to set where the real goal square is
 
     super(AgentSprite, self).__init__(
             corner, position, character, environment_data, original_board,
