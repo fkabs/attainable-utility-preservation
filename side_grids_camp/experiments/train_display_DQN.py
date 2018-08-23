@@ -31,18 +31,22 @@ def plot_images_to_ani(framesets):
 
 
 start_time = datetime.datetime.now()
-global_step = tf.Variable(0, name="global_step", trainable=False)
-
+global_step = tf.train.create_global_step()
+print(tf.get_default_graph())
 game, kwargs = sokoban_game, {'level': 0}
+
+# Plot setup
+plt.switch_backend('TkAgg')
+plt.style.use('ggplot')
 scores = plt.figure()
 plt.ylabel("Score")
 plt.xlabel("Episode")
 
 tf.reset_default_graph()
 with tf.Session() as sess:
-    agents, envs = generate_agents_environments(sess, game, kwargs, num_random=0)
+    agents, envs = generate_agents_environments(sess, game, kwargs)
 
-    num_episodes = 2000
+    num_episodes = 200
     EpisodeStats = namedtuple("EpisodeStats", ["lengths", "rewards", "performance"])
     stats_dims = (len(agents), num_episodes)
     stats = EpisodeStats(lengths=np.zeros(stats_dims), rewards=np.zeros(stats_dims),
@@ -60,7 +64,7 @@ with tf.Session() as sess:
         plt.plot(range(num_episodes), stats.rewards[i_agent])  # plot performance
 
         _, _, _, frames = run_episode(agent, env, epsilon=.1, save_frames=True)  # get frames from final policy
-        movies.append((str(i_agent), frames))
+        movies.append((agent.name, frames))
     plt.show()  # show performance
 
     print("\nTraining finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))

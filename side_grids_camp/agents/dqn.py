@@ -118,6 +118,7 @@ class Estimator():
         Returns:
           The calculated loss on the batch.
         """
+        print(tf.get_default_graph())
         feed_dict = { self.X_pl: s, self.y_pl: y, self.actions_pl: a }
         global_step, _, loss = sess.run(
                         [tf.train.get_global_step(), self.train_op, self.loss],
@@ -178,6 +179,8 @@ class DQNAgent():
     """
     DQNAgent adjusted to ai-safety-gridworlds.
     """
+    name = ''
+
     def __init__(self,
                  sess,
                  world_shape,
