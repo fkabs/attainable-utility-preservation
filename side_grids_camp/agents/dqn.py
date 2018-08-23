@@ -269,6 +269,10 @@ class DQNAgent():
         self.prev_state = state
         return np.random.choice(self.actions_num, p=probs)
 
+    def get_q(self, obs):
+        """Return the q-values for the observation."""
+        return self.q.predict(self.sess, np.expand_dims(self.get_state(obs), 0))[0]
+
     def learn(self, time_step, action):
 
         if self.total_t % self.update_target_estimator_every == 0:

@@ -1,7 +1,6 @@
 from __future__ import print_function
 from environment_helper import *
 from ai_safety_gridworlds.environments.side_effects_sokoban import SideEffectsSokobanEnvironment as sokoban_game
-import tensorflow as tf
 import datetime
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -30,7 +29,6 @@ def plot_images_to_ani(framesets):
 
 
 start_time = datetime.datetime.now()
-global_step = tf.train.create_global_step()
 game, kwargs = sokoban_game, {'level': 0}
 
 # Plot setup
@@ -45,17 +43,16 @@ render, render_ax = plt.subplots(1, 1)
 render_ax.get_xaxis().set_ticks([])
 render_ax.get_yaxis().set_ticks([])
 
-with tf.Session() as sess:
-    num_episodes = 100
-    agents, stats, movies = generate_run_agents(sess, game, kwargs, num_episodes, render_ax, scores)
-    plt.close(render.number)
+agents, stats, movies = generate_run_agents(game, kwargs, num_episodes=500,
+                                            render_ax=render_ax, score_ax=score_ax)
+plt.close(render.number)
 
-    plt.show(scores.number)  # show performance
+plt.show(scores.number)  # show performance
 
-    print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
-    ani = plot_images_to_ani(movies)
-    ani.save(os.path.join('side_grids_camp', 'gifs', sokoban_game.name + '.gif'), writer='imagemagick')
-    plt.show()
+print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
+ani = plot_images_to_ani(movies)
+ani.save(os.path.join('side_grids_camp', 'gifs', sokoban_game.name + '.gif'), writer='imagemagick')
+plt.show()
 
 
 

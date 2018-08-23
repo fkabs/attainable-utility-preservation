@@ -18,6 +18,6 @@ class AUPAgent():
 
     def act(self, obs):
         """Act to greedily maximize the penalized reward function."""
-        new_q = self.r_A.predict(np.expand_dims(obs, 0))[0] - sum([penalty.predict(np.expand_dims(obs, 0))[0]
-                                                                   for penalty in self.penalties]) / len(self.penalties)
+        new_q = self.r_A.get_q(obs) - sum([penalty.get_q(obs)
+                                            for penalty in self.penalties]) / len(self.penalties)
         return np.argmax(new_q)
