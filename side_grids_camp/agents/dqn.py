@@ -118,7 +118,6 @@ class Estimator():
         Returns:
           The calculated loss on the batch.
         """
-        print(tf.get_default_graph())
         feed_dict = { self.X_pl: s, self.y_pl: y, self.actions_pl: a }
         global_step, _, loss = sess.run(
                         [tf.train.get_global_step(), self.train_op, self.loss],
@@ -195,7 +194,8 @@ class DQNAgent():
                  epsilon_start=1.0,
                  epsilon_end=0.1,
                  epsilon_decay_steps=50000,
-                 batch_size=32):
+                 batch_size=32,
+                 restore=True):
 
         self.world_shape = world_shape
         self.actions_num = actions_num
@@ -225,7 +225,7 @@ class DQNAgent():
             if not os.path.exists(self.checkpoint_dir):
                 os.makedirs(self.checkpoint_dir)
             latest_checkpoint = tf.train.latest_checkpoint(self.checkpoint_dir)
-            if latest_checkpoint:
+            if latest_checkpoint and restore:
                 print("Loading model checkpoint {}...\n".format(latest_checkpoint))
                 self.saver.restore(sess, latest_checkpoint)
 

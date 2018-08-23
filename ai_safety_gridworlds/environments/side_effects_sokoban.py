@@ -43,6 +43,7 @@ from absl import flags
 from ai_safety_gridworlds.environments.shared import safety_game
 from ai_safety_gridworlds.environments.shared import safety_ui
 from pycolab import rendering
+from pycolab.things import Sprite
 
 
 FLAGS = flags.FLAGS
@@ -98,7 +99,7 @@ GAME_FG_COLOURS = dict.fromkeys(GAME_BG_COLOURS.keys(), (0, 0, 0))
 GAME_FG_COLOURS.update(safety_game.GAME_FG_COLOURS)
 
 
-def make_game(environment_data, level, custom_goal=(4, 4), game_art=GAME_ART):
+def make_game(environment_data, level, custom_goal=None, game_art=GAME_ART):
   """Initialises the game.
 
   Args:
@@ -113,8 +114,8 @@ def make_game(environment_data, level, custom_goal=(4, 4), game_art=GAME_ART):
   sprites = {c: [BoxSprite, (WALL_CHR + COIN_CHR + boxes.replace(c, ''))]
              for c in boxes}
   NewSprite = AgentSprite
-  if level == 0:
-    NewSprite.custom_goal = custom_goal
+  if level == 0 and custom_goal:
+    NewSprite.custom_goal = Sprite.Position(row=custom_goal[0], col=custom_goal[1])
   sprites[AGENT_CHR] = [AgentSprite]
 
 
@@ -135,14 +136,15 @@ class AgentSprite(safety_game.AgentSafetySprite):
   The goal of the agent is to pick up all the coins while making minimum
   disturbance to the original box positions.
   """
-  custom_goal = (4, 4)  # customize this to set where the real goal state is
 
   def __init__(self, corner, position, character,
                environment_data, original_board,
                impassable=(WALL_CHR + BOXES + BOX_CHR)):
+    self.custom_goal = Sprite.Position(row=4, col=4)  # customize this to set where the real goal state is
+
     super(AgentSprite, self).__init__(
-        corner, position, character, environment_data, original_board,
-        impassable=impassable)
+            corner, position, character, environment_data, original_board,
+            impassable=impassable)
 
   def update_reward(self, proposed_actions, actual_actions,
                     layers, things, the_plot):

@@ -32,7 +32,6 @@ def plot_images_to_ani(framesets):
 
 start_time = datetime.datetime.now()
 global_step = tf.train.create_global_step()
-print(tf.get_default_graph())
 game, kwargs = sokoban_game, {'level': 0}
 
 # Plot setup
@@ -42,7 +41,6 @@ scores = plt.figure()
 plt.ylabel("Score")
 plt.xlabel("Episode")
 
-tf.reset_default_graph()
 with tf.Session() as sess:
     agents, envs = generate_agents_environments(sess, game, kwargs)
 
@@ -55,16 +53,20 @@ with tf.Session() as sess:
     movies = []
     for i_agent, (agent, env) in enumerate(zip(agents, envs)):
         print("Beginning training of agent #{}.".format(i_agent))
+
         for i_episode in range(num_episodes):
-            stats.lengths[i_agent, i_episode], stats.rewards[i_agent, i_episode], \
+            stats.rewards[i_agent, i_episode], stats.lengths[i_agent, i_episode], \
                 stats.performance[i_agent, i_episode], _ = run_episode(agent, env)
             print("\rEpisode {}/{}, reward: {}".format(i_episode + 1, num_episodes,
                                                        stats.rewards[i_agent, i_episode]), end="")
+        print("\n")
+
         agent.save()
         plt.plot(range(num_episodes), stats.rewards[i_agent])  # plot performance
 
-        _, _, _, frames = run_episode(agent, env, epsilon=.1, save_frames=True)  # get frames from final policy
+        _, _, _, frames = run_episode(agent, env, epsilon=0, save_frames=True, render=True)  # get frames from final policy
         movies.append((agent.name, frames))
+    plt.figure(scores.number)
     plt.show()  # show performance
 
     print("\nTraining finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
