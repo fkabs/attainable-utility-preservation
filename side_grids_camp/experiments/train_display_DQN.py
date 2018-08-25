@@ -32,8 +32,9 @@ start_time = datetime.datetime.now()
 game, kwargs = sokoban_game, {'level': 0}
 
 # Plot setup
-plt.switch_backend('TkAgg')
+#plt.switch_backend('TkAgg')
 plt.style.use('ggplot')
+
 scores, score_ax = plt.subplots(1, 1)
 plt.ylabel("Score")
 plt.xlabel("Episode")
@@ -43,16 +44,14 @@ render, render_ax = plt.subplots(1, 1)
 render_ax.get_xaxis().set_ticks([])
 render_ax.get_yaxis().set_ticks([])
 
-agents, stats, movies = generate_run_agents(game, kwargs, num_episodes=500,
+
+agents, stats, movies = generate_run_agents(game, kwargs, num_episodes=5000,
                                             render_ax=render_ax, score_ax=score_ax)
 plt.close(render.number)
 
-plt.show(scores.number)  # show performance
+plt.show()  # show performance
 
 print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
 ani = plot_images_to_ani(movies)
 ani.save(os.path.join('side_grids_camp', 'gifs', sokoban_game.name + '.gif'), writer='imagemagick')
 plt.show()
-
-
-
