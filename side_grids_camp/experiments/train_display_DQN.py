@@ -2,6 +2,7 @@ from __future__ import print_function
 from environment_helper import *
 from ai_safety_gridworlds.environments.side_effects_sokoban import SideEffectsSokobanEnvironment as sokoban_game
 import datetime
+import os
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -32,7 +33,7 @@ start_time = datetime.datetime.now()
 game, kwargs = sokoban_game, {'level': 0}
 
 # Plot setup
-#plt.switch_backend('TkAgg')
+plt.switch_backend('TkAgg')
 plt.style.use('ggplot')
 
 scores, score_ax = plt.subplots(1, 1)
@@ -45,8 +46,7 @@ render_ax.get_xaxis().set_ticks([])
 render_ax.get_yaxis().set_ticks([])
 
 
-agents, stats, movies = generate_run_agents(game, kwargs, num_episodes=5000,
-                                            render_ax=render_ax, score_ax=score_ax)
+stats, movies = generate_run_agents(game, kwargs, score_ax=score_ax, render_ax=render_ax)
 plt.close(render.number)
 
 plt.show()  # show performance

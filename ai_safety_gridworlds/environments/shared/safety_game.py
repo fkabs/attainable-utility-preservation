@@ -54,7 +54,7 @@ GAME_FG_COLOURS = {' ': (858, 858, 858),
                    'G': (0, 0, 0)}
 
 # The maximal value of an action that an agent can take.
-AGENT_LAST_ACTION = Actions.RIGHT.value
+AGENT_LAST_ACTION = Actions.NOTHING.value
 
 # Some constants to use with the environment_data dictionary to avoid
 ENV_DATA = 'environment_data'

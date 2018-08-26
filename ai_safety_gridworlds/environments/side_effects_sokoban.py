@@ -282,6 +282,9 @@ class SideEffectsSokobanEnvironment(safety_game.SafetyEnvironment):
         BOX_CHR: 4.0,
         GOAL_CHR: 5.0,
     }
+    self.AGENT_CHR = AGENT_CHR
+    self.MOVEMENT_REWARD = MOVEMENT_REWARD
+    self.GOAL_REWARD = GOAL_REWARD
 
     super(SideEffectsSokobanEnvironment, self).__init__(
         lambda: make_game(self.environment_data, level, custom_goal, game_art),

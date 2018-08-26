@@ -1,5 +1,6 @@
 import copy
 import numpy as np
+from ai_safety_gridworlds.environments.shared.safety_game import Actions
 
 
 class AUPAgent():
@@ -9,7 +10,7 @@ class AUPAgent():
     name = 'Attainable Utility Preservation'
     null_action = 4  # TODO make robust
 
-    def __init__(self, penalties, m=7):
+    def __init__(self, penalties=(), m=6):
         """
 
         :param penalties: the estimators whose shifts in attainable value will be penalized.
@@ -18,41 +19,77 @@ class AUPAgent():
         self.penalties = penalties
         self.m = m
 
-    def act(self, env):
-        """Get penalties from brute-force search and choose best penalized action."""
-        return np.argmax(self.penalized_rewards(env))
+    def act(self, env, actions=[]):
+        """Get penalties from brute-force search and choose best penalized action.
 
-    def penalized_rewards(self, env):
-        rewards, penalty_lsts = np.array([]), []
-        for action in range(env.action_spec().maximum + 1):  # TODO use depth first?
-            new_env = copy.deepcopy(env)
-            time_step = new_env.step(action)
-            rewards.append(time_step.reward)
-            penalty_lsts.append(np.array(self.attainable_rewards(time_step.get_observation(), new_env, self.m)))
+        :param actions: the actions up until now (assuming a deterministic environment, this allows re
+        """
+        penalized_rewards = self.penalized_rewards(env, actions)
+        return np.argmax(penalized_rewards)
 
-        #
-        null = penalty_lsts[self.null_action]
-        attainable_differences = np.array([abs(penalty - null) for penalty in penalty_lsts[:-2]]) # our ability to change each utility compared to the null action
-        attainable_differences.append(0)
-        return rewards - attainable_differences
+    def restart(self, env, actions):
+        """Reset the environment and return the result of executing the action sequence."""
+        env.reset()
+        for action in actions:
+            env.step(action)
+        return env
 
-    def attainable_rewards(self, obs, env, steps_left):
-        """Returns best normal and penalty rewards attainable within steps_left steps."""
-        pens = [penalty(obs) for penalty in self.penalties]
-        if not steps_left:
-            return pens
+    def penalized_rewards(self, env, actions=[]):
+        rewards, penalties = [], []  # the best attainable rewards and penalties after each action
 
-        penalty_lsts = []  # for each action, how well could we accomplish the penalty utility?
-        for action in range(env.action_spec().maximum + 1):  # TODO use depth first?
-            new_env = copy.deepcopy(env)
-            time_step = new_env.step(action)
-            penalty_lsts.append(self.attainable_rewards(time_step.get_observation(), new_env, steps_left-1))
-        return [pen + max(next_pen) for pen, next_pen in zip(pens, penalty_lsts)]  # care about best from each
+        for action in range(env.action_spec().maximum + 1):
+            # Set environment appropriately and get action's result
+            if action > 0:
+                self.restart(env, actions)
+            time_step = env.step(action)
 
-    """
-    def act(self, obs):
-        #Act to greedily maximize the penalized reward function.
-        new_q = self.r_A.get_q(obs) - sum([penalty.get_q(obs)
-                                            for penalty in self.penalties]) / len(self.penalties)
-        return np.argmax(new_q)
-    """
+            # Get the attainable rewards within m steps after taking this action
+            next_reward, next_pens = self.attainable_rewards(time_step, env, self.m, actions=actions + [action],
+                                                             visited=set([str(time_step.observation['board'])]))
+            rewards.append(next_reward)
+            penalties.append(np.array(next_pens))
+
+        # Difference of attainable rewards between taking action and doing nothing
+        action_differences = np.array([abs(penalty - penalties[self.null_action])
+                                       for penalty in penalties])
+        weighted_penalties = np.array([sum(diffs) / len(diffs) for diffs in action_differences]) if self.penalties \
+            else np.zeros(len(rewards))
+        return np.array(rewards) - weighted_penalties
+
+    def attainable_rewards(self, time_step, env, steps_left, actions=[], visited=set()):
+        """Returns best normal and penalty rewards attainable within steps_left steps.
+
+        :param time_step: TimeStep object containing last observation and reward.
+        :param env: Simulator.
+        :param steps_left: Remaining depth.
+        :param actions: Actions taken up until now.
+        :param visited: States already visited.
+        """
+        pens = [penalty(time_step.observation) for penalty in self.penalties]  # TODO check multiple times attaining goal reward off-goal?
+        if steps_left == 0 or time_step.last():
+            return time_step.reward if time_step.reward is not None else 0, pens
+
+        rewards, penalty_lsts = [], []  # for each action, how much reward can we get?
+        for action in range(env.action_spec().maximum + 1):
+            if action > 0:  # don't need to reset the first time
+                env = self.restart(env, actions)
+            #new_env = copy.deepcopy(env)
+            # Take a new action and see if we've been there; if so, add to visited.
+            new_time_step = env.step(action)
+            if str(new_time_step.observation['board']) in visited:  # don't revisit these states
+                continue
+            visited.add(str(new_time_step.observation['board']))
+
+            # See what reward and penalties we can attain from here
+            reward, next_pens = self.attainable_rewards(new_time_step, env, steps_left-1,
+                                                        actions=actions + [action], visited=visited)
+
+            visited.remove(str(new_time_step.observation['board']))
+            rewards.append(reward)
+            penalty_lsts.append(next_pens)
+
+        if len(rewards) == 0 and len(penalty_lsts) == 0:
+            return 0, np.zeros(len(self.penalties))  # in case every new state was already in visited
+
+        return (time_step.reward if time_step.reward is not None else 0) + max(rewards), \
+               [pen + max(next_pens) for pen, next_pens in zip(pens, penalty_lsts)]
