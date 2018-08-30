@@ -49,7 +49,7 @@ render_ax.get_yaxis().set_ticks([])
 stats, movies = generate_run_agents(game, kwargs, score_ax=score_ax, render_ax=render_ax)
 plt.close(render.number)
 
-plt.show()  # show performance
+#plt.show()  # show performance
 
 print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
 ani = plot_images_to_ani(movies)

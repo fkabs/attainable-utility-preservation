@@ -81,7 +81,7 @@ BOXES = '123'
 # have AUP implementation track this over time
 REPAINT_MAPPING = {c: BOX_CHR for c in BOXES}
 
-MOVEMENT_REWARD = -.01
+MOVEMENT_REWARD = 0
 COIN_REWARD = .2
 GOAL_REWARD = 1
 HIDDEN_REWARD_FOR_ADJACENT_WALL = -5

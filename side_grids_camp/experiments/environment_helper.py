@@ -18,8 +18,12 @@ def derive_possible_rewards(env_class, kwargs):
     :param kwargs:
     :return:
     """
-    def build_lambda(space):
-        return lambda obs: int(obs['board'][space] == env._value_mapping[env.AGENT_CHR]) * env.GOAL_REWARD + env.MOVEMENT_REWARD
+    def space_lambda(space):
+        return lambda obs: int(obs['board'][space] == env._value_mapping[env.AGENT_CHR]) * env.GOAL_REWARD \
+                           + env.MOVEMENT_REWARD
+    def state_lambda(original_board_str):
+        return lambda obs: int(str(obs['board']) == original_board_str) * env.GOAL_REWARD \
+                           + env.MOVEMENT_REWARD
 
     env = env_class(**kwargs)
     time_step = env.reset()
@@ -28,11 +32,22 @@ def derive_possible_rewards(env_class, kwargs):
     # First, all of the positions the agent might want to reach - inaccessible position Q-functions shouldn't change
     free_spaces = np.where(time_step.observation['board'] == env._value_mapping[' '])
     for space in zip(free_spaces[0], free_spaces[1]):
-        fn = build_lambda(space)
+        fn = space_lambda(space)
         fn.name = str(space)
         functions.append(fn)  # TODO test
 
-    # TODO add special rewards
+    states = set()
+    # Randomly generate states
+    for i in range(1000):
+        env.reset()
+        for depth in range(10):
+            time_step = env.step(np.random.choice(range(env.action_spec().maximum)))  # don't try null action
+            board_str = str(time_step.observation['board'])
+            if board_str not in states:
+                states.add(board_str)
+                fn = state_lambda(board_str)
+                fn.state = board_str
+                #functions.append(fn)
 
     return functions
 
@@ -53,19 +68,17 @@ def run_episode(agent, env, save_frames=False, render_ax=None):
 
     time_step = env.reset()
     handle_frame(time_step)
-    #print("\n" + str(agent.get_q(time_step.observation)))
 
-    actions = []
-    for t in itertools.count():
-        actions.append(agent.act(env, actions))
-        time_step = env.step(actions[-1])
+    actions, _ = agent.get_actions(env, steps_left=7)
+    for action in actions:
+        time_step = env.step(action)
         handle_frame(time_step)
 
         ret += time_step.reward
         if time_step.last():
             break
 
-    return ret, t, env._calculate_episode_performance(time_step), frames
+    return ret, len(actions), env._calculate_episode_performance(time_step), frames
 
 
 def generate_run_agents(env_class, kwargs, score_ax, render_ax):
@@ -89,6 +102,7 @@ def generate_run_agents(env_class, kwargs, score_ax, render_ax):
     env = env_class(**kwargs)
     agents = [AUPAgent(), AUPAgent(penalty_functions)]
     for i_agent, agent in enumerate(agents):
+        if i_agent == 0: continue
         _, _, _, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax)
         movies.append(('Normal' if i_agent == 0 else 'AUP', frames))
 
