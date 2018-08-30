@@ -7,6 +7,8 @@ from agents.dqn import DQNAgent
 from collections import namedtuple
 
 
+
+
 def derive_possible_rewards(env_class, kwargs):
     """
     Derive a subset of possible reward functions for the given environment.
@@ -14,12 +16,13 @@ def derive_possible_rewards(env_class, kwargs):
     :param env_class: Environment constructor.
     :param kwargs: Configuration parameters.
     """
-    def state_lambda(original_board_str):
-        return lambda obs: int(str(obs['board']) == original_board_str) * env.GOAL_REWARD \
-                           + env.MOVEMENT_REWARD
+    def state_lambda(original_board_str, agent_value, empty_value):
+        return lambda obs: int(str(obs['board']).replace(agent_value, empty_value)
+                               == original_board_str) * env.GOAL_REWARD + env.MOVEMENT_REWARD
 
     env = env_class(**kwargs)
     env.reset()
+    agent_value, empty_value = str(env._value_mapping[env.AGENT_CHR])[:-2], str(env._value_mapping[' '])[:-2]
 
     states, functions = set(), []
     # Randomly generate states
@@ -27,11 +30,12 @@ def derive_possible_rewards(env_class, kwargs):
         env.reset()
         for depth in range(10):
             time_step = env.step(np.random.choice(range(env.action_spec().maximum)))  # don't try null action
-            board_str = str(time_step.observation['board']).replace(str(env._value_mapping[env.AGENT_CHR]),
-                                                                    str(env._value_mapping[' ']))  # remove agent from state
-            if board_str not in states:
+
+            # Remove agent from state
+            board_str = str(time_step.observation['board']).replace(agent_value, empty_value)
+            if board_str not in states and not time_step.last():
                 states.add(board_str)
-                fn = state_lambda(board_str)
+                fn = state_lambda(board_str, agent_value, empty_value)
                 fn.state = board_str
                 functions.append(fn)
 

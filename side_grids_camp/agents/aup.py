@@ -64,7 +64,7 @@ class AUPAgent():
             env.step(action)
         return env
 
-    def penalized_reward(self, env, action, so_far=[]):  # TODO heavy penalty for finishing level
+    def penalized_reward(self, env, action, so_far=[]):
         """The penalized reward for taking the given action in the current state. Steps the environment forward.
 
         :param env: Simulator.
@@ -77,11 +77,11 @@ class AUPAgent():
             action_pen = self.attainable_penalties(env, self.m, so_far + [action])
             self.restart(env, so_far)
             null_pen = self.attainable_penalties(env, self.m, so_far + [safety_game.Actions.NOTHING])
-            null_sum = sum(null_pen)
+            null_sum = sum(abs(null_pen))
             self.restart(env, so_far + [action])
 
             # Scaled difference between taking action and doing nothing
-            scaled_penalty = sum(abs(action_pen - null_pen)) / (len(action_pen) * self.N * sum(null_pen)) if null_sum \
+            scaled_penalty = sum(abs(action_pen - null_pen)) / (self.N * null_sum) if null_sum \
                 else 0
         return reward - scaled_penalty
 
@@ -109,6 +109,5 @@ class AUPAgent():
                 self.restart(env, so_far)
 
             # Make sure attainable penalties aren't double-counting goal attainment
-            self.attainable[current_hash] = np.minimum(pens + attainable_penalties,
-                                                       np.full(len(pens), (env.GOAL_REWARD + env.MOVEMENT_REWARD)))
+            self.attainable[current_hash] = np.clip(pens + attainable_penalties, 0, env.GOAL_REWARD + env.MOVEMENT_REWARD)
         return self.attainable[current_hash]

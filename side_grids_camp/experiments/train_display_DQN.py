@@ -33,7 +33,7 @@ def plot_images_to_ani(framesets):
 
 start_time = datetime.datetime.now()
 games = [sokoban.SideEffectsSokobanEnvironment, vase.SideEffectsVaseEnvironment]
-game, kwargs = games[0], {'level': 0}
+game, kwargs = games[1], {'level': 0}
 
 # Plot setup
 plt.switch_backend('TkAgg')
