@@ -1,6 +1,8 @@
 from __future__ import print_function
 from environment_helper import *
-from ai_safety_gridworlds.environments.side_effects_sokoban import SideEffectsSokobanEnvironment as sokoban_game
+from ai_safety_gridworlds.environments import side_effects_burning_building as burning, side_effects_sokoban as sokoban, \
+    side_effects_ball_bot as ball, side_effects_spontaneous_combustion as fire, side_effects_sushi_bot as sushi,\
+    side_effects_vase as vase
 import datetime
 import os
 import matplotlib.pyplot as plt
@@ -30,7 +32,8 @@ def plot_images_to_ani(framesets):
 
 
 start_time = datetime.datetime.now()
-game, kwargs = sokoban_game, {'level': 0}
+games = [sokoban.SideEffectsSokobanEnvironment, vase.SideEffectsVaseEnvironment]
+game, kwargs = games[0], {'level': 0}
 
 # Plot setup
 plt.switch_backend('TkAgg')
@@ -53,5 +56,5 @@ plt.close(render.number)
 
 print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
 ani = plot_images_to_ani(movies)
-ani.save(os.path.join('side_grids_camp', 'gifs', sokoban_game.name + '.gif'), writer='imagemagick')
+ani.save(os.path.join('side_grids_camp', 'gifs', game.name + '.gif'), writer='imagemagick', dpi=6000)
 plt.show()

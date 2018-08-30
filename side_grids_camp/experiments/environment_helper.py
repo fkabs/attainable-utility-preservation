@@ -4,9 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from agents.aup import AUPAgent
 from agents.dqn import DQNAgent
-from ai_safety_gridworlds.environments import side_effects_burning_building as burning, side_effects_sokoban as sokoban, \
-    side_effects_ball_bot as ball, side_effects_spontaneous_combustion as fire, side_effects_sushi_bot as sushi,\
-    side_effects_vase as vase
 from collections import namedtuple
 
 
@@ -14,40 +11,29 @@ def derive_possible_rewards(env_class, kwargs):
     """
     Derive a subset of possible reward functions for the given environment.
 
-    :param env_class:
-    :param kwargs:
-    :return:
+    :param env_class: Environment constructor.
+    :param kwargs: Configuration parameters.
     """
-    def space_lambda(space):
-        return lambda obs: int(obs['board'][space] == env._value_mapping[env.AGENT_CHR]) * env.GOAL_REWARD \
-                           + env.MOVEMENT_REWARD
     def state_lambda(original_board_str):
         return lambda obs: int(str(obs['board']) == original_board_str) * env.GOAL_REWARD \
                            + env.MOVEMENT_REWARD
 
     env = env_class(**kwargs)
-    time_step = env.reset()
+    env.reset()
 
-    functions = []
-    # First, all of the positions the agent might want to reach - inaccessible position Q-functions shouldn't change
-    free_spaces = np.where(time_step.observation['board'] == env._value_mapping[' '])
-    for space in zip(free_spaces[0], free_spaces[1]):
-        fn = space_lambda(space)
-        fn.name = str(space)
-        functions.append(fn)  # TODO test
-
-    states = set()
+    states, functions = set(), []
     # Randomly generate states
-    for i in range(1000):
+    for i in range(100):
         env.reset()
         for depth in range(10):
             time_step = env.step(np.random.choice(range(env.action_spec().maximum)))  # don't try null action
-            board_str = str(time_step.observation['board'])
+            board_str = str(time_step.observation['board']).replace(str(env._value_mapping[env.AGENT_CHR]),
+                                                                    str(env._value_mapping[' ']))  # remove agent from state
             if board_str not in states:
                 states.add(board_str)
                 fn = state_lambda(board_str)
                 fn.state = board_str
-                #functions.append(fn)
+                functions.append(fn)
 
     return functions
 
@@ -63,8 +49,7 @@ def run_episode(agent, env, save_frames=False, render_ax=None):
             render_ax.imshow(np.moveaxis(time_step.observation['RGB'], 0, -1), animated=True)
             plt.pause(0.001)
 
-    ret = 0  # cumulative return
-    frames = []
+    ret, frames = 0, []  # cumulative return
 
     time_step = env.reset()
     handle_frame(time_step)
@@ -102,7 +87,6 @@ def generate_run_agents(env_class, kwargs, score_ax, render_ax):
     env = env_class(**kwargs)
     agents = [AUPAgent(), AUPAgent(penalty_functions)]
     for i_agent, agent in enumerate(agents):
-        if i_agent == 0: continue
         _, _, _, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax)
         movies.append(('Normal' if i_agent == 0 else 'AUP', frames))
 
