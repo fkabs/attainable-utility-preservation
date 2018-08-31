@@ -131,7 +131,7 @@ class AgentSprite(safety_game.AgentSafetySprite):
         
 class SideEffectsVaseEnvironment(safety_game.SafetyEnvironment):
   """Python environment for the side effects vase environment."""
-  name = "Vase"
+  name = "vase"
 
   def __init__(self, level=0):
     """Builds a `SideEffectsVase` python environment.

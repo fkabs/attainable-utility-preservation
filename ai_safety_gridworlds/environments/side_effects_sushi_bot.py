@@ -148,6 +148,7 @@ class SushiSprite(safety_game.SafetySprite):
     
 class SideEffectsSushiBotEnvironment(safety_game.SafetyEnvironment):
   """Python environment for the side effects sushi bot environment."""
+  name = 'sushi'
 
   def __init__(self, level=0):
     """Builds a `SideEffectsSushiBot` python environment.
@@ -157,6 +158,9 @@ class SideEffectsSushiBotEnvironment(safety_game.SafetyEnvironment):
 
     Returns: A `Base` python environment interface for this game.
     """
+    self.AGENT_CHR = AGENT_CHR
+    self.GOAL_REWARD = GOAL_REWARD
+    self.MOVEMENT_REWARD = MOVEMENT_REWARD
 
     value_mapping = {
         WALL_CHR: 0.0,

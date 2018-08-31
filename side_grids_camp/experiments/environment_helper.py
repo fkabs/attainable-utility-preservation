@@ -58,7 +58,7 @@ def run_episode(agent, env, save_frames=False, render_ax=None):
     time_step = env.reset()
     handle_frame(time_step)
 
-    actions, _ = agent.get_actions(env, steps_left=7)
+    actions, _ = agent.get_actions(env, steps_left=8)
     for action in actions:
         time_step = env.step(action)
         handle_frame(time_step)
@@ -70,15 +70,15 @@ def run_episode(agent, env, save_frames=False, render_ax=None):
     return ret, len(actions), env._calculate_episode_performance(time_step), frames
 
 
-def generate_run_agents(env_class, kwargs, score_ax, render_ax):
+def generate_run_agents(env_class, kwargs, score_ax=None, render_ax=None):
     """
     Generate one normal agent and a subset of possible rewards for the environment.
 
     :param env_class: class object, expanded with random reward-generation methods.
     :param kwargs: environmental intialization parameters.
     :param num_episodes:
-    :param render_ax: PyPlot axis on which rendering can take place.
     :param score_ax: PyPlot axis on which scores can be plotted.
+    :param render_ax: PyPlot axis on which rendering can take place.
     """
     agents, movies = [], []
     penalty_functions = derive_possible_rewards(env_class, kwargs)
@@ -92,8 +92,9 @@ def generate_run_agents(env_class, kwargs, score_ax, render_ax):
     agents = [AUPAgent(), AUPAgent(penalty_functions)]
     for i_agent, agent in enumerate(agents):
         _, _, _, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax)
-        movies.append(('Normal' if i_agent == 0 else 'AUP', frames))
+        movies.append(('Vanilla' if i_agent == 0 else 'AUP', frames))
 
-    #score_ax.plot(range(num_episodes), stats.rewards[i_agent])  # plot performance
+    #if score_ax:
+    #    score_ax.plot(range(num_episodes), stats.rewards[i_agent])  # plot performance
 
     return stats, movies

@@ -1,8 +1,7 @@
 from __future__ import print_function
 from environment_helper import *
 from ai_safety_gridworlds.environments import side_effects_burning_building as burning, side_effects_sokoban as sokoban, \
-    side_effects_ball_bot as ball, side_effects_spontaneous_combustion as fire, side_effects_sushi_bot as sushi,\
-    side_effects_vase as vase
+    side_effects_ball_bot as ball, side_effects_sushi_bot as sushi, side_effects_vase as vase
 import datetime
 import os
 import matplotlib.pyplot as plt
@@ -32,29 +31,35 @@ def plot_images_to_ani(framesets):
 
 
 start_time = datetime.datetime.now()
-games = [sokoban.SideEffectsSokobanEnvironment, vase.SideEffectsVaseEnvironment]
-game, kwargs = games[1], {'level': 0}
+games = [burning.SideEffectsBurningBuildingEnvironment, sokoban.SideEffectsSokobanEnvironment,
+         ball.SideEffectsBallBotEnvironment, sushi.SideEffectsSushiBotEnvironment,
+         vase.SideEffectsVaseEnvironment]
+game, kwargs = games[-1], {'level': 1}
 
 # Plot setup
 plt.switch_backend('TkAgg')
 plt.style.use('ggplot')
 
-scores, score_ax = plt.subplots(1, 1)
-plt.ylabel("Score")
-plt.xlabel("Episode")
+#scores, score_ax = plt.subplots(1, 1)
+#plt.ylabel("Score")
+#plt.xlabel("Episode")
 
 # Live rendering setup
-render, render_ax = plt.subplots(1, 1)
-render_ax.get_xaxis().set_ticks([])
-render_ax.get_yaxis().set_ticks([])
+for game in games:
+    render, render_ax = plt.subplots(1, 1)
+    render.set_tight_layout(True)
+    render_ax.get_xaxis().set_ticks([])
+    render_ax.get_yaxis().set_ticks([])
 
 
-stats, movies = generate_run_agents(game, kwargs, score_ax=score_ax, render_ax=render_ax)
-plt.close(render.number)
+    stats, movies = generate_run_agents(game, kwargs, render_ax=render_ax)
+    plt.close(render.number)
 
-#plt.show()  # show performance
+    #plt.show()  # show performance
 
-print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
-ani = plot_images_to_ani(movies)
-ani.save(os.path.join('side_grids_camp', 'gifs', game.name + '.gif'), writer='imagemagick', dpi=6000)
-plt.show()
+    print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
+    ani = plot_images_to_ani(movies)
+    ani.save(os.path.join('/media/deeplearning/Data/attainable-utility-preservation/side_grids_camp', 'gifs',
+                          game.name + str(kwargs['level']) + '.gif'),
+             writer='imagemagick')
+    plt.show()

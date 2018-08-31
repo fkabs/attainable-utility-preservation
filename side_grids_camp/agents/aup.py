@@ -29,7 +29,7 @@ class AUPAgent():
 
         :param so_far: The actions up until now; assuming a deterministic environment, this allows cheap restarts.
         """
-        penalized_rewards = [self.penalized_reward(env, action, so_far)
+        penalized_rewards = [self.penalized_reward(env, action, so_far)[0]
                              for action in range(env.action_spec().maximum + 1)]
         return np.argmax(penalized_rewards)
 
@@ -44,8 +44,8 @@ class AUPAgent():
         if current_hash not in self.cached_actions:
             best_actions, best_ret = [], float('-inf')
             for a in range(env.action_spec().maximum + 1):
-                r = self.penalized_reward(env, a, so_far)
-                if steps_left > 0:
+                r, done = self.penalized_reward(env, a, so_far)
+                if steps_left > 0 and not done:
                     actions, ret = self.get_actions(env, steps_left-1, so_far + [a])
                 else:
                     actions, ret = [], 0
@@ -70,6 +70,8 @@ class AUPAgent():
         :param env: Simulator.
         :param action: The action in question.
         :param so_far: Actions taken up until now.
+        :returns penalized_reward:
+        :returns is_last: Whether the episode is terminated.
         """
         time_step = env.step(action)
         reward, scaled_penalty = time_step.reward if time_step.reward else 0, 0
@@ -83,7 +85,7 @@ class AUPAgent():
             # Scaled difference between taking action and doing nothing
             scaled_penalty = sum(abs(action_pen - null_pen)) / (self.N * null_sum) if null_sum \
                 else 0
-        return reward - scaled_penalty
+        return reward - scaled_penalty, time_step.last()
 
     def attainable_penalties(self, env, steps_left, so_far=[]):
         """Returns penalty rewards attainable within steps_left steps.
@@ -109,5 +111,5 @@ class AUPAgent():
                 self.restart(env, so_far)
 
             # Make sure attainable penalties aren't double-counting goal attainment
-            self.attainable[current_hash] = np.clip(pens + attainable_penalties, 0, env.GOAL_REWARD + env.MOVEMENT_REWARD)
+            self.attainable[current_hash] = np.clip(pens + attainable_penalties, float('-inf'), env.GOAL_REWARD + env.MOVEMENT_REWARD)
         return self.attainable[current_hash]
