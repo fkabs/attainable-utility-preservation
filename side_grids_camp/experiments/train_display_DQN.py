@@ -15,6 +15,7 @@ def plot_images_to_ani(framesets):
     :param framesets: [("agent_name", frames),...]
     """
     fig, axs = plt.subplots(1, len(framesets), figsize=(5, 5 * len(framesets)))
+    fig.set_tight_layout(True)
 
     max_runtime = max([len(frames) for _, frames in framesets])
 
@@ -34,7 +35,7 @@ start_time = datetime.datetime.now()
 games = [burning.SideEffectsBurningBuildingEnvironment, sokoban.SideEffectsSokobanEnvironment,
          ball.SideEffectsBallBotEnvironment, sushi.SideEffectsSushiBotEnvironment,
          vase.SideEffectsVaseEnvironment]
-game, kwargs = games[-1], {'level': 1}
+kwargs = {'level': 1}
 
 # Plot setup
 plt.switch_backend('TkAgg')
@@ -46,6 +47,8 @@ plt.style.use('ggplot')
 
 # Live rendering setup
 for game in games:
+    if game == ball.SideEffectsBallBotEnvironment:
+        continue
     render, render_ax = plt.subplots(1, 1)
     render.set_tight_layout(True)
     render_ax.get_xaxis().set_ticks([])
@@ -61,5 +64,5 @@ for game in games:
     ani = plot_images_to_ani(movies)
     ani.save(os.path.join('/media/deeplearning/Data/attainable-utility-preservation/side_grids_camp', 'gifs',
                           game.name + str(kwargs['level']) + '.gif'),
-             writer='imagemagick')
+             writer='imagemagick', dpi=350)
     plt.show()
