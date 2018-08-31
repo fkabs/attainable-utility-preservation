@@ -1,12 +1,12 @@
 from __future__ import print_function
 from environment_helper import *
 from ai_safety_gridworlds.environments import side_effects_burning_building as burning, side_effects_sokoban as sokoban, \
-    side_effects_ball_bot as ball, side_effects_sushi_bot as sushi, side_effects_vase as vase
+    side_effects_ball_bot as ball, side_effects_sushi_bot as sushi, side_effects_vase as vase, \
+    side_effects_conveyor_belt as conveyor
 import datetime
 import os
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-
 
 def plot_images_to_ani(framesets):
     """
@@ -31,11 +31,27 @@ def plot_images_to_ani(framesets):
     return animation.ArtistAnimation(plt.gcf(), ims, interval=250, blit=True, repeat_delay=0)
 
 
-start_time = datetime.datetime.now()
-games = [burning.SideEffectsBurningBuildingEnvironment, sokoban.SideEffectsSokobanEnvironment,
-         ball.SideEffectsBallBotEnvironment, sushi.SideEffectsSushiBotEnvironment,
+def run_game(game, kwargs):
+    render, render_ax = plt.subplots(1, 1)
+    render.set_tight_layout(True)
+    render_ax.get_xaxis().set_ticks([])
+    render_ax.get_yaxis().set_ticks([])
+
+    start_time = datetime.datetime.now()
+    stats, movies = generate_run_agents(game, kwargs, render_ax=render_ax)
+    plt.close(render.number)
+    # plt.show()  # show performance
+
+    print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
+    ani = plot_images_to_ani(movies)
+    ani.save(os.path.join(os.path.dirname( __file__ ), '..', 'gifs',
+                          game.name + '-' + str(kwargs['level'] if 'level' in kwargs
+                                                else kwargs['variant']) + '.gif'),
+             writer='imagemagick', dpi=350)
+    plt.show()
+
+games = [sokoban.SideEffectsSokobanEnvironment, sushi.SideEffectsSushiBotEnvironment,
          vase.SideEffectsVaseEnvironment]
-kwargs = {'level': 1}
 
 # Plot setup
 plt.switch_backend('TkAgg')
@@ -45,24 +61,12 @@ plt.style.use('ggplot')
 #plt.ylabel("Score")
 #plt.xlabel("Episode")
 
-# Live rendering setup
+# Levels for which we run multiple variants
+for var in ['vase', 'sushi']:
+    run_game(conveyor.ConveyorBeltEnvironment, {'variant': var})
+for level in [0, 1]:
+    run_game(burning.SideEffectsBurningBuildingEnvironment, {'level': level})
+
+# The rest
 for game in games:
-    if game == ball.SideEffectsBallBotEnvironment:
-        continue
-    render, render_ax = plt.subplots(1, 1)
-    render.set_tight_layout(True)
-    render_ax.get_xaxis().set_ticks([])
-    render_ax.get_yaxis().set_ticks([])
-
-
-    stats, movies = generate_run_agents(game, kwargs, render_ax=render_ax)
-    plt.close(render.number)
-
-    #plt.show()  # show performance
-
-    print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
-    ani = plot_images_to_ani(movies)
-    ani.save(os.path.join('/media/deeplearning/Data/attainable-utility-preservation/side_grids_camp', 'gifs',
-                          game.name + str(kwargs['level']) + '.gif'),
-             writer='imagemagick', dpi=350)
-    plt.show()
+    run_game(game, {'level': 0})
