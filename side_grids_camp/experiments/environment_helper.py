@@ -58,8 +58,9 @@ def run_episode(agent, env, save_frames=False, render_ax=None):
     time_step = env.reset()
     handle_frame(time_step)
 
-    actions, _ = agent.get_actions(env, steps_left=12)
+    actions, _ = agent.get_actions(env, steps_left=8)
     for action in actions:
+        #time_step = env.step(np.random.choice(5))
         time_step = env.step(action)
         handle_frame(time_step)
 

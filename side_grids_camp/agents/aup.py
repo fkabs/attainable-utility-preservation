@@ -68,6 +68,7 @@ class AUPAgent():
     def penalized_reward(self, env, action, steps_left, so_far=[]):
         """The penalized reward for taking the given action in the current state. Steps the environment forward.
 
+        Assumes rewards (roughly) bounded [0,1].  # TODO normalize
         :param env: Simulator.
         :param action: The action in question.
         :param steps_left: How many steps are left in the plan.
@@ -103,12 +104,12 @@ class AUPAgent():
         """
         current_hash = (str(env._last_observations['board']), steps_left)
         if current_hash not in self.attainable:
-            pens = np.array([penalty(env._last_observations) for penalty in self.penalties])
+            pens = np.array([env._last_reward] + [penalty(env._last_observations) for penalty in self.penalties])
             if steps_left == 0 or env._game_over:
                 return pens
 
             # For each penalty function, what's the best we can do from here?
-            attainable_penalties = np.full(len(self.penalties), float("-inf"))
+            attainable_penalties = np.full(len(pens), float("-inf"))
             for action in range(env.action_spec().maximum + 1):
                 env.step(action)
 

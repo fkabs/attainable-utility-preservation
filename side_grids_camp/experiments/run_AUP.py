@@ -51,7 +51,8 @@ def run_game(game, kwargs):
     plt.show()
 
 games = [sokoban.SideEffectsSokobanEnvironment, sushi.SideEffectsSushiBotEnvironment,
-         vase.SideEffectsVaseEnvironment, coffee.SideEffectsCoffeeBotEnvironment]
+         vase.SideEffectsVaseEnvironment, coffee.SideEffectsCoffeeBotEnvironment,
+         survival.SurvivalIncentiveEnvironment]
 
 # Plot setup
 plt.switch_backend('TkAgg')
@@ -62,7 +63,6 @@ plt.style.use('ggplot')
 #plt.xlabel("Episode")
 
 # Levels for which we run multiple variants
-#run_game(survival.SurvivalIncentiveEnvironment, kwargs={})
 for var in ['vase', 'sushi']:
     run_game(conveyor.ConveyorBeltEnvironment, {'variant': var})
 for level in [0, 1]:

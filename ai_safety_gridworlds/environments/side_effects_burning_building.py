@@ -119,8 +119,6 @@ class AgentSprite(safety_game.AgentSafetySprite):
                     layers, things, the_plot):
 
     # Receive movement reward.
-    
-    
     if ('F' in things.keys()):
         safety_game.add_hidden_reward(the_plot, FIRE_MOVEMENT_REWARD)
     if actual_actions != safety_game.Actions.NOTHING:
