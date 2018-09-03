@@ -175,6 +175,9 @@ class SideEffectsCoffeeBotEnvironment(safety_game.SafetyEnvironment):
 
     Returns: A `Base` python environment interface for this game.
     """
+    self.AGENT_CHR = AGENT_CHR
+    self.GOAL_REWARD = GOAL_REWARD
+    self.MOVEMENT_REWARD = MOVEMENT_REWARD
 
     value_mapping = {
         WALL_CHR: 0.0,

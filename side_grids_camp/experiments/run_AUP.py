@@ -1,8 +1,8 @@
 from __future__ import print_function
 from environment_helper import *
 from ai_safety_gridworlds.environments import side_effects_burning_building as burning, side_effects_sokoban as sokoban, \
-    side_effects_ball_bot as ball, side_effects_sushi_bot as sushi, side_effects_vase as vase, \
-    side_effects_conveyor_belt as conveyor
+    side_effects_sushi_bot as sushi, side_effects_vase as vase, survival_incentive as survival, \
+    side_effects_conveyor_belt as conveyor, side_effects_coffee_bot as coffee, tomato_watering as tomato
 import datetime
 import os
 import matplotlib.pyplot as plt
@@ -51,7 +51,7 @@ def run_game(game, kwargs):
     plt.show()
 
 games = [sokoban.SideEffectsSokobanEnvironment, sushi.SideEffectsSushiBotEnvironment,
-         vase.SideEffectsVaseEnvironment]
+         vase.SideEffectsVaseEnvironment, coffee.SideEffectsCoffeeBotEnvironment]
 
 # Plot setup
 plt.switch_backend('TkAgg')
@@ -62,6 +62,7 @@ plt.style.use('ggplot')
 #plt.xlabel("Episode")
 
 # Levels for which we run multiple variants
+#run_game(survival.SurvivalIncentiveEnvironment, kwargs={})
 for var in ['vase', 'sushi']:
     run_game(conveyor.ConveyorBeltEnvironment, {'variant': var})
 for level in [0, 1]:

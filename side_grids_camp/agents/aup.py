@@ -44,7 +44,7 @@ class AUPAgent():
         if current_hash not in self.cached_actions:
             best_actions, best_ret = [], float('-inf')
             for a in range(env.action_spec().maximum + 1):
-                r, done = self.penalized_reward(env, a, so_far)
+                r, done = self.penalized_reward(env, a, steps_left, so_far)
                 if steps_left > 0 and not done:
                     actions, ret = self.get_actions(env, steps_left-1, so_far + [a])
                 else:
@@ -59,32 +59,39 @@ class AUPAgent():
     @staticmethod
     def restart(env, actions):
         """Reset the environment and return the result of executing the action sequence."""
-        env.reset()
+        time_step = env.reset()
         for action in actions:
-            env.step(action)
+            if time_step.last(): break
+            time_step = env.step(action)
         return env
 
-    def penalized_reward(self, env, action, so_far=[]):
+    def penalized_reward(self, env, action, steps_left, so_far=[]):
         """The penalized reward for taking the given action in the current state. Steps the environment forward.
 
         :param env: Simulator.
         :param action: The action in question.
+        :param steps_left: How many steps are left in the plan.
         :param so_far: Actions taken up until now.
         :returns penalized_reward:
         :returns is_last: Whether the episode is terminated.
         """
         time_step = env.step(action)
         reward, scaled_penalty = time_step.reward if time_step.reward else 0, 0
+        for _ in range(steps_left-1):
+            if time_step.last(): break
+            time_step = env.step(safety_game.Actions.NOTHING)
         if self.penalties and action != safety_game.Actions.NOTHING:
-            action_pen = self.attainable_penalties(env, self.m, so_far + [action])
-            self.restart(env, so_far)
-            null_pen = self.attainable_penalties(env, self.m, so_far + [safety_game.Actions.NOTHING])
+            action_plan, inaction_plan = so_far + [action] + [safety_game.Actions.NOTHING] * (steps_left - 1), \
+                                         so_far + [safety_game.Actions.NOTHING] * steps_left
+            action_pen = self.attainable_penalties(env, self.m, action_plan)
+            self.restart(env, inaction_plan)
+            null_pen = self.attainable_penalties(env, self.m, inaction_plan)
             null_sum = sum(abs(null_pen))
             self.restart(env, so_far + [action])
 
             # Scaled difference between taking action and doing nothing
             scaled_penalty = sum(abs(action_pen - null_pen)) / (self.N * null_sum) if null_sum \
-                else 0
+                else 1.01  # ImpactUnit is 0!
         return reward - scaled_penalty, time_step.last()
 
     def attainable_penalties(self, env, steps_left, so_far=[]):
