@@ -1,7 +1,9 @@
 from __future__ import print_function
 import itertools
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import os
+import pickle
 from agents.aup import AUPAgent
 from agents.dqn import DQNAgent
 from collections import namedtuple
@@ -42,9 +44,12 @@ def derive_possible_rewards(env_class, kwargs):
     return functions
 
 
-def run_episode(agent, env, save_frames=False, render_ax=None):
+def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
     """
     Run the episode with given greediness, recording and saving the frames if desired.
+
+    :param save_frames: Whether to save frames from the final performance.
+    :param save_dir: Where to save memoized AUP data.
     """
     def handle_frame(time_step):
         if save_frames:
@@ -68,34 +73,40 @@ def run_episode(agent, env, save_frames=False, render_ax=None):
         if time_step.last():
             break
 
+    # Save memoized data
+    if save_dir:
+        if not os.path.exists(agent.dir):
+            os.makedirs(agent.dir)
+        with open(os.path.join(agent.dir, "attainable.pkl"), 'wb') as a, \
+                open(os.path.join(agent.dir, "cached.pkl"), 'wb') as c:
+            pickle.dump(agent.attainable, a, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(agent.cached_actions, c, pickle.HIGHEST_PROTOCOL)
+
     return ret, len(actions), env._calculate_episode_performance(time_step), frames
 
 
-def generate_run_agents(env_class, kwargs, score_ax=None, render_ax=None):
+def generate_run_agents(env_class, kwargs, render_ax=None):
     """
     Generate one normal agent and a subset of possible rewards for the environment.
 
     :param env_class: class object, expanded with random reward-generation methods.
     :param kwargs: environmental intialization parameters.
-    :param num_episodes:
-    :param score_ax: PyPlot axis on which scores can be plotted.
     :param render_ax: PyPlot axis on which rendering can take place.
     """
-    agents, movies = [], []
     penalty_functions = derive_possible_rewards(env_class, kwargs)
 
+    # Instantiate environment and agents
+    env = env_class(**kwargs)
+    dict_str = ''.join([str(arg) for arg in kwargs.values()])  # level config
+    save_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), env_class.name + '-' + dict_str)
+    movies, agents = [], [AUPAgent(save_dir=save_dir), AUPAgent(penalty_functions, save_dir=save_dir)]  # normal planner vs AUP
+
+    stats_dims = (len(agents))
     EpisodeStats = namedtuple("EpisodeStats", ["lengths", "rewards", "performance"])
-    stats_dims = (2)  # DQN vs AUP
     stats = EpisodeStats(lengths=np.zeros(stats_dims), rewards=np.zeros(stats_dims),
                          performance=np.zeros(stats_dims))
-
-    env = env_class(**kwargs)
-    agents = [AUPAgent(), AUPAgent(penalty_functions)]
-    for i_agent, agent in enumerate(agents):
-        _, _, _, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax)
-        movies.append(('Vanilla' if i_agent == 0 else 'AUP', frames))
-
-    #if score_ax:
-    #    score_ax.plot(range(num_episodes), stats.rewards[i_agent])  # plot performance
+    for agent in agents:
+        _, _, _, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax, save_dir=save_dir)
+        movies.append((agent.name, frames))
 
     return stats, movies

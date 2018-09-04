@@ -1,4 +1,6 @@
 import numpy as np
+import os
+import pickle
 from ai_safety_gridworlds.environments.shared import safety_game
 
 
@@ -8,21 +10,29 @@ class AUPAgent():
     """
     name = 'Attainable Utility Preservation'
 
-    def __init__(self, penalties=(), m=9, N=2, impact_pct=1):
+    def __init__(self, penalties=(), m=9, N=2, impact_pct=1, save_dir=None):
         """
 
         :param penalties: Reward functions whose shifts in attainable values will be penalized.
         :param m: The horizon up to which the agent will calculate attainable utilties after each action.
         :param N: Scale harshness of penalty: 1/N * penalty term.
         :param impact_pct: How much to scale the attainable null penalty by when regularizing (standing in for a_signal).
+        :param save_dir: The directory from which the memoized data are loaded.
         """
         self.penalties = penalties
         self.m = m
         self.N = N
         self.impact_unit = impact_pct
+        self.name = "AUP" if self.penalties else "Vanilla"
 
-        self.attainable = dict()  # memoize the (board, steps_left) reward + penalty values, inclusive of current step
-        self.cached_actions = dict()
+        try:
+            self.dir = os.path.join(save_dir, self.name)
+            with open(os.path.join(self.dir, "attainable.pkl"), 'rb') as a, \
+                    open(os.path.join(self.dir, "cached.pkl"), 'rb') as c:
+                self.attainable, self.cached_actions = pickle.load(a), pickle.load(c)
+        except:
+            self.attainable = dict()  # memoize the (board, steps_left) reward + penalty values, inclusive of current step
+            self.cached_actions = dict()
 
     def act(self, env, so_far=[]):
         """Get penalties from brute-force search and choose best penalized action.

@@ -2,7 +2,7 @@ from __future__ import print_function
 from environment_helper import *
 from ai_safety_gridworlds.environments import side_effects_burning_building as burning, side_effects_sokoban as sokoban, \
     side_effects_sushi_bot as sushi, side_effects_vase as vase, survival_incentive as survival, \
-    side_effects_conveyor_belt as conveyor, side_effects_coffee_bot as coffee, tomato_watering as tomato
+    side_effects_conveyor_belt as conveyor, side_effects_coffee_bot as coffee
 import datetime
 import os
 import matplotlib.pyplot as plt
@@ -36,6 +36,7 @@ def run_game(game, kwargs):
     render.set_tight_layout(True)
     render_ax.get_xaxis().set_ticks([])
     render_ax.get_yaxis().set_ticks([])
+    game.variant_name = game.name + '-' + str(kwargs['level'] if 'level' in kwargs else kwargs['variant'])
 
     start_time = datetime.datetime.now()
     stats, movies = generate_run_agents(game, kwargs, render_ax=render_ax)
@@ -44,23 +45,18 @@ def run_game(game, kwargs):
 
     print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
     ani = plot_images_to_ani(movies)
-    ani.save(os.path.join(os.path.dirname( __file__ ), '..', 'gifs',
-                          game.name + '-' + str(kwargs['level'] if 'level' in kwargs
-                                                else kwargs['variant']) + '.gif'),
+    ani.save(os.path.join(os.path.dirname( __file__ ), '..', 'gifs', game.variant_name + '.gif'),
              writer='imagemagick', dpi=350)
-    plt.show()
+    #plt.show()
+
 
 games = [sokoban.SideEffectsSokobanEnvironment, sushi.SideEffectsSushiBotEnvironment,
          vase.SideEffectsVaseEnvironment, coffee.SideEffectsCoffeeBotEnvironment,
          survival.SurvivalIncentiveEnvironment]
 
 # Plot setup
-plt.switch_backend('TkAgg')
+#plt.switch_backend('TkAgg')
 plt.style.use('ggplot')
-
-#scores, score_ax = plt.subplots(1, 1)
-#plt.ylabel("Score")
-#plt.xlabel("Episode")
 
 # Levels for which we run multiple variants
 for var in ['vase', 'sushi']:
