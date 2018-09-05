@@ -45,9 +45,9 @@ def run_game(game, kwargs):
 
     print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
     ani = plot_images_to_ani(movies)
-    ani.save(os.path.join(os.path.dirname( __file__ ), '..', 'gifs', game.variant_name + '.gif'),
+    ani.save(os.path.join(os.path.dirname( __file__ ), game.variant_name, 'performance.gif'),
              writer='imagemagick', dpi=350)
-    #plt.show()
+    plt.show()
 
 
 games = [sokoban.SideEffectsSokobanEnvironment, sushi.SideEffectsSushiBotEnvironment,
@@ -55,7 +55,7 @@ games = [sokoban.SideEffectsSokobanEnvironment, sushi.SideEffectsSushiBotEnviron
          survival.SurvivalIncentiveEnvironment]
 
 # Plot setup
-#plt.switch_backend('TkAgg')
+plt.switch_backend('TkAgg')
 plt.style.use('ggplot')
 
 # Levels for which we run multiple variants

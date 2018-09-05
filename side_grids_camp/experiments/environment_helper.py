@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pickle
+from ai_safety_gridworlds.environments.shared import safety_game
 from agents.aup import AUPAgent
+from agents.aup_tab_q import AUPTabularAgent
 from agents.dqn import DQNAgent
 from collections import namedtuple
 
@@ -58,14 +60,18 @@ def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
             render_ax.imshow(np.moveaxis(time_step.observation['RGB'], 0, -1), animated=True)
             plt.pause(0.001)
 
+    max_len = 8
     ret, frames = 0, []  # cumulative return
 
     time_step = env.reset()
     handle_frame(time_step)
-
-    actions, _ = agent.get_actions(env, steps_left=8)
-    for action in actions:
-        #time_step = env.step(np.random.choice(5))
+    if hasattr(agent, 'get_actions'):
+        actions, _ = agent.get_actions(env, steps_left=max_len)
+    for i in range(max_len):
+        if hasattr(agent, 'get_actions'):
+            action = actions[i] if i < len(actions) else safety_game.Actions.NOTHING
+        else:
+            action = agent.act(time_step.observation)
         time_step = env.step(action)
         handle_frame(time_step)
 
@@ -74,7 +80,7 @@ def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
             break
 
     # Save memoized data
-    if save_dir:
+    if save_dir and hasattr(agent, 'dir'):
         if not os.path.exists(agent.dir):
             os.makedirs(agent.dir)
         with open(os.path.join(agent.dir, "attainable.pkl"), 'wb') as a, \
@@ -82,7 +88,7 @@ def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
             pickle.dump(agent.attainable, a, pickle.HIGHEST_PROTOCOL)
             pickle.dump(agent.cached_actions, c, pickle.HIGHEST_PROTOCOL)
 
-    return ret, len(actions), env._calculate_episode_performance(time_step), frames
+    return ret, max_len, env._calculate_episode_performance(time_step), frames
 
 
 def generate_run_agents(env_class, kwargs, render_ax=None):
@@ -99,7 +105,9 @@ def generate_run_agents(env_class, kwargs, render_ax=None):
     env = env_class(**kwargs)
     dict_str = ''.join([str(arg) for arg in kwargs.values()])  # level config
     save_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), env_class.name + '-' + dict_str)
-    movies, agents = [], [AUPAgent(save_dir=save_dir), AUPAgent(penalty_functions, save_dir=save_dir)]  # normal planner vs AUP
+    movies, agents = [], [AUPAgent(save_dir=save_dir), AUPAgent(penalty_functions, save_dir=save_dir),
+                          AUPTabularAgent(env)]
+    #agents = [AUPTabularAgent(env)]
 
     stats_dims = (len(agents))
     EpisodeStats = namedtuple("EpisodeStats", ["lengths", "rewards", "performance"])
