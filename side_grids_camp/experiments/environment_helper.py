@@ -1,5 +1,4 @@
 from __future__ import print_function
-import itertools
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -11,8 +10,6 @@ from agents.dqn import DQNAgent
 from collections import namedtuple
 
 
-
-
 def derive_possible_rewards(env_class, kwargs):
     """
     Derive a subset of possible reward functions for the given environment.
@@ -22,11 +19,11 @@ def derive_possible_rewards(env_class, kwargs):
     """
     def state_lambda(original_board_str, agent_value, empty_value):
         return lambda obs: int(str(obs['board']).replace(agent_value, empty_value)
-                               == original_board_str) * env.GOAL_REWARD + env.MOVEMENT_REWARD
+                               == original_board_str) * env.GOAL_REWARD
 
     env = env_class(**kwargs)
     env.reset()
-    agent_value, empty_value = str(env._value_mapping[env.AGENT_CHR])[:-2], str(env._value_mapping[' '])[:-2]
+    agent_value, empty_value = str(env._value_mapping[env.AGENT_CHR])[:-1], str(env._value_mapping[' '])[:-1]
 
     states, functions = set(), []
     # Randomly generate states
@@ -69,7 +66,7 @@ def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
         actions, _ = agent.get_actions(env, steps_left=max_len)
     for i in range(max_len):
         if hasattr(agent, 'get_actions'):
-            action = actions[i] if i < len(actions) else safety_game.Actions.NOTHING
+            action = actions[i]
         else:
             action = agent.act(time_step.observation)
         time_step = env.step(action)
@@ -106,8 +103,7 @@ def generate_run_agents(env_class, kwargs, render_ax=None):
     dict_str = ''.join([str(arg) for arg in kwargs.values()])  # level config
     save_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), env_class.name + '-' + dict_str)
     movies, agents = [], [AUPAgent(save_dir=save_dir), AUPAgent(penalty_functions, save_dir=save_dir),
-                          AUPTabularAgent(env)]
-    #agents = [AUPTabularAgent(env)]
+                          AUPTabularAgent(env, penalties=penalty_functions)]
 
     stats_dims = (len(agents))
     EpisodeStats = namedtuple("EpisodeStats", ["lengths", "rewards", "performance"])

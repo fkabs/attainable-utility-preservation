@@ -94,14 +94,14 @@ class AUPAgent():
         if self.penalties and action != safety_game.Actions.NOTHING:
             action_plan, inaction_plan = so_far + [action] + [safety_game.Actions.NOTHING] * (steps_left - 1), \
                                          so_far + [safety_game.Actions.NOTHING] * steps_left
-            action_pen = self.attainable_penalties(env, self.m, action_plan)
+            action_attainable = self.attainable_penalties(env, self.m, action_plan)
             self.restart(env, inaction_plan)
-            null_pen = self.attainable_penalties(env, self.m, inaction_plan)
-            null_sum = sum(abs(null_pen))
+            null_attainable = self.attainable_penalties(env, self.m, inaction_plan)
+            null_sum = sum(abs(null_attainable))
             self.restart(env, so_far + [action])
 
             # Scaled difference between taking action and doing nothing
-            scaled_penalty = sum(abs(action_pen - null_pen)) / (self.N * null_sum) if null_sum \
+            scaled_penalty = sum(abs(action_attainable - null_attainable)) / (self.N * null_sum) if null_sum \
                 else 1.01  # ImpactUnit is 0!
         return reward - scaled_penalty, time_step.last()
 
