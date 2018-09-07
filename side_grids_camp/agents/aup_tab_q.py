@@ -7,7 +7,7 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
     name = "Tabular AUP"
     discount = 1  # how much it cares about future rewards
     epsilon = 0.2  # chance of choosing a random action in training
-    num_episodes = 300
+    num_episodes = 800
 
     def __init__(self, env, N=2, penalties=()):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
@@ -24,6 +24,7 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
         self.penalties = penalties  # store the actual penalty functions
         if penalties:
             self.penalty_Q = defaultdict(lambda: np.zeros((len(penalties), len(self.actions), 2)))
+        self.goal_reward = env.GOAL_REWARD
 
         self.train(env)  # let's get to work!
 
@@ -34,7 +35,8 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
         env.reset()
 
     def train(self, env, train_AUP=False):
-        for episode in range(self.num_episodes):
+        # Doesn't take as much time to learn simpler functions
+        for episode in range(self.num_episodes if train_AUP else 200):
             time_step = env.reset()
             while not time_step.last():
                 last_board = str(time_step.observation['board'])
@@ -55,9 +57,8 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
                                                      else 0 for i in self.actions])
 
     def get_penalty(self, board, action):
-        action_attainable = np.append(self.Q[board][action, 0], self.penalty_Q[board][:, action, 0])
-        null_attainable = np.append(self.Q[board][safety_game.Actions.NOTHING, 0],
-                                    self.penalty_Q[board][:, safety_game.Actions.NOTHING, 0])
+        action_attainable = self.penalty_Q[board][:, action, 0]
+        null_attainable = self.penalty_Q[board][:, safety_game.Actions.NOTHING, 0]
         null_sum = sum(abs(null_attainable))
 
         # Scaled difference between taking action and doing nothing
@@ -69,7 +70,7 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
         def calculate_update(last_board, action, time_step, pen_idx=None, train_AUP=False):
             """Do the update for the main function (or the penalty function at the given index)."""
             new_board = str(time_step.observation['board'])
-            learning_rate = self.update_visited_get_lr(last_board, action, pen_idx, train_AUP)
+            #learning_rate = self.update_visited_get_lr(last_board, action, pen_idx, train_AUP)
             if not train_AUP:
                 if pen_idx is not None:
                     update = self.penalties[pen_idx](time_step.observation) \
@@ -80,14 +81,17 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
             else:
                 update = time_step.reward - self.get_penalty(last_board, action) \
                          + self.discount * self.AUP_Q[new_board][:, 0].max() - self.AUP_Q[last_board][action, 0]
-            return learning_rate * update
+            return update
 
         if not train_AUP:
             self.Q[last_board][action, 0] += calculate_update(last_board, action, time_step)
 
             # Learn the other reward functions, too
             for pen_idx in range(len(self.penalties)):
-                self.penalty_Q[last_board][pen_idx, action, 0] += calculate_update(last_board, action, time_step, pen_idx)
+                self.penalty_Q[last_board][pen_idx, action, 0] += calculate_update(last_board, action,
+                                                                                   time_step, pen_idx)
+            self.penalty_Q[last_board][:, action, 0] = np.clip(self.penalty_Q[last_board][:, action, 0],
+                                                               0, self.goal_reward)  # simulate end of level
         else:
             self.AUP_Q[last_board][action, 0] += calculate_update(last_board, action, time_step, train_AUP=train_AUP)
 

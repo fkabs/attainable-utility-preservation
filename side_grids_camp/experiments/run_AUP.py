@@ -41,13 +41,12 @@ def run_game(game, kwargs):
     start_time = datetime.datetime.now()
     stats, movies = generate_run_agents(game, kwargs, render_ax=render_ax)
     plt.close(render.number)
-    # plt.show()  # show performance
 
     print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
     ani = plot_images_to_ani(movies)
     ani.save(os.path.join(os.path.dirname( __file__ ), game.variant_name, 'performance.gif'),
              writer='imagemagick', dpi=350)
-    plt.show()
+    #plt.show()
 
 
 games = [sokoban.SideEffectsSokobanEnvironment, sushi.SideEffectsSushiBotEnvironment,
@@ -55,12 +54,12 @@ games = [sokoban.SideEffectsSokobanEnvironment, sushi.SideEffectsSushiBotEnviron
          survival.SurvivalIncentiveEnvironment]
 
 # Plot setup
-#plt.switch_backend('TkAgg')
+plt.switch_backend('TkAgg')
 plt.style.use('ggplot')
 
 # Levels for which we run multiple variants
-for var in ['vase', 'sushi']:
-    run_game(conveyor.ConveyorBeltEnvironment, {'variant': var})
+#for var in ['vase', 'sushi']:
+#    run_game(conveyor.ConveyorBeltEnvironment, {'variant': var})
 for level in [0, 1]:
     run_game(burning.SideEffectsBurningBuildingEnvironment, {'level': level})
 

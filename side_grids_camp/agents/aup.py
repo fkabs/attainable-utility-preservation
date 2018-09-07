@@ -10,7 +10,7 @@ class AUPAgent():
     """
     name = 'Attainable Utility Preservation'
 
-    def __init__(self, penalties=(), m=9, N=2, impact_pct=1, save_dir=None):
+    def __init__(self, penalties=(), m=9, N=2, impact_unit=1, save_dir=None):
         """
 
         :param penalties: Reward functions whose shifts in attainable values will be penalized.
@@ -22,7 +22,7 @@ class AUPAgent():
         self.penalties = penalties
         self.m = m
         self.N = N
-        self.impact_unit = impact_pct
+        self.impact_unit = impact_unit
         self.name = "AUP" if self.penalties else "Vanilla"
 
         try:
@@ -129,5 +129,5 @@ class AUPAgent():
                 self.restart(env, so_far)
 
             # Make sure attainable penalties aren't double-counting goal attainment
-            self.attainable[current_hash] = np.clip(pens + attainable_penalties, float('-inf'), env.GOAL_REWARD + env.MOVEMENT_REWARD)
+            self.attainable[current_hash] = np.clip(pens + attainable_penalties, float('-inf'), env.GOAL_REWARD)
         return self.attainable[current_hash]
