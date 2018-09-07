@@ -55,12 +55,12 @@ games = [sokoban.SideEffectsSokobanEnvironment, sushi.SideEffectsSushiBotEnviron
          survival.SurvivalIncentiveEnvironment]
 
 # Plot setup
-plt.switch_backend('TkAgg')
+#plt.switch_backend('TkAgg')
 plt.style.use('ggplot')
 
 # Levels for which we run multiple variants
-#for var in ['vase', 'sushi']:
-#    run_game(conveyor.ConveyorBeltEnvironment, {'variant': var})
+for var in ['vase', 'sushi']:
+    run_game(conveyor.ConveyorBeltEnvironment, {'variant': var})
 for level in [0, 1]:
     run_game(burning.SideEffectsBurningBuildingEnvironment, {'level': level})
 

@@ -3,7 +3,7 @@ from collections import defaultdict
 import numpy as np
 
 
-class AUPTabularAgent:
+class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
     name = "Tabular AUP"
     discount = 1  # how much it cares about future rewards
     epsilon = 0.2  # chance of choosing a random action in training
@@ -55,8 +55,9 @@ class AUPTabularAgent:
                                                      else 0 for i in self.actions])
 
     def get_penalty(self, board, action):
-        action_attainable = self.penalty_Q[board][:, action, 0]  # TODO normal reward?
-        null_attainable = self.penalty_Q[board][:, safety_game.Actions.NOTHING, 0]
+        action_attainable = np.append(self.Q[board][action, 0], self.penalty_Q[board][:, action, 0])
+        null_attainable = np.append(self.Q[board][safety_game.Actions.NOTHING, 0],
+                                    self.penalty_Q[board][:, safety_game.Actions.NOTHING, 0])
         null_sum = sum(abs(null_attainable))
 
         # Scaled difference between taking action and doing nothing
@@ -70,14 +71,13 @@ class AUPTabularAgent:
             new_board = str(time_step.observation['board'])
             learning_rate = self.update_visited_get_lr(last_board, action, pen_idx, train_AUP)
             if not train_AUP:
-                if pen_idx:
+                if pen_idx is not None:
                     update = self.penalties[pen_idx](time_step.observation) \
                              + self.discount * self.penalty_Q[new_board][pen_idx, :, 0].max() \
                              - self.penalty_Q[last_board][pen_idx, action, 0]
                 else:
                     update = time_step.reward + self.discount * self.Q[new_board][:, 0].max() - self.Q[last_board][action, 0]
             else:
-                pen = self.get_penalty(last_board, action)
                 update = time_step.reward - self.get_penalty(last_board, action) \
                          + self.discount * self.AUP_Q[new_board][:, 0].max() - self.AUP_Q[last_board][action, 0]
             return learning_rate * update
@@ -86,20 +86,15 @@ class AUPTabularAgent:
             self.Q[last_board][action, 0] += calculate_update(last_board, action, time_step)
 
             # Learn the other reward functions, too
-            for pen_idx, penalty in enumerate(self.penalties):
+            for pen_idx in range(len(self.penalties)):
                 self.penalty_Q[last_board][pen_idx, action, 0] += calculate_update(last_board, action, time_step, pen_idx)
         else:
             self.AUP_Q[last_board][action, 0] += calculate_update(last_board, action, time_step, train_AUP=train_AUP)
 
     def update_visited_get_lr(self, last_board, action, pen_idx=None, train_AUP=False):
         if not train_AUP:
-            if pen_idx:
-                self.penalty_Q[last_board][pen_idx, action, 1] += 1
-                learning_rate = 1/self.penalty_Q[last_board][pen_idx, action, 1]
-            else:
-                self.Q[last_board][action, 1] += 1
-                learning_rate = 1/self.Q[last_board][action, 1]
+            Q = self.penalty_Q[last_board][pen_idx] if pen_idx else self.Q[last_board]
         else:
-            self.AUP_Q[last_board][action, 1] += 1
-            learning_rate = 1/self.AUP_Q[last_board][action, 1]
-        return learning_rate
+            Q = self.AUP_Q[last_board]
+        Q[action, 1] += 1
+        return 1/Q[action, 1]

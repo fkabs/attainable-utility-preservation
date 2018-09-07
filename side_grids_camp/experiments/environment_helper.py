@@ -64,17 +64,15 @@ def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
     handle_frame(time_step)
     if hasattr(agent, 'get_actions'):
         actions, _ = agent.get_actions(env, steps_left=max_len)
+        max_len = len(actions)
     for i in range(max_len):
-        if hasattr(agent, 'get_actions'):
-            action = actions[i]
-        else:
-            action = agent.act(time_step.observation)
+        if time_step.last():
+            break
+        action = actions[i] if hasattr(agent, 'get_actions') else agent.act(time_step.observation)
         time_step = env.step(action)
         handle_frame(time_step)
 
         ret += time_step.reward
-        if time_step.last():
-            break
 
     # Save memoized data
     if save_dir and hasattr(agent, 'dir'):
@@ -102,7 +100,7 @@ def generate_run_agents(env_class, kwargs, render_ax=None):
     env = env_class(**kwargs)
     dict_str = ''.join([str(arg) for arg in kwargs.values()])  # level config
     save_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), env_class.name + '-' + dict_str)
-    movies, agents = [], [AUPAgent(save_dir=save_dir), AUPAgent(penalty_functions, save_dir=save_dir),
+    movies, agents = [], [AUPAgent(), AUPAgent(penalty_functions),
                           AUPTabularAgent(env, penalties=penalty_functions)]
 
     stats_dims = (len(agents))
