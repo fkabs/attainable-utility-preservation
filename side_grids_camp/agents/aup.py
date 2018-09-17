@@ -10,19 +10,18 @@ class AUPAgent():
     """
     name = 'Attainable Utility Preservation'
 
-    def __init__(self, penalties=(), m=9, N=2, impact_unit=1, save_dir=None):
+    def __init__(self, penalties=None, m=20, N=2, save_dir=None):
         """
 
         :param penalties: Reward functions whose shifts in attainable values will be penalized.
         :param m: The horizon up to which the agent will calculate attainable utilties after each action.
         :param N: Scale harshness of penalty: 1/N * penalty term.
-        :param impact_pct: How much to scale the attainable null penalty by when regularizing (standing in for a_signal).
+        :param a_unit: Impact unit action.
         :param save_dir: The directory from which the memoized data are loaded. Change when reparametrizing.
         """
         self.penalties = penalties
         self.m = m
         self.N = N
-        self.impact_unit = impact_unit
         self.name = "AUP" if self.penalties else "Vanilla"
 
         try:
@@ -78,7 +77,6 @@ class AUPAgent():
     def penalized_reward(self, env, action, steps_left, so_far=[]):
         """The penalized reward for taking the given action in the current state. Steps the environment forward.
 
-        Assumes rewards (roughly) bounded [0,1].  # TODO normalize
         :param env: Simulator.
         :param action: The action in question.
         :param steps_left: How many steps are left in the plan.
@@ -114,8 +112,8 @@ class AUPAgent():
         """
         current_hash = (str(env._last_observations['board']), steps_left)
         if current_hash not in self.attainable:
-            pens = np.array([env._last_reward] + [penalty(env._last_observations) for penalty in self.penalties])
-            if steps_left == 0 or env._game_over:
+            pens = np.array([penalty(env._last_observations) for penalty in self.penalties])
+            if steps_left == 1 or env._game_over:
                 return pens
 
             # For each penalty function, what's the best we can do from here?

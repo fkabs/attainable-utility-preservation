@@ -7,40 +7,36 @@ import pickle
 from ai_safety_gridworlds.environments.shared import safety_game
 from agents.aup import AUPAgent
 from agents.aup_tab_q import AUPTabularAgent
-from agents.dqn import DQNAgent
 from collections import namedtuple
 
 
 def derive_possible_rewards(env_class, kwargs):
     """
-    Derive a subset of possible reward functions for the given environment.
+    Derive possible reward functions for the given environment.
 
     :param env_class: Environment constructor.
     :param kwargs: Configuration parameters.
     """
-    def state_lambda(original_board_str, agent_value, empty_value):
-        return lambda obs: int(str(obs['board']).replace(agent_value, empty_value)
-                               == original_board_str) * env.GOAL_REWARD
+    def state_lambda(original_board_str):
+        return lambda obs: int(str(obs['board']) == original_board_str) * env.GOAL_REWARD
+    def explore(env, so_far=[]):
+        board_str = str(env._last_observations['board'])
+        if board_str not in states:
+            states.add(board_str)
+            fn = state_lambda(board_str)
+            fn.state = board_str
+            functions.append(fn)
+            if not env._game_over:
+                for action in range(env.action_spec().maximum + 1):
+                    env.step(action)
+                    explore(env, so_far + [action])
+                    AUPAgent.restart(env, so_far)
 
     env = env_class(**kwargs)
     env.reset()
-    agent_value, empty_value = str(env._value_mapping[env.AGENT_CHR])[:-1], str(env._value_mapping[' '])[:-1]
 
     states, functions = set(), []
-    # Randomly generate states
-    for i in range(100):
-        env.reset()
-        for depth in range(10):
-            time_step = env.step(np.random.choice(range(env.action_spec().maximum)))  # don't try null action
-
-            # Remove agent from state
-            board_str = str(time_step.observation['board']).replace(agent_value, empty_value)
-            if board_str not in states and not time_step.last():
-                states.add(board_str)
-                fn = state_lambda(board_str, agent_value, empty_value)
-                fn.state = board_str
-                functions.append(fn)
-
+    explore(env)
     return functions
 
 
@@ -101,8 +97,8 @@ def generate_run_agents(env_class, kwargs, render_ax=None):
     env = env_class(**kwargs)
     dict_str = ''.join([str(arg) for arg in kwargs.values()])  # level config
     save_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), env_class.name + '-' + dict_str)
-    movies, agents = [], [AUPAgent(save_dir=save_dir), AUPAgent(penalty_functions, save_dir=save_dir),
-                          AUPTabularAgent(env, penalties=penalty_functions)]
+    movies, agents = [], [AUPAgent(save_dir=save_dir), AUPAgent(penalty_functions, save_dir=None)]#,
+                          #AUPTabularAgent(env, penalties=penalty_functions)]
 
     stats_dims = (len(agents))
     EpisodeStats = namedtuple("EpisodeStats", ["lengths", "rewards", "performance"])
