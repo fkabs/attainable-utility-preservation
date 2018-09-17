@@ -17,7 +17,7 @@ class AUPAgent():
         :param m: The horizon up to which the agent will calculate attainable utilties after each action.
         :param N: Scale harshness of penalty: 1/N * penalty term.
         :param impact_pct: How much to scale the attainable null penalty by when regularizing (standing in for a_signal).
-        :param save_dir: The directory from which the memoized data are loaded.
+        :param save_dir: The directory from which the memoized data are loaded. Change when reparametrizing.
         """
         self.penalties = penalties
         self.m = m
