@@ -10,7 +10,7 @@ class AUPAgent():
     """
     name = 'Attainable Utility Preservation'
 
-    def __init__(self, penalties=None, m=20, N=2, save_dir=None):
+    def __init__(self, penalties=None, m=17, N=2, save_dir=None):
         """
 
         :param penalties: Reward functions whose shifts in attainable values will be penalized.

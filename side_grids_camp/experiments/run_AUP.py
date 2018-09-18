@@ -58,12 +58,11 @@ plt.switch_backend('TkAgg')
 plt.style.use('ggplot')
 
 # Levels for which we run multiple variants
-#for var in ['vase', 'sushi']:
-#    run_game(conveyor.ConveyorBeltEnvironment, {'variant': var})
-for level in [0, 1]:
-   run_game(burning.SideEffectsBurningBuildingEnvironment, {'level': level})
+for var in ['vase', 'sushi']:
+   run_game(conveyor.ConveyorBeltEnvironment, {'variant': var})
+#for level in [0, 1]:
+#   run_game(burning.SideEffectsBurningBuildingEnvironment, {'level': level})
 
 # The rest
 for game in games:
-    if game != games[-1]: continue
     run_game(game, {'level': 0})
