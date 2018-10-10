@@ -46,7 +46,7 @@ def run_game(game, kwargs):
     ani = plot_images_to_ani(movies)
     ani.save(os.path.join(os.path.dirname( __file__ ), game.variant_name, 'performance.gif'),
              writer='imagemagick', dpi=350)
-    #plt.show()
+    plt.show()
 
 
 games = [sokoban.SideEffectsSokobanEnvironment, sushi.SideEffectsSushiBotEnvironment,
@@ -60,8 +60,8 @@ plt.style.use('ggplot')
 # Levels for which we run multiple variants
 for var in ['vase', 'sushi']:
    run_game(conveyor.ConveyorBeltEnvironment, {'variant': var})
-#for level in [0, 1]:
-#   run_game(burning.SideEffectsBurningBuildingEnvironment, {'level': level})
+for level in [0, 1]:
+   run_game(burning.SideEffectsBurningBuildingEnvironment, {'level': level})
 
 # The rest
 for game in games:

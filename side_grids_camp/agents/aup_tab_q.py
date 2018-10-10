@@ -1,15 +1,13 @@
 from ai_safety_gridworlds.environments.shared import safety_game
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 import numpy as np
 
 
 class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
     name = "Tabular AUP"
-    discount = 1  # how much it cares about future rewards
     epsilon = 0.2  # chance of choosing a random action in training
-    num_episodes = 800
 
-    def __init__(self, env, N=2, penalties=()):
+    def __init__(self, env, N=3, penalties=(), discount=.99, num_episodes=700):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.
@@ -19,11 +17,13 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
         self.actions = range(env.action_spec().maximum + 1)
         # Store times visited in second spot
         self.Q = defaultdict(lambda: np.zeros((len(self.actions), 2)))
+        self.discount = discount
+        self.num_episodes = num_episodes
         self.N = N
 
         self.penalties = penalties  # store the actual penalty functions
         if penalties:
-            self.penalty_Q = defaultdict(lambda: np.zeros((len(penalties), len(self.actions), 2)))
+            self.penalty_Q = defaultdict(lambda: np.zeros((len(penalties), len(self.actions))))
         self.goal_reward = env.GOAL_REWARD
 
         self.train(env)  # let's get to work!
@@ -35,14 +35,19 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
         env.reset()
 
     def train(self, env, train_AUP=False):
-        # Doesn't take as much time to learn simpler functions
-        for episode in range(self.num_episodes if train_AUP else 200):
+        EpisodeStats = namedtuple("EpisodeStats", ["rewards", "performance"])
+        self.training_performance = EpisodeStats(rewards=np.zeros(self.num_episodes),
+                                                 performance=np.zeros(self.num_episodes))
+        for episode in range(self.num_episodes):
             time_step = env.reset()
             while not time_step.last():
                 last_board = str(time_step.observation['board'])
                 action = self.behavior_action(last_board, train_AUP)
                 time_step = env.step(action)
                 self.update_greedy(last_board, action, time_step, train_AUP)
+
+            self.training_performance["rewards"][episode] = env.episode_return
+            self.training_performance["performance"][episode] = env._episodic_performances[-1]
 
     def act(self, obs):
         return self.AUP_Q[str(obs['board'])][:, 0].argmax(axis=0)
@@ -57,8 +62,8 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
                                                      else 0 for i in self.actions])
 
     def get_penalty(self, board, action):
-        action_attainable = self.penalty_Q[board][:, action, 0]
-        null_attainable = self.penalty_Q[board][:, safety_game.Actions.NOTHING, 0]
+        action_attainable = self.penalty_Q[board][:, action]
+        null_attainable = self.penalty_Q[board][:, safety_game.Actions.NOTHING]
         null_sum = sum(abs(null_attainable))
 
         # Scaled difference between taking action and doing nothing
@@ -67,38 +72,39 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
 
     def update_greedy(self, last_board, action, time_step, train_AUP=False):
         """Perform TD update on observed reward."""
+        learning_rate = 1 #self.update_visited_get_lr(last_board, action, train_AUP)
+        new_board = str(time_step.observation['board'])
+
         def calculate_update(last_board, action, time_step, pen_idx=None, train_AUP=False):
             """Do the update for the main function (or the penalty function at the given index)."""
-            new_board = str(time_step.observation['board'])
-            #learning_rate = self.update_visited_get_lr(last_board, action, pen_idx, train_AUP)
             if not train_AUP:
                 if pen_idx is not None:
-                    update = self.penalties[pen_idx](time_step.observation) \
-                             + self.discount * self.penalty_Q[new_board][pen_idx, :, 0].max() \
-                             - self.penalty_Q[last_board][pen_idx, action, 0]
+                    reward = self.penalties[pen_idx](time_step.observation)
+                    new_Q, old_Q = self.penalty_Q[new_board][pen_idx, :].max(), \
+                                   self.penalty_Q[last_board][pen_idx, action]
                 else:
-                    update = time_step.reward + self.discount * self.Q[new_board][:, 0].max() - self.Q[last_board][action, 0]
+                    reward = time_step.reward
+                    new_Q, old_Q = self.Q[new_board][:, 0].max(), self.Q[last_board][action, 0]
             else:
-                update = time_step.reward - self.get_penalty(last_board, action) \
-                         + self.discount * self.AUP_Q[new_board][:, 0].max() - self.AUP_Q[last_board][action, 0]
-            return update
+                reward = time_step.reward - self.get_penalty(last_board, action)
+                new_Q, old_Q = self.AUP_Q[new_board][:, 0].max(), self.AUP_Q[last_board][action, 0]
+            return learning_rate * (reward + self.discount * new_Q - old_Q)
 
         if not train_AUP:
             self.Q[last_board][action, 0] += calculate_update(last_board, action, time_step)
 
             # Learn the other reward functions, too
             for pen_idx in range(len(self.penalties)):
-                self.penalty_Q[last_board][pen_idx, action, 0] += calculate_update(last_board, action,
+                self.penalty_Q[last_board][pen_idx, action] += calculate_update(last_board, action,
                                                                                    time_step, pen_idx)
-            self.penalty_Q[last_board][:, action, 0] = np.clip(self.penalty_Q[last_board][:, action, 0],
-                                                               0, self.goal_reward)  # simulate end of level
+            #self.penalty_Q[last_board][:, action] = self.penalty_Q[last_board][:, action, 0],
+                                                                # simulate end of level
         else:
             self.AUP_Q[last_board][action, 0] += calculate_update(last_board, action, time_step, train_AUP=train_AUP)
 
-    def update_visited_get_lr(self, last_board, action, pen_idx=None, train_AUP=False):
-        if not train_AUP:
-            Q = self.penalty_Q[last_board][pen_idx] if pen_idx else self.Q[last_board]
-        else:
-            Q = self.AUP_Q[last_board]
+    def update_visited_get_lr(self, last_board, action, train_AUP=False):
+        Q = self.Q[last_board] if not train_AUP else self.AUP_Q[last_board]
         Q[action, 1] += 1
-        return 1/Q[action, 1]
+        return 1/Q[action, 1]**2
+
+#def train_Q(env, penalties, discount=.99, num_episodes=600)

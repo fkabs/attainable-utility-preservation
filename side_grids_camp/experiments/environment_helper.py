@@ -97,13 +97,13 @@ def generate_run_agents(env_class, kwargs, render_ax=None):
     env = env_class(**kwargs)
     dict_str = ''.join([str(arg) for arg in kwargs.values()])  # level config
     save_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), env_class.name + '-' + dict_str)
-    movies, agents = [], [AUPAgent(save_dir=None), AUPAgent(penalty_functions, save_dir=None),
-                          AUPTabularAgent(env, penalties=penalty_functions)]
+    tabular_agent = AUPTabularAgent(env, penalties=penalty_functions)
+    movies, agents = [], [#AUPAgent(save_dir=None), AUPAgent(penalty_functions, save_dir=None),
+                          tabular_agent]
 
     stats_dims = (len(agents))
-    EpisodeStats = namedtuple("EpisodeStats", ["lengths", "rewards", "performance"])
-    stats = EpisodeStats(lengths=np.zeros(stats_dims), rewards=np.zeros(stats_dims),
-                         performance=np.zeros(stats_dims))
+    EpisodeStats = namedtuple("EpisodeStats", ["rewards", "performance"])
+    stats = EpisodeStats(rewards=np.zeros(stats_dims), performance=np.zeros(stats_dims))
     for agent in agents:
         _, _, _, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax, save_dir=save_dir)
         movies.append((agent.name, frames))
