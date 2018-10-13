@@ -8,29 +8,23 @@ class AUPAgent():
     """
     Attainable utility-preserving agent.
     """
-    name = 'Attainable Utility Preservation'
 
-    def __init__(self, penalties=None, m=17, N=2, save_dir=None):
+    def __init__(self, penalty_Q, N=2, save_dir=None):
         """
 
         :param penalties: Reward functions whose shifts in attainable values will be penalized.
-        :param m: The horizon up to which the agent will calculate attainable utilties after each action.
         :param N: Scale harshness of penalty: 1/N * penalty term.
-        :param a_unit: Impact unit action.
         :param save_dir: The directory from which the memoized data are loaded. Change when reparametrizing.
         """
-        self.penalties = penalties
-        self.m = m
+        self.penalty_Q = penalty_Q
         self.N = N
-        self.name = "AUP" if self.penalties else "Vanilla"
+        self.name = "AUP"
 
         try:
             self.dir = os.path.join(save_dir, self.name)
-            with open(os.path.join(self.dir, "attainable.pkl"), 'rb') as a, \
-                    open(os.path.join(self.dir, "cached.pkl"), 'rb') as c:
-                self.attainable, self.cached_actions = pickle.load(a), pickle.load(c)
+            with open(os.path.join(self.dir, "cached.pkl"), 'rb') as c:
+                self.cached_actions = pickle.load(c)
         except:
-            self.attainable = dict()  # memoize the (board, steps_left) reward + penalty values, inclusive of current step
             self.cached_actions = dict()
 
     def act(self, env, so_far=[]):
@@ -72,7 +66,6 @@ class AUPAgent():
         for action in actions:
             if time_step.last(): break
             time_step = env.step(action)
-        return env
 
     def penalized_reward(self, env, action, steps_left, so_far=[]):
         """The penalized reward for taking the given action in the current state. Steps the environment forward.
@@ -89,12 +82,13 @@ class AUPAgent():
         for _ in range(steps_left-1):
             if time_step.last(): break
             time_step = env.step(safety_game.Actions.NOTHING)
-        if self.penalties and action != safety_game.Actions.NOTHING:
+        if self.penalty_Q and action != safety_game.Actions.NOTHING:
             action_plan, inaction_plan = so_far + [action] + [safety_game.Actions.NOTHING] * (steps_left - 1), \
                                          so_far + [safety_game.Actions.NOTHING] * steps_left
-            action_attainable = self.attainable_penalties(env, self.m, action_plan)
+            self.restart(env, action_plan)
+            action_attainable = self.penalty_Q[str(env._last_observations['board'])]
             self.restart(env, inaction_plan)
-            null_attainable = self.attainable_penalties(env, self.m, inaction_plan)
+            null_attainable = self.penalty_Q[str(env._last_observations['board'])]
             null_sum = sum(abs(null_attainable))
             self.restart(env, so_far + [action])
 
@@ -102,30 +96,3 @@ class AUPAgent():
             scaled_penalty = sum(abs(action_attainable - null_attainable)) / (self.N * null_sum) if null_sum \
                 else 1.01  # ImpactUnit is 0!
         return reward - scaled_penalty, time_step.last()
-
-    def attainable_penalties(self, env, steps_left, so_far=[]):
-        """Returns penalty rewards attainable within steps_left steps.
-
-        :param env: Simulator.
-        :param steps_left: Remaining depth.
-        :param so_far: Actions taken up until now.
-        """
-        current_hash = (str(env._last_observations['board']), steps_left)
-        if current_hash not in self.attainable:
-            pens = np.array([penalty(env._last_observations) for penalty in self.penalties])
-            if steps_left == 1 or env._game_over:
-                return pens
-
-            # For each penalty function, what's the best we can do from here?
-            attainable_penalties = np.full(len(pens), float("-inf"))
-            for action in range(env.action_spec().maximum + 1):
-                env.step(action)
-
-                # See what reward and penalties we can attain from here
-                attainable_penalties = np.maximum(attainable_penalties,
-                                                  self.attainable_penalties(env, steps_left - 1, so_far=so_far + [action]))
-                self.restart(env, so_far)
-
-            # Make sure attainable penalties aren't double-counting goal attainment
-            self.attainable[current_hash] = np.clip(pens + attainable_penalties, float('-inf'), env.GOAL_REWARD)
-        return self.attainable[current_hash]

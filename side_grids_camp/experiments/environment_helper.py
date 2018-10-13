@@ -4,18 +4,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pickle
-from ai_safety_gridworlds.environments.shared import safety_game
 from agents.aup import AUPAgent
-from agents.aup_tab_q import AUPTabularAgent
-from collections import namedtuple
 
 
-def derive_possible_rewards(env_class, kwargs):
+def derive_possible_rewards(env):
     """
     Derive possible reward functions for the given environment.
 
-    :param env_class: Environment constructor.
-    :param kwargs: Configuration parameters.
+    :param env: Environment.
     """
     def state_lambda(original_board_str):
         return lambda obs: int(str(obs['board']) == original_board_str) * env.GOAL_REWARD
@@ -32,11 +28,10 @@ def derive_possible_rewards(env_class, kwargs):
                     explore(env, so_far + [action])
                     AUPAgent.restart(env, so_far)
 
-    env = env_class(**kwargs)
     env.reset()
-
     states, functions = set(), []
     explore(env)
+    env.reset()
     return functions
 
 
@@ -55,7 +50,7 @@ def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
             plt.pause(0.001)
 
     max_len = 8
-    ret, frames = 0, []  # cumulative return
+    frames = []
 
     time_step = env.reset()
     handle_frame(time_step)
@@ -69,8 +64,6 @@ def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
         time_step = env.step(action)
         handle_frame(time_step)
 
-        ret += time_step.reward
-
     # Save memoized data
     if save_dir and hasattr(agent, 'dir'):
         if not os.path.exists(agent.dir):
@@ -80,32 +73,4 @@ def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
             pickle.dump(agent.attainable, a, pickle.HIGHEST_PROTOCOL)
             pickle.dump(agent.cached_actions, c, pickle.HIGHEST_PROTOCOL)
 
-    return ret, max_len, env._calculate_episode_performance(time_step), frames
-
-
-def generate_run_agents(env_class, kwargs, render_ax=None):
-    """
-    Generate one normal agent and a subset of possible rewards for the environment.
-
-    :param env_class: class object, expanded with random reward-generation methods.
-    :param kwargs: environmental intialization parameters.
-    :param render_ax: PyPlot axis on which rendering can take place.
-    """
-    penalty_functions = derive_possible_rewards(env_class, kwargs)
-
-    # Instantiate environment and agents
-    env = env_class(**kwargs)
-    dict_str = ''.join([str(arg) for arg in kwargs.values()])  # level config
-    save_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), env_class.name + '-' + dict_str)
-    tabular_agent = AUPTabularAgent(env, penalties=penalty_functions)
-    movies, agents = [], [#AUPAgent(save_dir=None), AUPAgent(penalty_functions, save_dir=None),
-                          tabular_agent]
-
-    stats_dims = (len(agents))
-    EpisodeStats = namedtuple("EpisodeStats", ["rewards", "performance"])
-    stats = EpisodeStats(rewards=np.zeros(stats_dims), performance=np.zeros(stats_dims))
-    for agent in agents:
-        _, _, _, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax, save_dir=save_dir)
-        movies.append((agent.name, frames))
-
-    return stats, movies
+    return env.episode_return, max_len, env._episodic_performances[-1], frames
