@@ -4,45 +4,49 @@ import experiments.environment_helper as environment_helper
 import numpy as np
 
 
-class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
+class AUPTabularAgent:
     name = "Tabular AUP"
     epsilon = 0.25  # chance of choosing a random action in training
 
-    def __init__(self, env, N=2, do_state_penalties=False, num_rpenalties=10, discount=.999, num_episodes=600):
+    def __init__(self, env, N=200, do_state_penalties=False, num_rpenalties=10, discount=.999, num_episodes=1000):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.
-        :param N: How much impact the agent can have.
-        :param penalties: Reward functions whose shifts in attainable values will be penalized.
+        :param N: Maximal impact % the agent can have.
         """
         self.actions = range(env.action_spec().maximum + 1)
         self.discount = discount
-        self.num_episodes = num_episodes
+        self.aup_episodes = num_episodes
+        self.penalty_episodes = self.aup_episodes / 10
         self.N = N
-
-        self.penalties = environment_helper.derive_possible_rewards(env) if do_state_penalties else None
-        if num_rpenalties > 0:
-            self.penalties = [defaultdict(np.random.random) for _ in range(num_rpenalties)]
-            self.penalty_Q = defaultdict(lambda: np.zeros((num_rpenalties, len(self.actions))))
+        self.do_state_penalties = do_state_penalties
         self.goal_reward = env.GOAL_REWARD
 
-        # Store average stats
-        self.training_performance = np.zeros((2, self.num_episodes))
+        if do_state_penalties:
+            self.name = 'Relative Reachability'
+            self.penalties = environment_helper.derive_possible_rewards(env)
+        else:
+            self.penalties = [defaultdict(np.random.random) for _ in range(num_rpenalties)]
+        if len(self.penalties) == 0:
+            self.name = 'Vanilla'  # no penalty applied!
+        else:
+            self.penalty_Q = defaultdict(lambda: np.zeros((len(self.penalties), len(self.actions))))
+
+        self.training_performance = np.zeros((2, num_episodes))
         for penalty_idx in range(len(self.penalties)):
             self.train(env, type=penalty_idx)
 
         # Train AUP according to the inferred composite reward - (L_1 change in penalty_Q)
         self.train(env, type='AUP')
 
-        env.reset()
-
     def train(self, env, type='AUP'):
         is_AUP = type == 'AUP'
+        eps = self.aup_episodes if is_AUP else self.penalty_episodes
         num_trials = 1 if is_AUP else 1
         for _ in range(num_trials):
             if is_AUP:
                 self.AUP_Q = defaultdict(lambda: np.zeros(len(self.actions)))
-            for episode in range(self.num_episodes):
+            for episode in range(eps):
                 time_step = env.reset()
                 while not time_step.last():
                     last_board = str(time_step.observation['board'])
@@ -54,16 +58,14 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
                     ret, _, perf, _ = environment_helper.run_episode(self, env)
                     self.training_performance[0][episode] += ret / num_trials
                     self.training_performance[1][episode] += perf / num_trials
+        env.reset()
 
     def act(self, obs):
         return self.AUP_Q[str(obs['board'])].argmax()
 
     def behavior_action(self, board, type):
         """Returns the e-greedy action for the state board string."""
-        if type == 'AUP':
-            greedy = self.AUP_Q[board].argmax()
-        else:
-            greedy = self.penalty_Q[board][type].argmax(axis=0)
+        greedy = self.AUP_Q[board].argmax() if type == 'AUP' else self.penalty_Q[board][type].argmax(axis=0)
         if np.random.random() < self.epsilon or len(self.actions) == 1:
             return greedy
         else:  # choose anything else
@@ -77,7 +79,7 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
         null_sum = sum(abs(null_attainable))
 
         # Scaled difference between taking action and doing nothing
-        return sum(abs(action_attainable - null_attainable)) / (self.N * null_sum) if null_sum \
+        return sum(abs(action_attainable - null_attainable)) / (self.N * .01 * null_sum) if null_sum \
             else 1.01  # ImpactUnit is 0!
 
     def update_greedy(self, last_board, action, time_step, train_AUP=False):
@@ -85,10 +87,11 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
         learning_rate = 1
         new_board = str(time_step.observation['board'])
 
-        def calculate_update(last_board, action, time_step, pen_idx=None):
+        def calculate_update(pen_idx=None):
             """Do the update for the main function (or the penalty function at the given index)."""
             if pen_idx is not None:
-                reward = self.penalties[pen_idx][new_board]
+                reward = self.penalties[pen_idx](new_board) if self.do_state_penalties \
+                    else self.penalties[pen_idx][new_board]
                 new_Q, old_Q = self.penalty_Q[new_board][pen_idx].max(), \
                                self.penalty_Q[last_board][pen_idx, action]
             else:
@@ -99,7 +102,9 @@ class AUPTabularAgent:  # TODO sokoban, sushi pause, dog, corrigibility
         if not train_AUP:
             # Learn the other reward functions, too
             for pen_idx in range(len(self.penalties)):
-                self.penalty_Q[last_board][pen_idx, action] += calculate_update(last_board, action, time_step, pen_idx)
-            #self.penalty_Q[last_board][:, action] = np.clip(self.penalty_Q[last_board][:, action], 0, self.goal_reward)
+                self.penalty_Q[last_board][pen_idx, action] += calculate_update(pen_idx)
+            if self.do_state_penalties:
+                self.penalty_Q[last_board][:, action] = np.clip(self.penalty_Q[last_board][:, action],
+                                                                0, self.goal_reward)
         else:
-            self.AUP_Q[last_board][action] += calculate_update(last_board, action, time_step)
+            self.AUP_Q[last_board][action] += calculate_update()

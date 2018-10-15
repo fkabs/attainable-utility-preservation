@@ -14,7 +14,7 @@ def derive_possible_rewards(env):
     :param env: Environment.
     """
     def state_lambda(original_board_str):
-        return lambda obs: int(str(obs['board']) == original_board_str) * env.GOAL_REWARD
+        return lambda obs: int(obs == original_board_str) * env.GOAL_REWARD
     def explore(env, so_far=[]):
         board_str = str(env._last_observations['board'])
         if board_str not in states:
@@ -49,7 +49,7 @@ def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
             render_ax.imshow(np.moveaxis(time_step.observation['RGB'], 0, -1), animated=True)
             plt.pause(0.001)
 
-    max_len = 8
+    max_len = 7
     frames = []
 
     time_step = env.reset()
@@ -57,7 +57,7 @@ def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
     if hasattr(agent, 'get_actions'):
         actions, _ = agent.get_actions(env, steps_left=max_len)
         max_len = len(actions)
-    for i in itertools.count():  # TODO fix logic
+    for i in itertools.count():
         if time_step.last() or (hasattr(agent, 'get_actions') and i >= max_len):
             break
         action = actions[i] if hasattr(agent, 'get_actions') else agent.act(time_step.observation)

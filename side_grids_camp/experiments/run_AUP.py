@@ -3,7 +3,6 @@ from ai_safety_gridworlds.environments import side_effects_burning_building as b
     side_effects_sushi_bot as sushi, side_effects_vase as vase, survival_incentive as survival, \
     side_effects_conveyor_belt as conveyor, side_effects_coffee_bot as coffee
 from agents.aup_tab_q import AUPTabularAgent
-from collections import namedtuple
 from environment_helper import *
 import datetime
 import os
@@ -17,11 +16,15 @@ def plot_images_to_ani(framesets):
 
     :param framesets: [("agent_name", frames),...]
     """
-    fig, axs = plt.subplots(1, len(framesets), figsize=(5, 5 * len(framesets)))
-    fig.set_tight_layout(True)
+    if len(framesets) == 7:
+        axs = [plt.subplot(3, 3, 2),
+               plt.subplot(3, 3, 4), plt.subplot(3, 3, 5), plt.subplot(3, 3, 6),
+               plt.subplot(3, 3, 7), plt.subplot(3, 3, 8), plt.subplot(3, 3, 9)]
+    else:
+        _, axs = plt.subplots(1, len(framesets), figsize=(5, 5 * len(framesets)))
+    plt.tight_layout()
 
     max_runtime = max([len(frames) for _, frames in framesets])
-
     ims, zipped = [], zip(framesets, axs if len(framesets) > 1 else [axs])  # handle 1-agent case
     for i in range(max_runtime):
         ims.append([])
@@ -35,72 +38,129 @@ def plot_images_to_ani(framesets):
 
 
 def run_game(game, kwargs):
-    render, render_ax = plt.subplots(1, 1)
-    render.set_tight_layout(True)
+    render_fig, render_ax = plt.subplots(1, 1)
+    render_fig.set_tight_layout(True)
     render_ax.get_xaxis().set_ticks([])
     render_ax.get_yaxis().set_ticks([])
     game.variant_name = game.name + '-' + str(kwargs['level'] if 'level' in kwargs else kwargs['variant'])
 
     start_time = datetime.datetime.now()
-    stats, movies = run_agents(game, kwargs, render_ax=render_ax)
-    plt.close(render.number)
+    plot_fig, movies = run_agents(game, kwargs, render_ax=render_ax)
+    plt.close(render_fig.number)
+    plot_fig.savefig(os.path.join(os.path.dirname(__file__), game.variant_name, 'perf_plot.pdf'),
+                     bbox_inches='tight')
+    plt.close(plot_fig.number)
 
     print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
     ani = plot_images_to_ani(movies)
-    ani.save(os.path.join(os.path.dirname( __file__ ), game.variant_name, 'performance.gif'),
+    ani.save(os.path.join(os.path.dirname(__file__), game.variant_name, 'perf.gif'),
              writer='imagemagick', dpi=350)
     plt.show()
 
 
-def run_agents(env_class, kwargs, render_ax=None):
+def run_agents(env_class, env_kwargs, render_ax=None):
     """
-    Generate one normal agent and a subset of possible rewards for the environment.
+    Generate and run agent variants.
 
-    :param env_class: class object, expanded with random reward-generation methods.
-    :param kwargs: environmental intialization parameters.
+    :param env_class: class object.
+    :param env_kwargs: environmental intialization parameters.
     :param render_ax: PyPlot axis on which rendering can take place.
     """
     # Instantiate environment and agents
-    env = env_class(**kwargs)
-    dict_str = ''.join([str(arg) for arg in kwargs.values()])  # level config
+    env = env_class(**env_kwargs)
+    dict_str = ''.join([str(arg) for arg in env_kwargs.values()])  # level config
     save_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), env_class.name + '-' + dict_str)
     tabular_agent = AUPTabularAgent(env)
-    movies, agents = [], [#AUPAgent(save_dir=None), AUPAgent(penalty_functions, save_dir=None),
-                          tabular_agent]
+    state_Q = (AUPTabularAgent(env, do_state_penalties=True)).penalty_Q
+    movies, agents = [], [AUPTabularAgent(env, num_rpenalties=0),  # vanilla
+                          AUPAgent(penalty_Q=tabular_agent.penalty_Q),  # full AUP
+                          tabular_agent,
+                          AUPAgent(penalty_Q=state_Q, baseline='inaction', deviation='decrease'),  # RR
+                          AUPAgent(penalty_Q=tabular_agent.penalty_Q, baseline='start'),
+                          AUPAgent(penalty_Q=tabular_agent.penalty_Q, baseline='inaction'),
+                          AUPAgent(penalty_Q=tabular_agent.penalty_Q, deviation='decrease')
+                          ]
 
-    stats_dims = (len(agents))
-    EpisodeStats = namedtuple("EpisodeStats", ["rewards", "performance"])
-    stats = EpisodeStats(rewards=np.zeros(stats_dims), performance=np.zeros(stats_dims))
-
-    x = range(tabular_agent.num_episodes)
+    x = range(tabular_agent.aup_episodes)
     fig, ax = plt.subplots()
 
+    ax.set_title(env.name.title())
+    ax.set_ylabel('Performance')
     ax.set_xlabel('Episode')
     for agent in agents:
-        #p = ax.plot(x, item[0], label=name+' rewards', ls='-')
-        ax.plot(x, agent.training_performance[1], label=agent.name + ' performance', ls='-')#, c=p[-1].get_color())
-    ax.legend() 
-
-    for agent in agents:
-        _, _, _, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax, save_dir=save_dir)
+        ret, _, perf, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax, save_dir=save_dir)
         movies.append((agent.name, frames))
+        if hasattr(agent, 'training_performance'):
+            ax.plot(x, agent.training_performance[1], label=agent.name)
+        else:
+            print(agent.name, perf)
+    ax.legend()
 
-    return stats, movies
+    return fig, movies
 
-games = [sokoban.SideEffectsSokobanEnvironment, sushi.SideEffectsSushiBotEnvironment,
-         vase.SideEffectsVaseEnvironment, coffee.SideEffectsCoffeeBotEnvironment,
-         survival.SurvivalIncentiveEnvironment]
+
+games = [(conveyor.ConveyorBeltEnvironment, {'variant': 'vase'}),
+         (conveyor.ConveyorBeltEnvironment, {'variant': 'sushi'}),
+         (burning.SideEffectsBurningBuildingEnvironment, {'level': 0}),
+         (burning.SideEffectsBurningBuildingEnvironment, {'level': 1}),
+         (sokoban.SideEffectsSokobanEnvironment, {'level': 0}),
+         (sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
+         (vase.SideEffectsVaseEnvironment, {'level': 0}),
+         (coffee.SideEffectsCoffeeBotEnvironment, {'level': 0}),
+         (survival.SurvivalIncentiveEnvironment, {'level': 0})]
 
 # Plot setup
 #plt.switch_backend('TkAgg')
 plt.style.use('ggplot')
 
-# Levels for which we run multiple variants
-#for var in ['vase', 'sushi']:
-#   run_game(conveyor.ConveyorBeltEnvironment, {'variant': var})
-for level in [0, 1]:
-   run_game(burning.SideEffectsBurningBuildingEnvironment, {'level': level})
+# Get individual game ablations
+for (game, kwargs) in games:
+    run_game(game, kwargs)
 
-# The rest
-for game in games:
-    run_game(game, {'level': 0})
+# Discount
+discounts = [1 - 2**(-n) for n in range(1, 11)]
+fig, ax = plt.subplots()
+ax.set_ylabel('Performance')
+ax.set_xlabel('Discount')
+
+for (game, kwargs) in games:
+    stats = []
+    for discount in discounts:
+        env = game(**kwargs)
+        tabular_agent = AUPTabularAgent(env, discount=discount)
+        stats.append(tabular_agent.training_performance[1][-1])
+    ax.plot(discounts, stats, label=game.name)
+ax.legend(loc=4)
+fig.savefig(os.path.join(os.path.dirname(__file__), 'discount.pdf'), bbox_inches='tight')
+
+# N
+budgets = np.arange(0, 300, 30)
+fig, ax = plt.subplots()
+ax.set_ylabel('Performance')
+ax.set_xlabel('Total Impact %')
+
+for (game, kwargs) in games:
+    stats = []
+    for budget in budgets:
+        env = game(**kwargs)
+        tabular_agent = AUPTabularAgent(env, N=budget)
+        stats.append(tabular_agent.training_performance[1][-1])
+    ax.plot(budgets, stats, label=game.name)
+ax.legend(loc=4)
+fig.savefig(os.path.join(os.path.dirname(__file__), 'N.pdf'), bbox_inches='tight')
+
+# N
+nums = range(1, 15)
+fig, ax = plt.subplots()
+ax.set_ylabel('Performance')
+ax.set_xlabel('Number of Random Reward Functions')
+
+for (game, kwargs) in games:
+    stats = []
+    for num in nums:
+        env = game(**kwargs)
+        tabular_agent = AUPTabularAgent(env, num_rpenalties=num)
+        stats.append(tabular_agent.training_performance[1][-1])
+    ax.plot(nums, stats, label=game.name)
+ax.legend(loc=4)
+fig.savefig(os.path.join(os.path.dirname(__file__), 'num_rewards.pdf'), bbox_inches='tight')
