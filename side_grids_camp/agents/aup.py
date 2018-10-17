@@ -115,6 +115,6 @@ class AUPAgent():
                 diff[diff > 0] = 0  # dont penalize increases
             scaled_penalty = sum(abs(diff)) / (self.N * null_sum) if null_sum \
                 else 1.01  # ImpactUnit is 0!
-            if (scaled_penalty == 1.01 and self.name != 'AUP') or self.name == 'Relative Reachability':
-                scaled_penalty = sum(abs(diff))  # prior methods don't include impact unit
+            if scaled_penalty == 1.01 and self.name == 'Relative Reachability':
+                scaled_penalty = sum(abs(diff)) / null_sum  # prior methods don't include impact unit
         return reward - scaled_penalty, time_step.last()

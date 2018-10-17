@@ -1,5 +1,5 @@
 from ai_safety_gridworlds.environments.shared import safety_game
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 import experiments.environment_helper as environment_helper
 import numpy as np
 
@@ -17,13 +17,14 @@ class AUPTabularAgent:
         self.actions = range(env.action_spec().maximum + 1)
         self.discount = discount
         self.aup_episodes = num_episodes
-        self.penalty_episodes = self.aup_episodes / 10
+        self.penalty_episodes = self.aup_episodes
         self.N = N
         self.do_state_penalties = do_state_penalties
         self.goal_reward = env.GOAL_REWARD
 
         if do_state_penalties:
             self.name = 'Relative Reachability'
+            self.penalty_episodes /= 10
             self.penalties = environment_helper.derive_possible_rewards(env)
         else:
             self.penalties = [defaultdict(np.random.random) for _ in range(num_rpenalties)]
@@ -32,27 +33,26 @@ class AUPTabularAgent:
         else:
             self.penalty_Q = defaultdict(lambda: np.zeros((len(self.penalties), len(self.actions))))
 
-        self.training_performance = np.zeros((2, num_episodes))
         for penalty_idx in range(len(self.penalties)):
             self.train(env, type=penalty_idx)
 
         # Train AUP according to the inferred composite reward - (L_1 change in penalty_Q)
-        self.train(env, type='AUP')
+        self.training_performance = np.zeros((2, num_episodes))
+        self.train(env)
 
     def train(self, env, type='AUP'):
         is_AUP = type == 'AUP'
-        eps = self.aup_episodes if is_AUP else self.penalty_episodes
         num_trials = 1 if is_AUP else 1
         for _ in range(num_trials):
             if is_AUP:
                 self.AUP_Q = defaultdict(lambda: np.zeros(len(self.actions)))
-            for episode in range(eps):
+            for episode in range(self.aup_episodes if is_AUP else self.penalty_episodes):
                 time_step = env.reset()
                 while not time_step.last():
                     last_board = str(time_step.observation['board'])
                     action = self.behavior_action(last_board, type)
                     time_step = env.step(action)
-                    self.update_greedy(last_board, action, time_step, is_AUP)
+                    self.update_greedy(last_board, action, time_step, type)
 
                 if is_AUP:
                     ret, _, perf, _ = environment_helper.run_episode(self, env)
@@ -82,14 +82,14 @@ class AUPTabularAgent:
         return sum(abs(action_attainable - null_attainable)) / (self.N * .01 * null_sum) if null_sum \
             else 1.01  # ImpactUnit is 0!
 
-    def update_greedy(self, last_board, action, time_step, train_AUP=False):
+    def update_greedy(self, last_board, action, time_step, pen_idx='AUP'):
         """Perform TD update on observed reward."""
-        learning_rate = 1
-        new_board = str(time_step.observation['board'])
-
-        def calculate_update(pen_idx=None):
+        def calculate_update(pen_idx='AUP'):
             """Do the update for the main function (or the penalty function at the given index)."""
-            if pen_idx is not None:
+            learning_rate = 1
+            new_board = str(time_step.observation['board'])
+            
+            if pen_idx != 'AUP':
                 reward = self.penalties[pen_idx](new_board) if self.do_state_penalties \
                     else self.penalties[pen_idx][new_board]
                 new_Q, old_Q = self.penalty_Q[new_board][pen_idx].max(), \
@@ -99,12 +99,11 @@ class AUPTabularAgent:
                 new_Q, old_Q = self.AUP_Q[new_board].max(), self.AUP_Q[last_board][action]
             return learning_rate * (reward + self.discount * new_Q - old_Q)
 
-        if not train_AUP:
-            # Learn the other reward functions, too
-            for pen_idx in range(len(self.penalties)):
-                self.penalty_Q[last_board][pen_idx, action] += calculate_update(pen_idx)
+        if pen_idx != 'AUP':
+            for i in range(len(self.penalties)):
+                self.penalty_Q[last_board][i, action] += calculate_update(i)
             if self.do_state_penalties:
                 self.penalty_Q[last_board][:, action] = np.clip(self.penalty_Q[last_board][:, action],
-                                                                0, self.goal_reward)
+                                                                      0, self.goal_reward)
         else:
             self.AUP_Q[last_board][action] += calculate_update()

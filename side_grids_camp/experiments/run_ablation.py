@@ -68,8 +68,6 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     """
     # Instantiate environment and agents
     env = env_class(**env_kwargs)
-    dict_str = ''.join([str(arg) for arg in env_kwargs.values()])  # level config
-    save_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), env_class.name + '-' + dict_str)
     tabular_agent = AUPTabularAgent(env)
     state_Q = (AUPTabularAgent(env, do_state_penalties=True)).penalty_Q
     movies, agents = [], [AUPTabularAgent(env, num_rpenalties=0),  # vanilla
@@ -88,10 +86,11 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     ax.set_ylabel('Performance')
     ax.set_xlabel('Episode')
     for agent in agents:
-        ret, _, perf, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax, save_dir=save_dir)
+        ret, _, perf, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax)
         movies.append((agent.name, frames))
         if hasattr(agent, 'training_performance'):
             ax.plot(x, agent.training_performance[1], label=agent.name)
+            print(agent.name, agent.training_performance[1][-1])
         else:
             print(agent.name, perf)
     ax.legend()
@@ -99,12 +98,12 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     return fig, movies
 
 
-games = [(conveyor.ConveyorBeltEnvironment, {'variant': 'vase'}),
-         (conveyor.ConveyorBeltEnvironment, {'variant': 'sushi'}),
-         (burning.SideEffectsBurningBuildingEnvironment, {'level': 0}),
-         (burning.SideEffectsBurningBuildingEnvironment, {'level': 1}),
+games = [#(conveyor.ConveyorBeltEnvironment, {'variant': 'vase'}),
+         #(conveyor.ConveyorBeltEnvironment, {'variant': 'sushi'}),
+         #(burning.SideEffectsBurningBuildingEnvironment, {'level': 0}),
+         #(burning.SideEffectsBurningBuildingEnvironment, {'level': 1}),
          (sokoban.SideEffectsSokobanEnvironment, {'level': 0}),
-         (sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
+         #(sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
          (vase.SideEffectsVaseEnvironment, {'level': 0}),
          (coffee.SideEffectsCoffeeBotEnvironment, {'level': 0}),
          (survival.SurvivalIncentiveEnvironment, {'level': 0})]
@@ -116,51 +115,3 @@ plt.style.use('ggplot')
 # Get individual game ablations
 for (game, kwargs) in games:
     run_game(game, kwargs)
-
-# Discount
-discounts = [1 - 2**(-n) for n in range(1, 11)]
-fig, ax = plt.subplots()
-ax.set_ylabel('Performance')
-ax.set_xlabel('Discount')
-
-for (game, kwargs) in games:
-    stats = []
-    for discount in discounts:
-        env = game(**kwargs)
-        tabular_agent = AUPTabularAgent(env, discount=discount)
-        stats.append(tabular_agent.training_performance[1][-1])
-    ax.plot(discounts, stats, label=game.name)
-ax.legend(loc=4)
-fig.savefig(os.path.join(os.path.dirname(__file__), 'discount.pdf'), bbox_inches='tight')
-
-# N
-budgets = np.arange(0, 300, 30)
-fig, ax = plt.subplots()
-ax.set_ylabel('Performance')
-ax.set_xlabel('Total Impact %')
-
-for (game, kwargs) in games:
-    stats = []
-    for budget in budgets:
-        env = game(**kwargs)
-        tabular_agent = AUPTabularAgent(env, N=budget)
-        stats.append(tabular_agent.training_performance[1][-1])
-    ax.plot(budgets, stats, label=game.name)
-ax.legend(loc=4)
-fig.savefig(os.path.join(os.path.dirname(__file__), 'N.pdf'), bbox_inches='tight')
-
-# N
-nums = range(1, 15)
-fig, ax = plt.subplots()
-ax.set_ylabel('Performance')
-ax.set_xlabel('Number of Random Reward Functions')
-
-for (game, kwargs) in games:
-    stats = []
-    for num in nums:
-        env = game(**kwargs)
-        tabular_agent = AUPTabularAgent(env, num_rpenalties=num)
-        stats.append(tabular_agent.training_performance[1][-1])
-    ax.plot(nums, stats, label=game.name)
-ax.legend(loc=4)
-fig.savefig(os.path.join(os.path.dirname(__file__), 'num_rewards.pdf'), bbox_inches='tight')
