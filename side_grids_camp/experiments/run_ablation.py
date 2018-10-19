@@ -45,11 +45,11 @@ def run_game(game, kwargs):
     game.variant_name = game.name + '-' + str(kwargs['level'] if 'level' in kwargs else kwargs['variant'])
 
     start_time = datetime.datetime.now()
-    plot_fig, movies = run_agents(game, kwargs, render_ax=render_ax)
+    movies = run_agents(game, kwargs, render_ax=render_ax)
+    render_ax.imshow(movies[0][1][0])
+    render_fig.savefig(os.path.join(os.path.dirname(__file__), game.variant_name, game.name + '.eps'),
+                       bbox_inches='tight', dpi=350)
     plt.close(render_fig.number)
-    plot_fig.savefig(os.path.join(os.path.dirname(__file__), game.variant_name, 'perf_plot.pdf'),
-                     bbox_inches='tight')
-    plt.close(plot_fig.number)
 
     print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
     ani = plot_images_to_ani(movies)
@@ -79,23 +79,15 @@ def run_agents(env_class, env_kwargs, render_ax=None):
                           AUPAgent(penalty_Q=tabular_agent.penalty_Q, deviation='decrease')
                           ]
 
-    x = range(tabular_agent.aup_episodes)
-    fig, ax = plt.subplots()
-
-    ax.set_title(env.name.title())
-    ax.set_ylabel('Performance')
-    ax.set_xlabel('Episode')
     for agent in agents:
         ret, _, perf, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax)
         movies.append((agent.name, frames))
         if hasattr(agent, 'training_performance'):
-            ax.plot(x, agent.training_performance[1], label=agent.name)
-            print(agent.name, agent.training_performance[1][-1])
+            print(agent.name, agent.training_performance[0][-1])
         else:
             print(agent.name, perf)
-    ax.legend()
 
-    return fig, movies
+    return movies
 
 
 games = [#(conveyor.ConveyorBeltEnvironment, {'variant': 'vase'}),
@@ -103,7 +95,7 @@ games = [#(conveyor.ConveyorBeltEnvironment, {'variant': 'vase'}),
          #(burning.SideEffectsBurningBuildingEnvironment, {'level': 0}),
          #(burning.SideEffectsBurningBuildingEnvironment, {'level': 1}),
          (sokoban.SideEffectsSokobanEnvironment, {'level': 0}),
-         #(sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
+         (sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
          (vase.SideEffectsVaseEnvironment, {'level': 0}),
          (coffee.SideEffectsCoffeeBotEnvironment, {'level': 0}),
          (survival.SurvivalIncentiveEnvironment, {'level': 0})]

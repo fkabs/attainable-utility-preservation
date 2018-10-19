@@ -10,16 +10,17 @@ class AUPAgent():
     """
     name = 'AUP'
 
-    def __init__(self, penalty_Q, N=2, baseline='branching', deviation='absolute'):
+    def __init__(self, penalty_Q, N=200, discount=.99, baseline='branching', deviation='absolute'):
         """
 
         :param penalties: Reward functions whose shifts in attainable values will be penalized.
-        :param N: Scale harshness of penalty: 1/N * penalty term.
+        :param N: Scale harshness of penalty.
         :param baseline:
         :param deviation:
         """
         self.penalty_Q = penalty_Q
         self.N = N
+        self.discount = discount
         self.baseline = baseline
         self.deviation = deviation
 
@@ -67,6 +68,7 @@ class AUPAgent():
                     actions, ret = self.get_actions(env, steps_left-1, so_far + [a])
                 else:
                     actions, ret = [], 0
+                ret *= self.discount
                 if r + ret > best_ret:
                     best_actions, best_ret = [a] + actions, r + ret
                 self.restart(env, so_far)
@@ -113,8 +115,8 @@ class AUPAgent():
             diff = action_attainable - null_attainable
             if self.deviation == 'decrease':
                 diff[diff > 0] = 0  # dont penalize increases
-            scaled_penalty = sum(abs(diff)) / (self.N * null_sum) if null_sum \
+            scaled_penalty = sum(abs(diff)) / (self.N * .01 * null_sum) if null_sum \
                 else 1.01  # ImpactUnit is 0!
             if scaled_penalty == 1.01 and self.name == 'Relative Reachability':
-                scaled_penalty = sum(abs(diff)) / null_sum  # prior methods don't include impact unit
+                scaled_penalty = sum(abs(diff))  # prior methods don't include impact unit
         return reward - scaled_penalty, time_step.last()
