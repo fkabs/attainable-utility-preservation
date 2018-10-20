@@ -35,12 +35,11 @@ def derive_possible_rewards(env):
     return functions
 
 
-def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
+def run_episode(agent, env, save_frames=False, render_ax=None):
     """
     Run the episode with given greediness, recording and saving the frames if desired.
 
     :param save_frames: Whether to save frames from the final performance.
-    :param save_dir: Where to save memoized AUP data.
     """
     def handle_frame(time_step):
         if save_frames:
@@ -63,14 +62,5 @@ def run_episode(agent, env, save_frames=False, render_ax=None, save_dir=None):
         action = actions[i] if hasattr(agent, 'get_actions') else agent.act(time_step.observation)
         time_step = env.step(action)
         handle_frame(time_step)
-
-    # Save memoized data
-    if save_dir and hasattr(agent, 'dir'):
-        if not os.path.exists(agent.dir):
-            os.makedirs(agent.dir)
-        with open(os.path.join(agent.dir, "attainable.pkl"), 'wb') as a, \
-                open(os.path.join(agent.dir, "cached.pkl"), 'wb') as c:
-            pickle.dump(agent.attainable, a, pickle.HIGHEST_PROTOCOL)
-            pickle.dump(agent.cached_actions, c, pickle.HIGHEST_PROTOCOL)
 
     return env.episode_return, max_len, env._episodic_performances[-1], frames

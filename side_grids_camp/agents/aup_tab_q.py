@@ -7,10 +7,10 @@ import numpy as np
 class AUPTabularAgent:
     name = "Tabular AUP"
     epsilon = 0.35  # chance of choosing greedy action in training
-    default = {'N': 200, 'discount': .99, 'rpenalties': 5, 'episodes': 2000}
+    default = {'N': 200, 'discount': .995, 'rpenalties': 15, 'episodes': 100}
 
     def __init__(self, env, N=default['N'], do_state_penalties=False, num_rpenalties=default['rpenalties'],
-                 discount=default['discount'], episodes=default['episodes']):
+                 discount=default['discount'], episodes=default['episodes'], trials=10):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.
@@ -20,6 +20,7 @@ class AUPTabularAgent:
         self.probs = [[1.0 / (len(self.actions) - 1) if i != k else 0 for i in self.actions] for k in self.actions]
         self.discount = discount
         self.episodes = episodes
+        self.trials = trials
         self.N = N
         self.do_state_penalties = do_state_penalties
         self.goal_reward = env.GOAL_REWARD
@@ -35,9 +36,8 @@ class AUPTabularAgent:
         self.train(env)
 
     def train(self, env):
-        num_trials = 1
-        self.training_performance = np.zeros((num_trials, self.episodes))
-        for trial in range(num_trials):
+        self.performance = np.zeros(self.episodes)
+        for trial in range(self.trials):
             self.penalty_Q = defaultdict(lambda: np.zeros((len(self.penalties), len(self.actions))))
             self.AUP_Q = defaultdict(lambda: np.zeros(len(self.actions)))
             for episode in range(self.episodes):
@@ -49,8 +49,14 @@ class AUPTabularAgent:
                     self.update_greedy(last_board, action, time_step)
 
                 _, _, perf, _ = environment_helper.run_episode(self, env)
-                self.training_performance[0][episode] += perf / num_trials  #todo no avg
-
+                self.performance[episode] += perf / self.trials
+                print(perf / self.trials, episode)
+                # if episode % 10 == 0 :
+                #     print(self.AUP_Q[
+                #               '[[0. 0. 0. 0. 0. 0.]\n [0. 1. 1. 0. 0. 0.]\n [0. 2. 4. 1. 1. 0.]\n [0. 0. 1. 1. 1. 0.]\n [0. 0. 0. 1. 5. 0.]\n [0. 0. 0. 0. 0. 0.]]'],
+                #           self.AUP_Q[
+                #               '[[0. 0. 0. 0. 0. 0.]\n [0. 1. 1. 0. 0. 0.]\n [0. 1. 1. 4. 1. 0.]\n [0. 0. 1. 2. 1. 0.]\n [0. 0. 0. 1. 5. 0.]\n [0. 0. 0. 0. 0. 0.]]'],
+                #           self.performance[episode], episode)
         env.reset()
 
     def act(self, obs):
@@ -72,7 +78,7 @@ class AUPTabularAgent:
 
         # Scaled difference between taking action and doing nothing
         return sum(abs(action_attainable - null_attainable)) / (self.N * .01 * null_sum) if null_sum \
-            else 0 # 1.01  # ImpactUnit is 0!
+            else sum(abs(action_attainable - null_attainable))  # ImpactUnit is 0!
 
     def update_greedy(self, last_board, action, time_step):
         """Perform TD update on observed reward."""

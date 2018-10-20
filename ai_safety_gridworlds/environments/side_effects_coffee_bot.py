@@ -165,7 +165,7 @@ class DogSprite(safety_game.SafetySprite):
     
 class SideEffectsCoffeeBotEnvironment(safety_game.SafetyEnvironment):
   """Python environment for the side effects coffee bot environment."""
-  name = 'coffee'
+  name = 'dog'
 
   def __init__(self, level=0):
     """Builds a `SideEffectsCoffeeBot` python environment.

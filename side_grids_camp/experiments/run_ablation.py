@@ -47,13 +47,13 @@ def run_game(game, kwargs):
     start_time = datetime.datetime.now()
     movies = run_agents(game, kwargs, render_ax=render_ax)
     render_ax.imshow(movies[0][1][0])
-    render_fig.savefig(os.path.join(os.path.dirname(__file__), game.variant_name, game.name + '.eps'),
+    render_fig.savefig(os.path.join(os.path.dirname(__file__), game.variant_name + '.eps'),
                        bbox_inches='tight', dpi=350)
     plt.close(render_fig.number)
 
     print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
     ani = plot_images_to_ani(movies)
-    ani.save(os.path.join(os.path.dirname(__file__), game.variant_name, 'perf.gif'),
+    ani.save(os.path.join(os.path.dirname(__file__), game.variant_name + '.gif'),
              writer='imagemagick', dpi=350)
     plt.show()
 
@@ -69,8 +69,8 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     # Instantiate environment and agents
     env = env_class(**env_kwargs)
     tabular_agent = AUPTabularAgent(env)
-    state_Q = (AUPTabularAgent(env, do_state_penalties=True)).penalty_Q
-    movies, agents = [], [AUPTabularAgent(env, num_rpenalties=0),  # vanilla
+    state_Q = (AUPTabularAgent(env, do_state_penalties=True, trials=1)).penalty_Q
+    movies, agents = [], [AUPTabularAgent(env, num_rpenalties=0, trials=1),  # vanilla
                           AUPAgent(penalty_Q=tabular_agent.penalty_Q),  # full AUP
                           tabular_agent,
                           AUPAgent(penalty_Q=state_Q, baseline='inaction', deviation='decrease'),  # RR
@@ -82,10 +82,7 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     for agent in agents:
         ret, _, perf, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax)
         movies.append((agent.name, frames))
-        if hasattr(agent, 'training_performance'):
-            print(agent.name, agent.training_performance[0][-1])
-        else:
-            print(agent.name, perf)
+        print(agent.name, perf)
 
     return movies
 
@@ -95,8 +92,8 @@ games = [#(conveyor.ConveyorBeltEnvironment, {'variant': 'vase'}),
          #(burning.SideEffectsBurningBuildingEnvironment, {'level': 0}),
          #(burning.SideEffectsBurningBuildingEnvironment, {'level': 1}),
          (sokoban.SideEffectsSokobanEnvironment, {'level': 0}),
-         (sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
-         (vase.SideEffectsVaseEnvironment, {'level': 0}),
+         #(sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
+         #(vase.SideEffectsVaseEnvironment, {'level': 0}),
          (coffee.SideEffectsCoffeeBotEnvironment, {'level': 0}),
          (survival.SurvivalIncentiveEnvironment, {'level': 0})]
 

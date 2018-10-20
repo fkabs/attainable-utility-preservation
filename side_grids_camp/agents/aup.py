@@ -10,7 +10,8 @@ class AUPAgent():
     """
     name = 'AUP'
 
-    def __init__(self, penalty_Q, N=200, discount=.99, baseline='branching', deviation='absolute'):
+    def __init__(self, penalty_Q, N=200, discount=.995,
+                 baseline='branching', deviation='absolute'):
         """
 
         :param penalties: Reward functions whose shifts in attainable values will be penalized.
@@ -116,7 +117,5 @@ class AUPAgent():
             if self.deviation == 'decrease':
                 diff[diff > 0] = 0  # dont penalize increases
             scaled_penalty = sum(abs(diff)) / (self.N * .01 * null_sum) if null_sum \
-                else 1.01  # ImpactUnit is 0!
-            if scaled_penalty == 1.01 and self.name == 'Relative Reachability':
-                scaled_penalty = sum(abs(diff))  # prior methods don't include impact unit
+                else sum(abs(diff))  # prior methods don't include impact unit
         return reward - scaled_penalty, time_step.last()
