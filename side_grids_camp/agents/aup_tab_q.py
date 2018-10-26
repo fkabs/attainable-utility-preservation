@@ -2,15 +2,16 @@ from ai_safety_gridworlds.environments.shared import safety_game
 from collections import defaultdict, namedtuple
 import experiments.environment_helper as environment_helper
 import numpy as np
+from agents.aup import AUPAgent
 
 
 class AUPTabularAgent:
     name = "Tabular AUP"
-    epsilon = 0.35  # chance of choosing greedy action in training
-    default = {'N': 200, 'discount': .995, 'rpenalties': 15, 'episodes': 100}
-
+    pen_epsilon, AUP_epsilon = .2, .8  # chance of choosing greedy action in training
+    default = {'N': 150, 'discount': .99, 'rpenalties': 30, 'episodes': 2000}
+    # e=.25, .99d, N=150 .5 conv after 1800
     def __init__(self, env, N=default['N'], do_state_penalties=False, num_rpenalties=default['rpenalties'],
-                 discount=default['discount'], episodes=default['episodes'], trials=10):
+                 discount=default['discount'], episodes=default['episodes'], trials=5):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.
@@ -18,7 +19,7 @@ class AUPTabularAgent:
         """
         self.actions = range(env.action_spec().maximum + 1)
         self.probs = [[1.0 / (len(self.actions) - 1) if i != k else 0 for i in self.actions] for k in self.actions]
-        self.discount = discount
+        self.discount = .99
         self.episodes = episodes
         self.trials = trials
         self.N = N
@@ -36,27 +37,35 @@ class AUPTabularAgent:
         self.train(env)
 
     def train(self, env):
-        self.performance = np.zeros(self.episodes)
+        self.performance = np.zeros(self.episodes / 10)
+
         for trial in range(self.trials):
             self.penalty_Q = defaultdict(lambda: np.zeros((len(self.penalties), len(self.actions))))
             self.AUP_Q = defaultdict(lambda: np.zeros(len(self.actions)))
+            if not self.do_state_penalties:
+                self.penalties = [defaultdict(np.random.random) for _ in range(len(self.penalties))]
+            self.epsilon = self.pen_epsilon
             for episode in range(self.episodes):
+                if episode > 1500:
+                    self.epsilon = self.AUP_epsilon
                 time_step = env.reset()
                 while not time_step.last():
                     last_board = str(time_step.observation['board'])
                     action = self.behavior_action(last_board)
                     time_step = env.step(action)
                     self.update_greedy(last_board, action, time_step)
+                if episode % 10 == 0:
+                    _, _, perf, _ = environment_helper.run_episode(self, env)
 
-                _, _, perf, _ = environment_helper.run_episode(self, env)
-                self.performance[episode] += perf / self.trials
-                print(perf / self.trials, episode)
-                # if episode % 10 == 0 :
-                #     print(self.AUP_Q[
-                #               '[[0. 0. 0. 0. 0. 0.]\n [0. 1. 1. 0. 0. 0.]\n [0. 2. 4. 1. 1. 0.]\n [0. 0. 1. 1. 1. 0.]\n [0. 0. 0. 1. 5. 0.]\n [0. 0. 0. 0. 0. 0.]]'],
-                #           self.AUP_Q[
-                #               '[[0. 0. 0. 0. 0. 0.]\n [0. 1. 1. 0. 0. 0.]\n [0. 1. 1. 4. 1. 0.]\n [0. 0. 1. 2. 1. 0.]\n [0. 0. 0. 1. 5. 0.]\n [0. 0. 0. 0. 0. 0.]]'],
-                #           self.performance[episode], episode)
+                    self.performance[episode/10] += perf / self.trials
+                    if episode % 1000 == 0:
+                        _, _, perf2, _ = environment_helper.run_episode(AUPAgent(penalty_Q=self.penalty_Q), env)
+                    print(self.AUP_Q[
+                              '[[0. 0. 0. 0. 0. 0.]\n [0. 1. 2. 0. 0. 0.]\n [0. 1. 4. 1. 1. 0.]\n [0. 0. 1. 1. 1. 0.]\n [0. 0. 0. 1. 5. 0.]\n [0. 0. 0. 0. 0. 0.]]'],
+                          self.AUP_Q[
+                              '[[0. 0. 0. 0. 0. 0.]\n [0. 1. 1. 0. 0. 0.]\n [0. 1. 1. 4. 1. 0.]\n [0. 0. 1. 2. 1. 0.]\n [0. 0. 0. 1. 5. 0.]\n [0. 0. 0. 0. 0. 0.]]'],
+                          self.performance[episode/10], perf, perf2, episode)
+
         env.reset()
 
     def act(self, obs):

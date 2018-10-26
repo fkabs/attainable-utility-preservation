@@ -68,12 +68,12 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     """
     # Instantiate environment and agents
     env = env_class(**env_kwargs)
-    tabular_agent = AUPTabularAgent(env)
-    state_Q = (AUPTabularAgent(env, do_state_penalties=True, trials=1)).penalty_Q
-    movies, agents = [], [AUPTabularAgent(env, num_rpenalties=0, trials=1),  # vanilla
+    tabular_agent = AUPTabularAgent(env, trials=1)
+    #state_Q = (AUPTabularAgent(env, do_state_penalties=True, trials=1)).penalty_Q
+    movies, agents = [], [#AUPTabularAgent(env, num_rpenalties=0, trials=1),  # vanilla
                           AUPAgent(penalty_Q=tabular_agent.penalty_Q),  # full AUP
                           tabular_agent,
-                          AUPAgent(penalty_Q=state_Q, baseline='inaction', deviation='decrease'),  # RR
+                          #AUPAgent(penalty_Q=state_Q, baseline='inaction', deviation='decrease'),  # RR
                           AUPAgent(penalty_Q=tabular_agent.penalty_Q, baseline='start'),
                           AUPAgent(penalty_Q=tabular_agent.penalty_Q, baseline='inaction'),
                           AUPAgent(penalty_Q=tabular_agent.penalty_Q, deviation='decrease')

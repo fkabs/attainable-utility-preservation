@@ -37,7 +37,7 @@ def derive_possible_rewards(env):
 
 def run_episode(agent, env, save_frames=False, render_ax=None):
     """
-    Run the episode with given greediness, recording and saving the frames if desired.
+    Run the episode, recording and saving the frames if desired.
 
     :param save_frames: Whether to save frames from the final performance.
     """
@@ -48,12 +48,12 @@ def run_episode(agent, env, save_frames=False, render_ax=None):
             render_ax.imshow(np.moveaxis(time_step.observation['RGB'], 0, -1), animated=True)
             plt.pause(0.001)
 
-    max_len = 7
+    max_len = 8
     frames = []
 
     time_step = env.reset()
     handle_frame(time_step)
-    if hasattr(agent, 'get_actions'):
+    if hasattr(agent, 'get_actions'): #TODO no disappear?
         actions, _ = agent.get_actions(env, steps_left=max_len)
         max_len = len(actions)
     for i in itertools.count():
@@ -63,4 +63,4 @@ def run_episode(agent, env, save_frames=False, render_ax=None):
         time_step = env.step(action)
         handle_frame(time_step)
 
-    return env.episode_return, max_len, env._episodic_performances[-1], frames
+    return float(env.episode_return), max_len, float(env._episodic_performances[-1]), frames

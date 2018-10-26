@@ -10,7 +10,7 @@ class AUPAgent():
     """
     name = 'AUP'
 
-    def __init__(self, penalty_Q, N=200, discount=.995,
+    def __init__(self, penalty_Q, N=150, discount=.99,
                  baseline='branching', deviation='absolute'):
         """
 

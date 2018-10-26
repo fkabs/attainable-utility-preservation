@@ -16,27 +16,29 @@ games = [(sokoban.SideEffectsSokobanEnvironment, {'level': 0}),
          (survival.SurvivalIncentiveEnvironment, {'level': 0})]
 
 # Discount
-discounts = [1 - 2**(-n) for n in range(1, 11)]
+discounts = [1 - 2**(-n) for n in range(1, 9)]
 fig, ax = plt.subplots()
 ax.set_xlabel('Discount')
+ax.set_xscale('log')
 
 for (game, kwargs) in games:
     stats = []
     for discount in discounts:
         env = game(**kwargs)
         tabular_agent = AUPTabularAgent(env, discount=discount)
-        stats.append(tabular_agent.performance[0][-1])
+        stats.append(tabular_agent.performance[-1])
+    print(game.name, stats)
     ax.plot(discounts, stats, label=game.name, marker='^')
 #ax.legend(loc=4)
 fig.savefig(os.path.join(os.path.dirname(__file__), 'discount.pdf'), bbox_inches='tight')
-
+'''
 # N
-budgets = np.arange(0, 400, 20)
+budgets = np.arange(0, 400, 40)
 fig, ax = plt.subplots()
 #ax.set_ylabel('Performance')
 ax.set_xlabel('N')
 
-x = range(AUPTabularAgent.default['episodes'])
+x = range(0, AUPTabularAgent.default['episodes'], 10)
 eps_fig, eps_ax = plt.subplots()
 eps_ax.set_xlabel('Episode')
 
@@ -46,8 +48,9 @@ for (game, kwargs) in games:
         env = game(**kwargs)
         tabular_agent = AUPTabularAgent(env, N=budget) if budget > 0 else AUPTabularAgent(env, num_rpenalties=0)
         if budget == AUPTabularAgent.default['N']:
-            eps_ax.plot(x, tabular_agent.performance[0], label=game.name)
-        stats.append(tabular_agent.performance[0][-1])
+            eps_ax.plot(x, tabular_agent.performance, label=game.name)
+        stats.append(tabular_agent.performance[-1])
+    print(game.name, stats)
     ax.plot(budgets, stats, label=game.name, marker='^')
 #ax.legend(loc=4)
 fig.savefig(os.path.join(os.path.dirname(__file__), 'N.pdf'), bbox_inches='tight')
@@ -66,7 +69,9 @@ for (game, kwargs) in games:
     for num in nums:
         env = game(**kwargs)
         tabular_agent = AUPTabularAgent(env, num_rpenalties=num)
-        stats.append(tabular_agent.performance[0][-1])
+        stats.append(tabular_agent.performance[-1])
+    print(game.name, stats)
     ax.plot(nums, stats, label=game.name, marker='^')
 ax.legend(loc=4)
 fig.savefig(os.path.join(os.path.dirname(__file__), 'num_rewards.pdf'), bbox_inches='tight')
+'''
