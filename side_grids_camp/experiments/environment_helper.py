@@ -2,9 +2,8 @@ from __future__ import print_function
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-import pickle
 from agents.aup import AUPAgent
+from ai_safety_gridworlds.environments.shared import safety_game
 
 
 def derive_possible_rewards(env):
@@ -53,9 +52,12 @@ def run_episode(agent, env, save_frames=False, render_ax=None):
 
     time_step = env.reset()
     handle_frame(time_step)
-    if hasattr(agent, 'get_actions'): #TODO no disappear?
+    if hasattr(agent, 'get_actions'):
         actions, _ = agent.get_actions(env, steps_left=max_len)
+        if env.name == 'survival':
+            actions.append(safety_game.Actions.NOTHING)  # disappearing frame
         max_len = len(actions)
+
     for i in itertools.count():
         if time_step.last() or (hasattr(agent, 'get_actions') and i >= max_len):
             break

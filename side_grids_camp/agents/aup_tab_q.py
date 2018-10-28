@@ -8,10 +8,10 @@ from agents.aup import AUPAgent
 class AUPTabularAgent:
     name = "Tabular AUP"
     pen_epsilon, AUP_epsilon = .2, .8  # chance of choosing greedy action in training
-    default = {'N': 150, 'discount': .99, 'rpenalties': 30, 'episodes': 2000}
-    # e=.25, .99d, N=150 .5 conv after 1800
+    default = {'N': 150, 'discount': .996, 'rpenalties': 15, 'episodes': 4500}
+
     def __init__(self, env, N=default['N'], do_state_penalties=False, num_rpenalties=default['rpenalties'],
-                 discount=default['discount'], episodes=default['episodes'], trials=5):
+                 discount=default['discount'], episodes=default['episodes'], trials=20):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.
@@ -19,7 +19,7 @@ class AUPTabularAgent:
         """
         self.actions = range(env.action_spec().maximum + 1)
         self.probs = [[1.0 / (len(self.actions) - 1) if i != k else 0 for i in self.actions] for k in self.actions]
-        self.discount = .99
+        self.discount = discount #run 1=.994, 2=.984
         self.episodes = episodes
         self.trials = trials
         self.N = N
@@ -37,7 +37,7 @@ class AUPTabularAgent:
         self.train(env)
 
     def train(self, env):
-        self.performance = np.zeros(self.episodes / 10)
+        self.performance = np.zeros((self.trials, self.episodes / 10))
 
         for trial in range(self.trials):
             self.penalty_Q = defaultdict(lambda: np.zeros((len(self.penalties), len(self.actions))))
@@ -46,7 +46,7 @@ class AUPTabularAgent:
                 self.penalties = [defaultdict(np.random.random) for _ in range(len(self.penalties))]
             self.epsilon = self.pen_epsilon
             for episode in range(self.episodes):
-                if episode > 1500:
+                if episode > .85 * self.episodes:
                     self.epsilon = self.AUP_epsilon
                 time_step = env.reset()
                 while not time_step.last():
@@ -55,16 +55,10 @@ class AUPTabularAgent:
                     time_step = env.step(action)
                     self.update_greedy(last_board, action, time_step)
                 if episode % 10 == 0:
-                    _, _, perf, _ = environment_helper.run_episode(self, env)
-
-                    self.performance[episode/10] += perf / self.trials
-                    if episode % 1000 == 0:
-                        _, _, perf2, _ = environment_helper.run_episode(AUPAgent(penalty_Q=self.penalty_Q), env)
-                    print(self.AUP_Q[
-                              '[[0. 0. 0. 0. 0. 0.]\n [0. 1. 2. 0. 0. 0.]\n [0. 1. 4. 1. 1. 0.]\n [0. 0. 1. 1. 1. 0.]\n [0. 0. 0. 1. 5. 0.]\n [0. 0. 0. 0. 0. 0.]]'],
-                          self.AUP_Q[
-                              '[[0. 0. 0. 0. 0. 0.]\n [0. 1. 1. 0. 0. 0.]\n [0. 1. 1. 4. 1. 0.]\n [0. 0. 1. 2. 1. 0.]\n [0. 0. 0. 1. 5. 0.]\n [0. 0. 0. 0. 0. 0.]]'],
-                          self.performance[episode/10], perf, perf2, episode)
+                    _, _, self.performance[trial][episode / 10], _ = environment_helper.run_episode(self, env)
+                    #if episode % 500 == 0:
+                    #    _, _, perf2, _ = environment_helper.run_episode(AUPAgent(penalty_Q=self.penalty_Q), env)
+                    #print(np.average(self.performance[:, episode/10], axis=0), self.performance[trial][episode/10], episode)
 
         env.reset()
 
@@ -86,7 +80,7 @@ class AUPTabularAgent:
         null_sum = sum(abs(null_attainable))
 
         # Scaled difference between taking action and doing nothing
-        return sum(abs(action_attainable - null_attainable)) / (self.N * .01 * null_sum) if null_sum \
+        return sum(abs(action_attainable - null_attainable)) / (self.N * .01 * null_sum) if (self.N * null_sum) \
             else sum(abs(action_attainable - null_attainable))  # ImpactUnit is 0!
 
     def update_greedy(self, last_board, action, time_step):

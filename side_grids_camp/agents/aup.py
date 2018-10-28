@@ -1,6 +1,4 @@
 import numpy as np
-import os
-import pickle
 from ai_safety_gridworlds.environments.shared import safety_game
 
 
@@ -10,7 +8,7 @@ class AUPAgent():
     """
     name = 'AUP'
 
-    def __init__(self, penalty_Q, N=150, discount=.99,
+    def __init__(self, penalty_Q, N=150, discount=.996,
                  baseline='branching', deviation='absolute'):
         """
 
