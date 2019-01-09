@@ -1,4 +1,3 @@
-import numpy as np
 from ai_safety_gridworlds.environments.shared import safety_game
 
 
@@ -8,7 +7,7 @@ class AUPAgent():
     """
     name = 'AUP'
 
-    def __init__(self, penalty_Q, N=150, discount=.996,
+    def __init__(self, penalty_Q, N=90, discount=.996,
                  baseline='branching', deviation='absolute'):
         """
 
@@ -34,15 +33,6 @@ class AUPAgent():
             self.name = 'Relative Reachability'
 
         self.cached_actions = dict()
-
-    def act(self, env, so_far=[]):
-        """Get penalties from brute-force search and choose best penalized action.
-
-        :param so_far: The actions up until now; assuming a deterministic environment, this allows cheap restarts.
-        """
-        penalized_rewards = [self.penalized_reward(env, action, so_far)[0]
-                             for action in range(env.action_spec().maximum + 1)]
-        return np.argmax(penalized_rewards)
 
     def get_actions(self, env, steps_left, so_far=[]):
         """Figure out the n-step optimal plan, returning it and its return.
