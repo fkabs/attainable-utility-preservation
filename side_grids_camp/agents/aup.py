@@ -7,7 +7,7 @@ class AUPAgent():
     """
     name = 'AUP'
 
-    def __init__(self, penalty_Q, N=90, discount=.996,
+    def __init__(self, penalty_Q, N=150, discount=.996,
                  baseline='branching', deviation='absolute'):
         """
 
@@ -26,6 +26,7 @@ class AUPAgent():
             self.name = baseline.capitalize()
             if baseline == 'start':
                 self.name = 'Starting State'
+            #self.N = 180
         if deviation != 'absolute':
             self.name = deviation.capitalize()
 

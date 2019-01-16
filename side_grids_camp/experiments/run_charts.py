@@ -6,95 +6,59 @@ from agents.aup_tab_q import AUPTabularAgent
 from environment_helper import *
 import  os
 import matplotlib.pyplot as plt
+from multiprocessing import Pool
 
-# Plot setup
-plt.style.use('ggplot')
+settings = [{'label': 'Discount', 'iter': [1 - 2**(-n) for n in range(2, 10)], 'keyword': 'discount'},
+            {'label': 'N', 'iter': np.arange(0, 300, 30), 'keyword': 'N'},
+            {'label': 'Number of Random Reward Functions', 'iter': range(0, 50, 5), 'keyword': 'num_rewards'}]
 
-games = [#(sokoban.SideEffectsSokobanEnvironment, {'level': 0}),
+games = [(sokoban.SideEffectsSokobanEnvironment, {'level': 0}),
          (sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
-         #(coffee.SideEffectsCoffeeBotEnvironment, {'level': 0}),
-         #(survival.SurvivalIncentiveEnvironment, {'level': 0})
+         (coffee.SideEffectsCoffeeBotEnvironment, {'level': 0}),
+         (survival.SurvivalIncentiveEnvironment, {'level': 0})
         ]
 
-r_discount, r_budget, r_random = False, True, False
-# Discount
-if r_discount:
-    print('discount')
-    discounts = [1 - 2**(-n) for n in range(2, 10)]
+
+def run_exp(ind):
+    setting = settings[ind]
+    print(setting['label'])
+
+    plt.style.use('ggplot')
     fig, ax = plt.subplots()
-    ax.set_ylim([-1, 1])
-
-    ax.set_xlabel('Discount')
-
-    for (game, kwargs) in games:
-        stats = []
-        for discount in discounts:
-            env = game(**kwargs)
-            tabular_agent = AUPTabularAgent(env, discount=discount)
-            stats.append(np.average(tabular_agent.performance[:, -1]))
-            print(discount, stats[-1])
-        print(game.name, stats)
-        ax.plot(discounts, stats, label=game.name, marker='^')
-
-    ax.set_xscale('logit')
-    ax.spines['bottom']._adjust_location()
-    ax.set_xticklabels(discounts)
-    ax.set_xticklabels([], minor=True)
-    plt.show()
-    fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', 'discount.pdf'), bbox_inches='tight')
-
-# N
-if r_budget:
-    print('budget')
-    budgets = np.arange(0, 300, 30)
-    fig, ax = plt.subplots()
-    ax.set_ylim([-1, 1])
-    ax.set_xlabel('N')
-
-    x = range(0, AUPTabularAgent.default['episodes'], 10)
-    eps_fig, eps_ax = plt.subplots()
-    eps_ax.set_xlabel('Episode')
-
-    eps_ax.set_ylim([-2, 1])
-
-    for (game, kwargs) in games:
-        stats = []
-        for budget in [90]: #budgets:
-
-            env = game(**kwargs)
-            tabular_agent = AUPTabularAgent(env, N=budget)  # TODO rerun N=0
-            _, _, perf, _ = run_episode(AUPAgent(penalty_Q=tabular_agent.penalty_Q), env)
-            #if budget == AUPTabularAgent.default['N']:
-            eps_ax.plot(x, np.average(tabular_agent.performance, axis=0), label=game.name + str(budget))
-            stats.append(np.average(tabular_agent.performance[:, -1]))
-            print(budget, stats[-1], perf)
-        print(game.name, stats)
-        #ax.plot(budgets, stats, label=game.name, marker='^')
-
-    #fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', 'N.pdf'), bbox_inches='tight')
-
-    eps_ax.legend(loc=4)
-    eps_ax.axvline(x=AUPTabularAgent.default['episodes'] * .4, color='gray')
-    #eps_fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', 'episodes.pdf'), bbox_inches='tight')
-    plt.show()
-
-if r_random: # rand pen
-    print('random')
-    nums = range(0, 30, 3)
-    fig, ax = plt.subplots()
-
-    ax.set_ylim([-1, 1])
-    ax.set_xlabel('Number of Random Reward Functions')
-
-    for (game, kwargs) in games:
-        stats = []
-        for num in nums:
-            env = game(**kwargs)
-            tabular_agent = AUPTabularAgent(env, num_rpenalties=num)
-            stats.append(np.average(tabular_agent.performance[:, -1]))
-            print(num, stats[-1])
-        print(game.name, stats)
-        ax.plot(nums, stats, label=game.name, marker='^')
+    ax.set_ylim([-2, 1])
+    ax.set_xlabel(setting['label'])
     ax.legend(loc=4)
-    fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', 'num_rewards.pdf'), bbox_inches='tight')
+    if setting['label'] == 'N':
+        eps_fig, eps_ax = plt.subplots()
+        eps_ax.set_xlabel('Episode')
+        eps_ax.set_ylim([-2, 1])
+
+    counts = dict()
+    for (game, kwargs) in games:
+        counts[game.name] = np.zeros((len(setting['iter']), 4))
+        for (idx, item) in enumerate(setting['iter']):
+            env = game(**kwargs)
+            tabular_agent = AUPTabularAgent(env, **{setting['keyword']: item})
+            if setting['label'] == 'N' and item == AUPTabularAgent.default['N']:
+                np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance2-' + game.name),
+                        tabular_agent.performance)
+                eps_ax.plot(range(0, AUPTabularAgent.default['episodes'], 10),
+                            np.average(tabular_agent.performance, axis=0), label=game.name.capitalize())
+            counts[game.name][idx, :] = tabular_agent.counts[:]
+            print(item, tabular_agent.counts)
+        print(game.name.capitalize())
+        #ax.plot(setting['iter'], stats, label=game.name.capitalize(), marker='^')
+    np.save(os.path.join(os.path.dirname(__file__), 'plots', 'counts2-' + setting['keyword']), counts)
+
+    if setting['label'] == 'N':
+        eps_ax.legend(loc=4)
+        eps_ax.axvline(x=AUPTabularAgent.default['episodes'] * 2/3, color='gray')
+        eps_fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', 'episodes2.pdf'), bbox_inches='tight')
     plt.show()
+    fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', setting['keyword'] + '2.pdf'),
+                bbox_inches='tight')
+
+
+if __name__ == '__main__':
+    p = Pool(3)
+    p.map(run_exp, range(len(settings)))

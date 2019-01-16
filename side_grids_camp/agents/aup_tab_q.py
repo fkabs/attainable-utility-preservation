@@ -1,5 +1,5 @@
 from ai_safety_gridworlds.environments.shared import safety_game
-from collections import defaultdict, namedtuple
+from collections import defaultdict, namedtuple, Counter
 import experiments.environment_helper as environment_helper
 import numpy as np
 
@@ -7,10 +7,10 @@ import numpy as np
 class AUPTabularAgent:
     name = "Tabular AUP"
     pen_epsilon, AUP_epsilon = .2, .9  # chance of choosing greedy action in training
-    default = {'N': 150, 'discount': .996, 'rpenalties': 30, 'episodes': 10000}
+    default = {'N': 150, 'discount': .996, 'rpenalties': 30, 'episodes': 60}
 
-    def __init__(self, env, N=default['N'], do_state_penalties=False, num_rpenalties=default['rpenalties'],
-                 discount=default['discount'], episodes=default['episodes'], trials=10):
+    def __init__(self, env, N=default['N'], do_state_penalties=False, num_rewards=default['rpenalties'],
+                 discount=default['discount'], episodes=default['episodes'], trials=2):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.
@@ -28,7 +28,7 @@ class AUPTabularAgent:
             self.name = 'Relative Reachability'
             self.penalties = environment_helper.derive_possible_rewards(env)
         else:
-            self.penalties = [defaultdict(np.random.random) for _ in range(num_rpenalties)]
+            self.penalties = [defaultdict(np.random.random) for _ in range(num_rewards)]
         if len(self.penalties) == 0:
             self.name = 'Vanilla'  # no penalty applied!
 
@@ -36,6 +36,7 @@ class AUPTabularAgent:
 
     def train(self, env):
         self.performance = np.zeros((self.trials, self.episodes / 10))
+        self.counts = np.zeros(4)
 
         for trial in range(self.trials):
             self.penalty_Q = defaultdict(lambda: np.zeros((len(self.penalties), len(self.actions))))
@@ -44,7 +45,7 @@ class AUPTabularAgent:
                 self.penalties = [defaultdict(np.random.random) for _ in range(len(self.penalties))]
             self.epsilon = self.pen_epsilon
             for episode in range(self.episodes):
-                if episode > .4 * self.episodes:
+                if episode > 2.0/3 * self.episodes:
                     self.epsilon = self.AUP_epsilon
                 time_step = env.reset()
                 while not time_step.last():
@@ -54,6 +55,7 @@ class AUPTabularAgent:
                     self.update_greedy(last_board, action, time_step)
                 if episode % 10 == 0:
                     _, _, self.performance[trial][episode / 10], _ = environment_helper.run_episode(self, env)
+            self.counts[int(self.performance[trial, -1]) + 2] += 1  # -2 goes to idx 0
         env.reset()
 
     def act(self, obs):
