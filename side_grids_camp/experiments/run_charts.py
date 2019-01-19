@@ -8,7 +8,7 @@ import  os
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
 
-settings = [{'label': 'Discount', 'iter': [1 - 2**(-n) for n in range(2, 10)], 'keyword': 'discount'},
+settings = [{'label': 'Discount', 'iter': [1 - 2**(-n) for n in range(3, 11)], 'keyword': 'discount'},
             {'label': 'N', 'iter': np.arange(0, 300, 30), 'keyword': 'N'},
             {'label': 'Number of Random Reward Functions', 'iter': range(0, 50, 5), 'keyword': 'num_rewards'}]
 
@@ -45,7 +45,7 @@ def run_exp(ind):
                 eps_ax.plot(range(0, AUPTabularAgent.default['episodes'], 10),
                             np.average(tabular_agent.performance, axis=0), label=game.name.capitalize())
             counts[game.name][idx, :] = tabular_agent.counts[:]
-            print(item, tabular_agent.counts)
+            print(setting['keyword'], item, tabular_agent.counts)
         print(game.name.capitalize())
         #ax.plot(setting['iter'], stats, label=game.name.capitalize(), marker='^')
     np.save(os.path.join(os.path.dirname(__file__), 'plots', 'counts2-' + setting['keyword']), counts)

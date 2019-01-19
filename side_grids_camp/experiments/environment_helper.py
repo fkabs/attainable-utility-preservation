@@ -47,7 +47,7 @@ def run_episode(agent, env, save_frames=False, render_ax=None):
             render_ax.imshow(np.moveaxis(time_step.observation['RGB'], 0, -1), animated=True)
             plt.pause(0.001)
 
-    max_len = 8
+    max_len = 11
     frames = []
 
     time_step = env.reset()
@@ -59,7 +59,7 @@ def run_episode(agent, env, save_frames=False, render_ax=None):
         max_len = len(actions)
 
     for i in itertools.count():
-        if time_step.last() or (hasattr(agent, 'get_actions') and i >= max_len):
+        if time_step.last() or i >= max_len:
             break
         action = actions[i] if hasattr(agent, 'get_actions') else agent.act(time_step.observation)
         time_step = env.step(action)

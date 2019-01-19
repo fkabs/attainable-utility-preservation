@@ -7,10 +7,10 @@ import numpy as np
 class AUPTabularAgent:
     name = "Tabular AUP"
     pen_epsilon, AUP_epsilon = .2, .9  # chance of choosing greedy action in training
-    default = {'N': 150, 'discount': .996, 'rpenalties': 30, 'episodes': 60}
+    default = {'N': 150, 'discount': .996, 'rpenalties': 30, 'episodes': 6000}
 
     def __init__(self, env, N=default['N'], do_state_penalties=False, num_rewards=default['rpenalties'],
-                 discount=default['discount'], episodes=default['episodes'], trials=2):
+                 discount=default['discount'], episodes=default['episodes'], trials=50):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.

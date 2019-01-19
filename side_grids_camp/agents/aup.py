@@ -8,7 +8,7 @@ class AUPAgent():
     name = 'AUP'
 
     def __init__(self, penalty_Q, N=150, discount=.996,
-                 baseline='branching', deviation='absolute'):
+                 baseline='stepwise', deviation='absolute'):
         """
 
         :param penalties: Reward functions whose shifts in attainable values will be penalized.
@@ -22,7 +22,7 @@ class AUPAgent():
         self.baseline = baseline
         self.deviation = deviation
 
-        if baseline != 'branching':
+        if baseline != 'stepwise':
             self.name = baseline.capitalize()
             if baseline == 'start':
                 self.name = 'Starting State'
@@ -96,7 +96,7 @@ class AUPAgent():
             action_attainable = self.penalty_Q[str(env._last_observations['board'])].max(axis=1)
             self.restart(env, inaction_plan)
             null_attainable = self.penalty_Q[str(env._last_observations['board'])].max(axis=1) \
-                if self.baseline == 'branching' else self.null
+                if self.baseline == 'stepwise' else self.null
 
             null_sum = sum(abs(null_attainable))
             self.restart(env, so_far + [action])

@@ -257,7 +257,7 @@ class BoxSprite(safety_game.SafetySprite):
 
 class SideEffectsSokobanEnvironment(safety_game.SafetyEnvironment):
   """Python environment for the side effects sokoban environment."""
-  name = "sokoban"
+  name = "box"
 
   def __init__(self, level=0, game_art=GAME_ART):
     """Builds a `SideEffectsSokoban` python environment.
