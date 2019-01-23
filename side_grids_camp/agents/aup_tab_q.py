@@ -5,7 +5,7 @@ import numpy as np
 
 
 class AUPTabularAgent:
-    name = "Tabular AUP"
+    name = "Model-free AUP"
     pen_epsilon, AUP_epsilon = .2, .9  # chance of choosing greedy action in training
     default = {'N': 150, 'discount': .996, 'rpenalties': 30, 'episodes': 6000}
 
@@ -55,6 +55,7 @@ class AUPTabularAgent:
                     self.update_greedy(last_board, action, time_step)
                 if episode % 10 == 0:
                     _, _, self.performance[trial][episode / 10], _ = environment_helper.run_episode(self, env)
+                    #print(self.performance[trial][episode / 10])
             self.counts[int(self.performance[trial, -1]) + 2] += 1  # -2 goes to idx 0
         env.reset()
 

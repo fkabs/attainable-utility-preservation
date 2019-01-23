@@ -42,6 +42,7 @@ class AUPAgent():
         :param steps_left: >= 1; how many steps to plan over.
         :param so_far: actions taken up until now (used for restart).
         """
+        if steps_left == 0: return []
         if len(so_far) == 0:
             if self.baseline == 'start':
                 self.null = self.penalty_Q[str(env.last_observations['board'])].max(axis=1)
@@ -54,7 +55,7 @@ class AUPAgent():
             best_actions, best_ret = [], float('-inf')
             for a in range(env.action_spec().maximum + 1):
                 r, done = self.penalized_reward(env, a, steps_left, so_far)
-                if steps_left > 0 and not done:
+                if not done:
                     actions, ret = self.get_actions(env, steps_left-1, so_far + [a])
                 else:
                     actions, ret = [], 0
@@ -86,25 +87,24 @@ class AUPAgent():
         """
         time_step = env.step(action)
         reward, scaled_penalty = time_step.reward if time_step.reward else 0, 0
-        for _ in range(steps_left-1):
-            if time_step.last(): break
-            time_step = env.step(safety_game.Actions.NOTHING)
-        if self.penalty_Q and action != safety_game.Actions.NOTHING:
+        if self.penalty_Q:
             action_plan, inaction_plan = so_far + [action] + [safety_game.Actions.NOTHING] * (steps_left - 1), \
                                          so_far + [safety_game.Actions.NOTHING] * steps_left
+
             self.restart(env, action_plan)
             action_attainable = self.penalty_Q[str(env._last_observations['board'])].max(axis=1)
+
             self.restart(env, inaction_plan)
             null_attainable = self.penalty_Q[str(env._last_observations['board'])].max(axis=1) \
                 if self.baseline == 'stepwise' else self.null
-
             null_sum = sum(abs(null_attainable))
-            self.restart(env, so_far + [action])
 
             # Scaled difference between taking action and doing nothing
             diff = action_attainable - null_attainable
             if self.deviation == 'decrease':
                 diff[diff > 0] = 0  # dont penalize increases
             scaled_penalty = sum(abs(diff)) / (self.N * .01 * null_sum) if null_sum \
-                else sum(abs(diff))  # prior methods don't include impact unit
+                else sum(abs(diff))
+
+            self.restart(env, so_far + [action])
         return reward - scaled_penalty, time_step.last()

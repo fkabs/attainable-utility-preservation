@@ -12,10 +12,10 @@ settings = [{'label': 'Discount', 'iter': [1 - 2**(-n) for n in range(3, 11)], '
             {'label': 'N', 'iter': np.arange(0, 300, 30), 'keyword': 'N'},
             {'label': 'Number of Random Reward Functions', 'iter': range(0, 50, 5), 'keyword': 'num_rewards'}]
 
-games = [(sokoban.SideEffectsSokobanEnvironment, {'level': 0}),
-         (sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
-         (coffee.SideEffectsCoffeeBotEnvironment, {'level': 0}),
-         (survival.SurvivalIncentiveEnvironment, {'level': 0})
+games = [#(sokoban.SideEffectsSokobanEnvironment, {'level': 0}),
+         #(sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
+         (conveyor.ConveyorBeltEnvironment, {'variant': 'vase'}),
+         #(survival.SurvivalIncentiveEnvironment, {'level': 0})
         ]
 
 
@@ -38,9 +38,9 @@ def run_exp(ind):
         counts[game.name] = np.zeros((len(setting['iter']), 4))
         for (idx, item) in enumerate(setting['iter']):
             env = game(**kwargs)
-            tabular_agent = AUPTabularAgent(env, **{setting['keyword']: item})
+            tabular_agent = AUPTabularAgent(env, trials=2, **{setting['keyword']: item})
             if setting['label'] == 'N' and item == AUPTabularAgent.default['N']:
-                np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance2-' + game.name),
+                np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance3-' + game.name),
                         tabular_agent.performance)
                 eps_ax.plot(range(0, AUPTabularAgent.default['episodes'], 10),
                             np.average(tabular_agent.performance, axis=0), label=game.name.capitalize())
@@ -48,17 +48,18 @@ def run_exp(ind):
             print(setting['keyword'], item, tabular_agent.counts)
         print(game.name.capitalize())
         #ax.plot(setting['iter'], stats, label=game.name.capitalize(), marker='^')
-    np.save(os.path.join(os.path.dirname(__file__), 'plots', 'counts2-' + setting['keyword']), counts)
+    np.save(os.path.join(os.path.dirname(__file__), 'plots', 'counts3-' + setting['keyword']), counts)
 
     if setting['label'] == 'N':
         eps_ax.legend(loc=4)
         eps_ax.axvline(x=AUPTabularAgent.default['episodes'] * 2/3, color='gray')
-        eps_fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', 'episodes2.pdf'), bbox_inches='tight')
+        eps_fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', 'episodes3.pdf'), bbox_inches='tight')
     plt.show()
-    fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', setting['keyword'] + '2.pdf'),
+    fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', setting['keyword'] + '3.pdf'),
                 bbox_inches='tight')
 
 
 if __name__ == '__main__':
-    p = Pool(3)
-    p.map(run_exp, range(len(settings)))
+    run_exp(1)
+    #p = Pool(3)
+    #p.map(run_exp, range(len(settings)))
