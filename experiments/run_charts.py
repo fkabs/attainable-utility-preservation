@@ -38,7 +38,7 @@ def run_exp(ind):
         counts[game.name] = np.zeros((len(setting['iter']), 4))
         for (idx, item) in enumerate(setting['iter']):
             env = game(**kwargs)
-            tabular_agent = AUPTabularAgent(env, trials=2, **{setting['keyword']: item})
+            tabular_agent = AUPTabularAgent(env, trials=50, **{setting['keyword']: item})
             if setting['label'] == 'N' and item == AUPTabularAgent.default['N']:
                 np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance3-' + game.name),
                         tabular_agent.performance)
@@ -61,5 +61,5 @@ def run_exp(ind):
 
 if __name__ == '__main__':
     run_exp(1)
-    #p = Pool(3)
-    #p.map(run_exp, range(len(settings)))
+    p = Pool(3)
+    p.map(run_exp, range(len(settings)))

@@ -1,9 +1,8 @@
 import numpy as np
 import tensorflow as tf
 from ai_safety_gridworlds.environments.side_effects_sokoban import SideEffectsSokobanEnvironment as sokoban_game
-from ai_safety_gridworlds.environments.shared.safety_game import Actions
 
-from side_grids_camp.agents.dqn import StateProcessor
+from agents import StateProcessor
 
 
 ###

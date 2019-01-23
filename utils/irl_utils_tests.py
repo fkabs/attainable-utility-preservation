@@ -1,12 +1,11 @@
 #
 # IRL UTILS TESTS
 #
-from matplotlib import pyplot as plt
 %matplotlib inline
 import numpy as np
 from ai_safety_gridworlds.environments.shared.safety_game import Actions
 from side_grids_camp.feature_extractors import Reshaper, ObjectDistances
-from side_grids_camp.utils.irl_utils import *
+from utils import *
 
 
 # %% So dirty that you shouldn't read :P
