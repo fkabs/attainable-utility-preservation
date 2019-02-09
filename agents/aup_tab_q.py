@@ -1,5 +1,5 @@
 from ai_safety_gridworlds.environments.shared import safety_game
-from collections import defaultdict, namedtuple, Counter
+from collections import defaultdict
 import experiments.environment_helper as environment_helper
 import numpy as np
 
@@ -36,6 +36,8 @@ class AUPTabularAgent:
 
     def train(self, env):
         self.performance = np.zeros((self.trials, self.episodes / 10))
+
+        # 0: high-impact, incomplete; 1: high-impact, complete; 2: low-impact, incomplete; 3: low-impact, complete
         self.counts = np.zeros(4)
 
         for trial in range(self.trials):
@@ -54,9 +56,9 @@ class AUPTabularAgent:
                     time_step = env.step(action)
                     self.update_greedy(last_board, action, time_step)
                 if episode % 10 == 0:
-                    _, _, self.performance[trial][episode / 10], _ = environment_helper.run_episode(self, env)
-                    #print(self.performance[trial][episode / 10])
+                    _, actions, self.performance[trial][episode / 10], _ = environment_helper.run_episode(self, env)
             self.counts[int(self.performance[trial, -1]) + 2] += 1  # -2 goes to idx 0
+
         env.reset()
 
     def act(self, obs):
@@ -101,6 +103,5 @@ class AUPTabularAgent:
         for pen_idx in range(len(self.penalties)):
             self.penalty_Q[last_board][pen_idx, action] += calculate_update(pen_idx)
         if self.do_state_penalties:
-            self.penalty_Q[last_board][:, action] = np.clip(self.penalty_Q[last_board][:, action],
-                                                            0, 1)
+            self.penalty_Q[last_board][:, action] = np.clip(self.penalty_Q[last_board][:, action], 0, 1)
         self.AUP_Q[last_board][action] += calculate_update()

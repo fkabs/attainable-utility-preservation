@@ -26,12 +26,12 @@ class AUPAgent():
             self.name = baseline.capitalize()
             if baseline == 'start':
                 self.name = 'Starting State'
-            #self.N = 180
         if deviation != 'absolute':
             self.name = deviation.capitalize()
 
         if baseline == 'inaction' and deviation == 'decrease':
             self.name = 'Relative Reachability'
+            self.N = 500
 
         self.cached_actions = dict()
 
@@ -42,7 +42,7 @@ class AUPAgent():
         :param steps_left: >= 1; how many steps to plan over.
         :param so_far: actions taken up until now (used for restart).
         """
-        if steps_left == 0: return []
+        if steps_left == 0: return [], 0
         if len(so_far) == 0:
             if self.baseline == 'start':
                 self.null = self.penalty_Q[str(env.last_observations['board'])].max(axis=1)
@@ -59,7 +59,7 @@ class AUPAgent():
                     actions, ret = self.get_actions(env, steps_left-1, so_far + [a])
                 else:
                     actions, ret = [], 0
-                ret *= self.discount
+                #ret *= self.discount
                 if r + ret > best_ret:
                     best_actions, best_ret = [a] + actions, r + ret
                 self.restart(env, so_far)

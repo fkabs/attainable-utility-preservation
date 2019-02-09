@@ -13,9 +13,10 @@ settings = [{'label': 'Discount', 'iter': [1 - 2**(-n) for n in range(3, 11)], '
             {'label': 'Number of Random Reward Functions', 'iter': range(0, 50, 5), 'keyword': 'num_rewards'}]
 
 games = [#(sokoban.SideEffectsSokobanEnvironment, {'level': 0}),
-         #(sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
+         #(coffee.SideEffectsCoffeeBotEnvironment, {'level': 0}),
+         #(survival.SurvivalIncentiveEnvironment, {'level': 0}),
          (conveyor.ConveyorBeltEnvironment, {'variant': 'vase'}),
-         #(survival.SurvivalIncentiveEnvironment, {'level': 0})
+         # (sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
         ]
 
 
@@ -33,22 +34,21 @@ def run_exp(ind):
         eps_ax.set_xlabel('Episode')
         eps_ax.set_ylim([-2, 1])
 
-    counts = dict()
+    counts, perf = dict(), dict()
     for (game, kwargs) in games:
         counts[game.name] = np.zeros((len(setting['iter']), 4))
         for (idx, item) in enumerate(setting['iter']):
             env = game(**kwargs)
             tabular_agent = AUPTabularAgent(env, trials=50, **{setting['keyword']: item})
             if setting['label'] == 'N' and item == AUPTabularAgent.default['N']:
-                np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance3-' + game.name),
-                        tabular_agent.performance)
+                perf[game.name] = tabular_agent.performance
+                np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance3'), perf)
                 eps_ax.plot(range(0, AUPTabularAgent.default['episodes'], 10),
                             np.average(tabular_agent.performance, axis=0), label=game.name.capitalize())
             counts[game.name][idx, :] = tabular_agent.counts[:]
+            np.save(os.path.join(os.path.dirname(__file__), 'plots', 'counts3-' + setting['keyword']), counts)
             print(setting['keyword'], item, tabular_agent.counts)
         print(game.name.capitalize())
-        #ax.plot(setting['iter'], stats, label=game.name.capitalize(), marker='^')
-    np.save(os.path.join(os.path.dirname(__file__), 'plots', 'counts3-' + setting['keyword']), counts)
 
     if setting['label'] == 'N':
         eps_ax.legend(loc=4)
@@ -60,6 +60,5 @@ def run_exp(ind):
 
 
 if __name__ == '__main__':
-    run_exp(1)
     p = Pool(3)
     p.map(run_exp, range(len(settings)))
