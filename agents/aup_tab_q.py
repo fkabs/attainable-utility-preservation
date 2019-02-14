@@ -9,12 +9,17 @@ class AUPTabularAgent:
     pen_epsilon, AUP_epsilon = .2, .9  # chance of choosing greedy action in training
     default = {'N': 150, 'discount': .996, 'rpenalties': 30, 'episodes': 6000}
 
-    def __init__(self, env, N=default['N'], do_state_penalties=False, num_rewards=default['rpenalties'],
+    def __init__(self, env, N=default['N'], state_attainable=False, num_rewards=default['rpenalties'],
                  discount=default['discount'], episodes=default['episodes'], trials=50):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.
-        :param N: Maximal impact % the agent can have.
+        :param N: Impact tuning parameter.
+        :param state_attainable: True - generate state indicator rewards; false - random rewards.
+        :param num_rewards: Size of the attainable set, |\mathcal{R}|.
+        :param discount:
+        :param episodes:
+        :param trials:
         """
         self.actions = range(env.action_spec().maximum + 1)
         self.probs = [[1.0 / (len(self.actions) - 1) if i != k else 0 for i in self.actions] for k in self.actions]
@@ -22,14 +27,15 @@ class AUPTabularAgent:
         self.episodes = episodes
         self.trials = trials
         self.N = N
-        self.do_state_penalties = do_state_penalties
+        self.state_attainable = state_attainable
 
-        if do_state_penalties:
+        if state_attainable:
             self.name = 'Relative Reachability'
-            self.penalties = environment_helper.derive_possible_rewards(env)
+            self.attainable_set = environment_helper.derive_possible_rewards(env)
         else:
-            self.penalties = [defaultdict(np.random.random) for _ in range(num_rewards)]
-        if len(self.penalties) == 0:
+            self.attainable_set = [defaultdict(np.random.random) for _ in range(num_rewards)]
+
+        if len(self.attainable_set) == 0:
             self.name = 'Vanilla'  # no penalty applied!
 
         self.train(env)
@@ -41,13 +47,14 @@ class AUPTabularAgent:
         self.counts = np.zeros(4)
 
         for trial in range(self.trials):
-            self.penalty_Q = defaultdict(lambda: np.zeros((len(self.penalties), len(self.actions))))
+            self.attainable_Q = defaultdict(lambda: np.zeros((len(self.attainable_set), len(self.actions))))
             self.AUP_Q = defaultdict(lambda: np.zeros(len(self.actions)))
-            if not self.do_state_penalties:
-                self.penalties = [defaultdict(np.random.random) for _ in range(len(self.penalties))]
+            if not self.state_attainable:
+                self.attainable_set = [defaultdict(np.random.random) for _ in range(len(self.attainable_set))]
             self.epsilon = self.pen_epsilon
+
             for episode in range(self.episodes):
-                if episode > 2.0/3 * self.episodes:
+                if episode > 2.0 / 3 * self.episodes:  # begin greedy exploration
                     self.epsilon = self.AUP_epsilon
                 time_step = env.reset()
                 while not time_step.last():
@@ -73,9 +80,9 @@ class AUPTabularAgent:
             return np.random.choice(self.actions, p=self.probs[greedy])
 
     def get_penalty(self, board, action):
-        if len(self.penalties) == 0: return 0
-        action_attainable = self.penalty_Q[board][:, action]
-        null_attainable = self.penalty_Q[board][:, safety_game.Actions.NOTHING]
+        if len(self.attainable_set) == 0: return 0
+        action_attainable = self.attainable_Q[board][:, action]
+        null_attainable = self.attainable_Q[board][:, safety_game.Actions.NOTHING]
         null_sum = sum(abs(null_attainable))
 
         # Scaled difference between taking action and doing nothing
@@ -87,21 +94,21 @@ class AUPTabularAgent:
         learning_rate = 1
         new_board = str(time_step.observation['board'])
 
-        def calculate_update(pen_idx=None):
+        def calculate_update(attainable_idx=None):
             """Do the update for the main function (or the penalty function at the given index)."""
-            if pen_idx is not None:
-                reward = self.penalties[pen_idx](new_board) if self.do_state_penalties \
-                    else self.penalties[pen_idx][new_board]
-                new_Q, old_Q = self.penalty_Q[new_board][pen_idx].max(), \
-                               self.penalty_Q[last_board][pen_idx, action]
+            if attainable_idx is not None:
+                reward = self.attainable_set[attainable_idx](new_board) if self.state_attainable \
+                    else self.attainable_set[attainable_idx][new_board]
+                new_Q, old_Q = self.attainable_Q[new_board][attainable_idx].max(), \
+                               self.attainable_Q[last_board][attainable_idx, action]
             else:
                 reward = time_step.reward - self.get_penalty(last_board, action)
                 new_Q, old_Q = self.AUP_Q[new_board].max(), self.AUP_Q[last_board][action]
             return learning_rate * (reward + self.discount * new_Q - old_Q)
 
-        # Learn the other reward functions, too
-        for pen_idx in range(len(self.penalties)):
-            self.penalty_Q[last_board][pen_idx, action] += calculate_update(pen_idx)
-        if self.do_state_penalties:
-            self.penalty_Q[last_board][:, action] = np.clip(self.penalty_Q[last_board][:, action], 0, 1)
+        # Learn the attainable reward functions
+        for attainable_idx in range(len(self.attainable_set)):
+            self.attainable_Q[last_board][attainable_idx, action] += calculate_update(attainable_idx)
+        if self.state_attainable:
+            self.attainable_Q[last_board][:, action] = np.clip(self.attainable_Q[last_board][:, action], 0, 1)
         self.AUP_Q[last_board][action] += calculate_update()

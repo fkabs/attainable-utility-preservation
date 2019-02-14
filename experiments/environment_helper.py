@@ -12,8 +12,10 @@ def derive_possible_rewards(env):
 
     :param env: Environment.
     """
+
     def state_lambda(original_board_str):
         return lambda obs: int(obs == original_board_str) * env.GOAL_REWARD
+
     def explore(env, so_far=[]):
         board_str = str(env._last_observations['board'])
         if board_str not in states:
@@ -34,12 +36,13 @@ def derive_possible_rewards(env):
     return functions
 
 
-def run_episode(agent, env, save_frames=False, render_ax=None):
+def run_episode(agent, env, save_frames=False, render_ax=None, max_len=9):
     """
     Run the episode, recording and saving the frames if desired.
 
     :param save_frames: Whether to save frames from the final performance.
     """
+
     def handle_frame(time_step):
         if save_frames:
             frames.append(np.moveaxis(time_step.observation['RGB'], 0, -1))
@@ -47,7 +50,6 @@ def run_episode(agent, env, save_frames=False, render_ax=None):
             render_ax.imshow(np.moveaxis(time_step.observation['RGB'], 0, -1), animated=True)
             plt.pause(0.001)
 
-    max_len = 9
     frames, actions = [], []
 
     time_step = env.reset()

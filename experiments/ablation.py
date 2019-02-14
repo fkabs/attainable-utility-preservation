@@ -1,7 +1,5 @@
 from __future__ import print_function
-from ai_safety_gridworlds.environments import side_effects_burning_building as burning, side_effects_sokoban as sokoban, \
-    side_effects_sushi_bot as sushi, side_effects_vase as vase, survival_incentive as survival, \
-    side_effects_conveyor_belt as conveyor, side_effects_coffee_bot as coffee
+from ai_safety_gridworlds.environments import *
 from agents.aup_tab_q import AUPTabularAgent
 from environment_helper import *
 import datetime
@@ -34,7 +32,7 @@ def plot_images_to_ani(framesets):
                 ax.get_yaxis().set_ticks([])
                 ax.set_xlabel(agent_name)
             ims[-1].append(ax.imshow(frames[min(i, len(frames) - 1)], animated=True))
-    return animation.ArtistAnimation(plt.gcf(), ims, interval=250, blit=True, repeat_delay=0)
+    return animation.ArtistAnimation(plt.gcf(), ims, interval=400, blit=True, repeat_delay=200)
 
 
 def run_game(game, kwargs):
@@ -46,6 +44,8 @@ def run_game(game, kwargs):
 
     start_time = datetime.datetime.now()
     movies = run_agents(game, kwargs, render_ax=render_ax)
+
+    # Save first frame of level for display in paper
     render_ax.imshow(movies[0][1][0])
     render_fig.savefig(os.path.join(os.path.dirname(__file__), 'level_imgs', game.variant_name + '.eps'),
                        bbox_inches='tight', dpi=350)
@@ -69,15 +69,14 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     # Instantiate environment and agents
     env = env_class(**env_kwargs)
     tabular_agent = AUPTabularAgent(env, trials=1)
-    state = (AUPTabularAgent(env, do_state_penalties=True, trials=1))
+    state = (AUPTabularAgent(env, state_attainable=True, trials=1))
     movies, agents = [], [AUPTabularAgent(env, num_rewards=0, trials=1),  # vanilla
-                          AUPAgent(penalty_Q=tabular_agent.penalty_Q),  # full AUP
+                          AUPAgent(attainable_Q=tabular_agent.attainable_Q, baseline='start'),
+                          AUPAgent(attainable_Q=tabular_agent.attainable_Q, baseline='inaction'),
+                          AUPAgent(attainable_Q=tabular_agent.attainable_Q, deviation='decrease'),
+                          AUPAgent(attainable_Q=state.attainable_Q, baseline='inaction', deviation='decrease', N=500),  # RR
                           tabular_agent,
-                          #state,
-                          AUPAgent(penalty_Q=state.penalty_Q, baseline='inaction', deviation='decrease'),  # RR
-                          AUPAgent(penalty_Q=tabular_agent.penalty_Q, baseline='start'),
-                          AUPAgent(penalty_Q=tabular_agent.penalty_Q, baseline='inaction'),
-                          AUPAgent(penalty_Q=tabular_agent.penalty_Q, deviation='decrease')
+                          AUPAgent(attainable_Q=tabular_agent.attainable_Q)  # full AUP
                           ]
 
     for agent in agents:
@@ -88,19 +87,18 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     return movies
 
 
-games = [(conveyor.ConveyorBeltEnvironment, {'variant': 'vase'}),
-          (conveyor.ConveyorBeltEnvironment, {'variant': 'sushi'}),
-          (burning.SideEffectsBurningBuildingEnvironment, {'level': 0}),
-          (burning.SideEffectsBurningBuildingEnvironment, {'level': 1}),
-          (sokoban.SideEffectsSokobanEnvironment, {'level': 0}),
-          (sushi.SideEffectsSushiBotEnvironment, {'level': 0}),
-          (vase.SideEffectsVaseEnvironment, {'level': 0}),
-          (coffee.SideEffectsCoffeeBotEnvironment, {'level': 0}),
-          (survival.SurvivalIncentiveEnvironment, {'level': 0})
+games = [(conveyor.ConveyorEnvironment, {'variant': 'vase'}),
+         # conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
+         (burning.BurningEnvironment, {'level': 0}),
+         (burning.BurningEnvironment, {'level': 1}),
+         (box.BoxEnvironment, {'level': 0}),
+         (sushi.SushiEnvironment, {'level': 0}),
+         (vase.VaseEnvironment, {'level': 0}),
+         (dog.DogEnvironment, {'level': 0}),
+         (survival.SurvivalEnvironment, {'level': 0})
          ]
 
 # Plot setup
-#plt.switch_backend('TkAgg')
 plt.style.use('ggplot')
 
 # Get individual game ablations

@@ -25,7 +25,7 @@ from ai_safety_gridworlds.environments.distributional_shift import Distributiona
 from ai_safety_gridworlds.environments.friend_foe import FriendFoeEnvironment
 from ai_safety_gridworlds.environments.island_navigation import IslandNavigationEnvironment
 from ai_safety_gridworlds.environments.safe_interruptibility import SafeInterruptibilityEnvironment
-from ai_safety_gridworlds.environments.side_effects_sokoban import SideEffectsSokobanEnvironment
+from ai_safety_gridworlds.environments.box import BoxEnvironment
 from ai_safety_gridworlds.environments.tomato_watering import TomatoWateringEnvironment
 from ai_safety_gridworlds.environments.whisky_gold import WhiskyOrGoldEnvironment
 
@@ -36,7 +36,7 @@ _environment_classes = {
     'friend_foe': FriendFoeEnvironment,
     'island_navigation': IslandNavigationEnvironment,
     'safe_interruptibility': SafeInterruptibilityEnvironment,
-    'side_effects_sokoban': SideEffectsSokobanEnvironment,
+    'side_effects_sokoban': BoxEnvironment,
     'tomato_watering': TomatoWateringEnvironment,
     'absent_supervisor': AbsentSupervisorEnvironment,
     'whisky_gold': WhiskyOrGoldEnvironment,
