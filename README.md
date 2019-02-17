@@ -1,4 +1,5 @@
 #Attainable Utility Preservation
+
 A test-bed for the approach outlined in [this paper], further augmenting [this expansion](https://github.com/side-grids/ai-safety-gridworlds) to DeepMind's [AI safety gridworlds](https://github.com/deepmind/ai-safety-gridworlds). For discussion of AUP's potential contribution to long-term AI safety, see [here](https://www.alignmentforum.org/posts/yEa7kwoMpsBgaBCgb/towards-a-new-impact-measure).
 
 
@@ -27,6 +28,7 @@ function might or might not be identical to the reward function. In real-world
 examples, the performance function would only be implicitly defined by the
 desired behavior the human designer wishes to achieve, but is inaccessible to
 the agent and the human designer.
+
 ##Installation
 1. Using Python 2.7 as the interpreter, acquire the libraries in `requirements.txt`.
 2. Clone the repository using `--recursive` to snag the `pycolab` submodule:
@@ -34,23 +36,30 @@ the agent and the human designer.
 `.
 3. Run `charts.py` or `ablation.py`, tweaking the code to include the desired subset of environments. 
 
-##`Environments`
+##Environments
+
 ###`Box`
 ![](https://i.imgur.com/UT4OvOi.png)
 ![](https://i.imgur.com/Cnplx2f.gif)
+
 ###`Dog`
 ![](https://i.imgur.com/cV6E2VQ.png)
 ![](https://i.imgur.com/1qdKHjX.gif)
+
 ###`Survival`
 ![](https://i.imgur.com/t2lvvsb.gif)
+
 ###`Conveyor`
 ![](https://i.imgur.com/yUu15Va.png)
 ![](https://i.imgur.com/eskrHjf.gif)
+
 ###`Sushi`
 ![](https://i.imgur.com/fRvHkTs.png)
 ![](https://i.imgur.com/tuBiErI.gif)
+
 ###`Vase`
 ![](https://i.imgur.com/AHwuHPK.png)
 ![](https://i.imgur.com/glGaytb.gif)
+
 ###`Burning`
 ![](https://i.imgur.com/gTmyyHM.png)
