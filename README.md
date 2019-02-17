@@ -2,6 +2,14 @@
 
 A test-bed for the approach outlined in [this paper], further augmenting [this expansion](https://github.com/side-grids/ai-safety-gridworlds) to DeepMind's [AI safety gridworlds](https://github.com/deepmind/ai-safety-gridworlds). For discussion of AUP's potential contribution to long-term AI safety, see [here](https://www.alignmentforum.org/posts/yEa7kwoMpsBgaBCgb/towards-a-new-impact-measure).
 
+## Installation
+1. Using Python 2.7 as the interpreter, acquire the libraries in `requirements.txt`.
+2. Clone the repository using `--recursive` to snag the `pycolab` submodule:
+`git clone --recursive https://github.com/alexander-turner/attainable-utility-preservation.git
+`.
+3. Run `charts.py` or `ablation.py`, tweaking the code to include the desired subset of environments. 
+
+## Environments
 
 >Our environments are Markov Decision Processes. All environments use a grid of
 size at most 10x10. Each cell in the grid can be empty, or contain a wall or
@@ -15,7 +23,7 @@ another impassable object, in which case the agent stays put.
 each episode, the environment is reset to its starting configuration (which is
 possibly randomized). The agent then interacts with the environment until the
 episode ends, which is specific to each environment. We fix the maximal episode
-length to [20] steps. Several environments contain a goal cell... If
+length to 20 steps. Several environments contain a goal cell... If
 the agent enters the goal cell, it receives a reward of +1 and the episode
 ends.
 
@@ -29,14 +37,6 @@ examples, the performance function would only be implicitly defined by the
 desired behavior the human designer wishes to achieve, but is inaccessible to
 the agent and the human designer.
 
-## Installation
-1. Using Python 2.7 as the interpreter, acquire the libraries in `requirements.txt`.
-2. Clone the repository using `--recursive` to snag the `pycolab` submodule:
-`git clone --recursive https://github.com/alexander-turner/attainable-utility-preservation.git
-`.
-3. Run `charts.py` or `ablation.py`, tweaking the code to include the desired subset of environments. 
-
-## Environments
 
 ### `Box`
 ![](https://i.imgur.com/UT4OvOi.png)
