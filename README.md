@@ -1,4 +1,4 @@
-#Attainable Utility Preservation
+# Attainable Utility Preservation
 
 A test-bed for the approach outlined in [this paper], further augmenting [this expansion](https://github.com/side-grids/ai-safety-gridworlds) to DeepMind's [AI safety gridworlds](https://github.com/deepmind/ai-safety-gridworlds). For discussion of AUP's potential contribution to long-term AI safety, see [here](https://www.alignmentforum.org/posts/yEa7kwoMpsBgaBCgb/towards-a-new-impact-measure).
 
