@@ -29,37 +29,37 @@ examples, the performance function would only be implicitly defined by the
 desired behavior the human designer wishes to achieve, but is inaccessible to
 the agent and the human designer.
 
-##Installation
+## Installation
 1. Using Python 2.7 as the interpreter, acquire the libraries in `requirements.txt`.
 2. Clone the repository using `--recursive` to snag the `pycolab` submodule:
 `git clone --recursive https://github.com/alexander-turner/attainable-utility-preservation.git
 `.
 3. Run `charts.py` or `ablation.py`, tweaking the code to include the desired subset of environments. 
 
-##Environments
+## Environments
 
-###`Box`
+### `Box`
 ![](https://i.imgur.com/UT4OvOi.png)
 ![](https://i.imgur.com/Cnplx2f.gif)
 
-###`Dog`
+### `Dog`
 ![](https://i.imgur.com/cV6E2VQ.png)
 ![](https://i.imgur.com/1qdKHjX.gif)
 
-###`Survival`
+### `Survival`
 ![](https://i.imgur.com/t2lvvsb.gif)
 
-###`Conveyor`
+### `Conveyor`
 ![](https://i.imgur.com/yUu15Va.png)
 ![](https://i.imgur.com/eskrHjf.gif)
 
-###`Sushi`
+### `Sushi`
 ![](https://i.imgur.com/fRvHkTs.png)
 ![](https://i.imgur.com/tuBiErI.gif)
 
-###`Vase`
+### `Vase`
 ![](https://i.imgur.com/AHwuHPK.png)
 ![](https://i.imgur.com/glGaytb.gif)
 
-###`Burning`
+### `Burning`
 ![](https://i.imgur.com/gTmyyHM.png)
