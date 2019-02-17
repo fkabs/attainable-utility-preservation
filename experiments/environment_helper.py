@@ -10,13 +10,13 @@ def derive_possible_rewards(env):
     """
     Derive possible reward functions for the given environment.
 
-    :param env: Environment.
+    :param env:
     """
 
     def state_lambda(original_board_str):
         return lambda obs: int(obs == original_board_str) * env.GOAL_REWARD
 
-    def explore(env, so_far=[]):
+    def explore(env, so_far=[]):  # visit all possible states
         board_str = str(env._last_observations['board'])
         if board_str not in states:
             states.add(board_str)
@@ -36,11 +36,15 @@ def derive_possible_rewards(env):
     return functions
 
 
-def run_episode(agent, env, save_frames=False, render_ax=None, max_len=20):
+def run_episode(agent, env, save_frames=False, render_ax=None, max_len=9):
     """
     Run the episode, recording and saving the frames if desired.
 
+    :param agent:
+    :param env:
     :param save_frames: Whether to save frames from the final performance.
+    :param render_ax: matplotlib axis on which to display images.
+    :param max_len: How long the agent plans/acts over.
     """
 
     def handle_frame(time_step):
