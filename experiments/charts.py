@@ -1,6 +1,6 @@
 from __future__ import print_function
 from ai_safety_gridworlds.environments import *
-from agents.aup_tab_q import AUPTabularAgent
+from agents.model_free_aup import ModelFreeAUPAgent
 from environment_helper import *
 import os
 import matplotlib.pyplot as plt
@@ -108,8 +108,8 @@ def run_exp(ind):
         counts[game.name] = np.zeros((len(setting['iter']), 4))
         for (idx, item) in enumerate(setting['iter']):
             env = game(**kwargs)
-            tabular_agent = AUPTabularAgent(env, trials=50, **{setting['keyword']: item})
-            if setting['label'] == 'N' and item == AUPTabularAgent.default['N']:
+            tabular_agent = ModelFreeAUPAgent(env, trials=50, **{setting['keyword']: item})
+            if setting['label'] == 'N' and item == ModelFreeAUPAgent.default['N']:
                 perf[game.name] = tabular_agent.performance
                 np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance3'), perf)
             counts[game.name][idx, :] = tabular_agent.counts[:]

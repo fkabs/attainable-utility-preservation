@@ -1,6 +1,6 @@
 from __future__ import print_function
 from ai_safety_gridworlds.environments import *
-from agents.aup_tab_q import AUPTabularAgent
+from agents.model_free_aup import ModelFreeAUPAgent
 from environment_helper import *
 import datetime
 import os
@@ -68,15 +68,15 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     """
     # Instantiate environment and agents
     env = env_class(**env_kwargs)
-    tabular_agent = AUPTabularAgent(env, trials=1)
-    state = (AUPTabularAgent(env, state_attainable=True, trials=1))
-    movies, agents = [], [AUPTabularAgent(env, num_rewards=0, trials=1),  # vanilla
-                          AUPAgent(attainable_Q=tabular_agent.attainable_Q, baseline='start'),
-                          AUPAgent(attainable_Q=tabular_agent.attainable_Q, baseline='inaction'),
-                          AUPAgent(attainable_Q=tabular_agent.attainable_Q, deviation='decrease'),
-                          AUPAgent(attainable_Q=state.attainable_Q, baseline='inaction', deviation='decrease', N=500),  # RR
-                          tabular_agent,
-                          AUPAgent(attainable_Q=tabular_agent.attainable_Q)  # full AUP
+    model_free = ModelFreeAUPAgent(env, trials=1)
+    state = (ModelFreeAUPAgent(env, state_attainable=True, trials=1))
+    movies, agents = [], [ModelFreeAUPAgent(env, num_rewards=0, trials=1),  # vanilla
+                          AUPAgent(attainable_Q=model_free.attainable_Q, baseline='start'),
+                          #AUPAgent(attainable_Q=model_free.attainable_Q, baseline='inaction'),
+                          #AUPAgent(attainable_Q=model_free.attainable_Q, deviation='decrease'),
+                          #AUPAgent(attainable_Q=state.attainable_Q, baseline='inaction', deviation='decrease', N=500),  # RR
+                          model_free,
+                          #AUPAgent(attainable_Q=model_free.attainable_Q)  # full AUP
                           ]
 
     for agent in agents:
@@ -87,15 +87,15 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     return movies
 
 
-games = [(conveyor.ConveyorEnvironment, {'variant': 'vase'}),
-         # conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
-         (burning.BurningEnvironment, {'level': 0}),
-         (burning.BurningEnvironment, {'level': 1}),
-         (box.BoxEnvironment, {'level': 0}),
-         (sushi.SushiEnvironment, {'level': 0}),
-         (vase.VaseEnvironment, {'level': 0}),
-         (dog.DogEnvironment, {'level': 0}),
-         (survival.SurvivalEnvironment, {'level': 0})
+games = [#(conveyor.ConveyorEnvironment, {'variant': 'vase'}),
+         (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
+         #(burning.BurningEnvironment, {'level': 0}),
+         #(burning.BurningEnvironment, {'level': 1}),
+         #(box.BoxEnvironment, {'level': 0}),
+         #(sushi.SushiEnvironment, {'level': 0}),
+         #(vase.VaseEnvironment, {'level': 0}),
+         #(dog.DogEnvironment, {'level': 0}),
+         #(survival.SurvivalEnvironment, {'level': 0})
          ]
 
 # Plot setup

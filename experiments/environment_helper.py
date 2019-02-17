@@ -36,7 +36,7 @@ def derive_possible_rewards(env):
     return functions
 
 
-def run_episode(agent, env, save_frames=False, render_ax=None, max_len=9):
+def run_episode(agent, env, save_frames=False, render_ax=None, max_len=20):
     """
     Run the episode, recording and saving the frames if desired.
 

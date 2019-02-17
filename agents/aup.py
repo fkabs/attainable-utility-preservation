@@ -25,12 +25,12 @@ class AUPAgent():
         if baseline != 'stepwise':
             self.name = baseline.capitalize()
             if baseline == 'start':
-                self.name = 'Starting State'
+                self.name = 'Starting state'
         if deviation != 'absolute':
             self.name = deviation.capitalize()
 
         if baseline == 'inaction' and deviation == 'decrease':
-            self.name = 'Relative Reachability'
+            self.name = 'Relative reachability'
 
         self.cached_actions = dict()
 

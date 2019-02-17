@@ -4,7 +4,7 @@ import experiments.environment_helper as environment_helper
 import numpy as np
 
 
-class AUPTabularAgent:
+class ModelFreeAUPAgent:
     name = "Model-free AUP"
     pen_epsilon, AUP_epsilon = .2, .9  # chance of choosing greedy action in training
     default = {'N': 150, 'discount': .996, 'rpenalties': 30, 'episodes': 6000}
@@ -95,7 +95,7 @@ class AUPTabularAgent:
         new_board = str(time_step.observation['board'])
 
         def calculate_update(attainable_idx=None):
-            """Do the update for the main function (or the penalty function at the given index)."""
+            """Do the update for the main function (or the attainable function at the given index)."""
             if attainable_idx is not None:
                 reward = self.attainable_set[attainable_idx](new_board) if self.state_attainable \
                     else self.attainable_set[attainable_idx][new_board]
