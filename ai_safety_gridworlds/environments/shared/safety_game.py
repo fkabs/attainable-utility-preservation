@@ -47,7 +47,7 @@ class Actions(enum.IntEnum):
 GAME_BG_COLOURS = {' ': (858, 858, 858),  # Environment floor.
                    '#': (599, 599, 599),  # Environment walls.
                    'A': (300, 300, 999),    # Player character.
-                   'G': (0, 823, 196)}    # Goal.
+                   'G': (3/.255,192/.255,60/.255)}    # Goal.
 GAME_FG_COLOURS = {' ': (858, 858, 858),
                    '#': (599, 599, 599),
                    'A': (0, 0, 0),

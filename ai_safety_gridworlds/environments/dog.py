@@ -56,7 +56,7 @@ GOAL_REWARD = 1
 DOG_STEP_REWARD = -2
 
 # Set up game specific colours.
-GAME_BG_COLOURS = {DOG_CHR: (0, 431, 470)}
+GAME_BG_COLOURS = {DOG_CHR: (863, 455, 714)}
 GAME_BG_COLOURS.update(safety_game.GAME_BG_COLOURS)
 
 GAME_FG_COLOURS = dict.fromkeys(GAME_BG_COLOURS.keys(), (0, 0, 0))

@@ -6,10 +6,13 @@ import os
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
 
-settings = [{'label': r'$\gamma$', 'iter': ['{0:0.3f}'.format(1 - 2 ** (-n)).lstrip("0") for n in range(3, 11)],
+settings = [{'label': r'$\gamma$', 'iter': [1 - 2 ** (-n) for n in range(3, 11)],
              'keyword': 'discount'},
             {'label': r'$N$', 'iter': np.arange(0, 300, 30), 'keyword': 'N'},
             {'label': r'$|\mathcal{R}|$', 'iter': range(0, 50, 5), 'keyword': 'num_rewards'}]
+settings[0]['iter_disp'] = ['{0:0.3f}'.format(1 - 2 ** (-n)).lstrip("0") for n in range(3, 11)]
+settings[1]['iter_disp'] = settings[1]['iter']
+settings[2]['iter_disp'] = settings[2]['iter']
 
 games = [(box.BoxEnvironment, {'level': 0}),
          (dog.DogEnvironment, {'level': 0}),
@@ -20,8 +23,9 @@ games = [(box.BoxEnvironment, {'level': 0}),
 
 
 def make_charts():
-    colors = {'box': (0, .431, .470), 'dog': (.3, .3, .999), 'survival': (.5, 0, .5), 'conveyor': (0, 0, 0),
-              'sushi': (.98, .516, .216)}
+    colors = {'box': box.GAME_BG_COLOURS[box.BOX_CHR], 'dog': (.863, .455, .714), 'survival': (.75, 0, 0),
+              'conveyor': (0, 0, 0), 'sushi': (245 / 255, 128 / 255, 37 / 255)}
+
     order = ['box', 'dog', 'survival', 'conveyor', 'sushi']
 
     plt.style.use('ggplot')
@@ -50,7 +54,7 @@ def make_charts():
             tick_pos.extend(list(x + offset * x_ind))
             text_ind.append((len(setting['iter']) - 1) / 2 + offset * x_ind)
 
-            tick_labels.extend([setting['iter'][i] if i % stride == 0 else '' for i in range(len(setting['iter']))])
+            tick_labels.extend([setting['iter_disp'][i] if i % stride == 0 else '' for i in range(len(setting['iter']))])
             text.append(r'$\mathtt{' + game_name.capitalize() + '}$')
 
             for ind, (label, color) in enumerate([("High impact,\nincomplete", "xkcd:maroon"),
@@ -108,12 +112,12 @@ def run_exp(ind):
         counts[game.name] = np.zeros((len(setting['iter']), 4))
         for (idx, item) in enumerate(setting['iter']):
             env = game(**kwargs)
-            tabular_agent = ModelFreeAUPAgent(env, trials=50, **{setting['keyword']: item})
+            tabular_agent = ModelFreeAUPAgent(env, trials=1, episodes=20, **{setting['keyword']: item})
             if setting['label'] == 'N' and item == ModelFreeAUPAgent.default['N']:
                 perf[game.name] = tabular_agent.performance
-                np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance3'), perf)
+                np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance'), perf)
             counts[game.name][idx, :] = tabular_agent.counts[:]
-            np.save(os.path.join(os.path.dirname(__file__), 'plots', 'counts3-' + setting['keyword']), counts)
+            np.save(os.path.join(os.path.dirname(__file__), 'plots', 'counts-' + setting['keyword']), counts)
             print(setting['keyword'], item, tabular_agent.counts)
         print(game.name.capitalize())
 

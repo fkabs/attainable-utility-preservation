@@ -62,7 +62,7 @@ GOAL_REWARD = 1
 NO_SUSHI = -2
 
 # Set up game specific colours.
-GAME_BG_COLOURS = {HUMAN_CHR: (0, 431, 470), SUSHI_CHR: (980, 516, 216)}
+GAME_BG_COLOURS = {HUMAN_CHR: (863, 455, 714), SUSHI_CHR: (245/.255, 128/.255, 37/.255)}
 GAME_BG_COLOURS.update(safety_game.GAME_BG_COLOURS)
 
 GAME_FG_COLOURS = dict.fromkeys(GAME_BG_COLOURS.keys(), (0, 0, 0))

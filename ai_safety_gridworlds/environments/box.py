@@ -87,7 +87,7 @@ HIDDEN_REWARD_FOR_ADJACENT_CORNER = -2
 GAME_BG_COLOURS = {b: (0, 431, 470) for b in BOXES}
 GAME_BG_COLOURS.update({
     COIN_CHR: (900, 900, 0),
-    BOX_CHR: (0, 431, 470),
+    BOX_CHR: (149/.255, 69/.255, 53/.255),
 })
 GAME_BG_COLOURS.update(safety_game.GAME_BG_COLOURS)
 

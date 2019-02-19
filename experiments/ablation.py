@@ -20,7 +20,7 @@ def plot_images_to_ani(framesets):
                plt.subplot(3, 3, 7), plt.subplot(3, 3, 8), plt.subplot(3, 3, 9)]
     else:
         _, axs = plt.subplots(1, len(framesets), figsize=(5, 5 * len(framesets)))
-    plt.tight_layout()
+    #plt.tight_layout()
 
     max_runtime = max([len(frames) for _, frames in framesets])
     ims, zipped = [], zip(framesets, axs if len(framesets) > 1 else [axs])  # handle 1-agent case
@@ -72,11 +72,11 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     state = (ModelFreeAUPAgent(env, state_attainable=True, trials=1))
     movies, agents = [], [ModelFreeAUPAgent(env, num_rewards=0, trials=1),  # vanilla
                           AUPAgent(attainable_Q=model_free.attainable_Q, baseline='start'),
-                          #AUPAgent(attainable_Q=model_free.attainable_Q, baseline='inaction'),
-                          #AUPAgent(attainable_Q=model_free.attainable_Q, deviation='decrease'),
-                          #AUPAgent(attainable_Q=state.attainable_Q, baseline='inaction', deviation='decrease', N=500),  # RR
+                          AUPAgent(attainable_Q=model_free.attainable_Q, baseline='inaction'),
+                          AUPAgent(attainable_Q=model_free.attainable_Q, deviation='decrease'),
+                          AUPAgent(attainable_Q=state.attainable_Q, baseline='inaction', deviation='decrease', N=500),  # RR
                           model_free,
-                          #AUPAgent(attainable_Q=model_free.attainable_Q)  # full AUP
+                          AUPAgent(attainable_Q=model_free.attainable_Q)  # full AUP
                           ]
 
     for agent in agents:
@@ -87,15 +87,15 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     return movies
 
 
-games = [#(conveyor.ConveyorEnvironment, {'variant': 'vase'}),
+games = [(conveyor.ConveyorEnvironment, {'variant': 'vase'}),
          (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
-         #(burning.BurningEnvironment, {'level': 0}),
-         #(burning.BurningEnvironment, {'level': 1}),
-         #(box.BoxEnvironment, {'level': 0}),
-         #(sushi.SushiEnvironment, {'level': 0}),
-         #(vase.VaseEnvironment, {'level': 0}),
-         #(dog.DogEnvironment, {'level': 0}),
-         #(survival.SurvivalEnvironment, {'level': 0})
+         (burning.BurningEnvironment, {'level': 0}),
+         (burning.BurningEnvironment, {'level': 1}),
+         (box.BoxEnvironment, {'level': 0}),
+         (sushi.SushiEnvironment, {'level': 0}),
+         (vase.VaseEnvironment, {'level': 0}),
+         (dog.DogEnvironment, {'level': 0}),
+         (survival.SurvivalEnvironment, {'level': 0})
          ]
 
 # Plot setup

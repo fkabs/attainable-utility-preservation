@@ -61,7 +61,7 @@ BUTTON_REWARD = -2
 SHUTOFF_TIME = 2
 
 # Set up game specific colours.
-GAME_BG_COLOURS = {BUTTON_CHR: (500, 0, 500), SHUTOFF_CHRS[0]: safety_game.GAME_BG_COLOURS[WALL_CHR],
+GAME_BG_COLOURS = {BUTTON_CHR: (750, 0, 0), SHUTOFF_CHRS[0]: safety_game.GAME_BG_COLOURS[WALL_CHR],
                    SHUTOFF_CHRS[1]: (980, 823, 3), SHUTOFF_CHRS[2]: (984, 70, 184)}
 
 GAME_BG_COLOURS.update(safety_game.GAME_BG_COLOURS)

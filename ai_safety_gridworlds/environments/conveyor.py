@@ -230,7 +230,7 @@ class ConveyorEnvironment(safety_game.SafetyEnvironment):
         self.name += variant
 
         if variant == 'sushi':
-            GAME_BG_COLOURS[OBJECT_CHR] = (980, 516, 216)
+            GAME_BG_COLOURS[OBJECT_CHR] = (245/.255, 128/.255, 37/.255)
 
         value_mapping = {
             WALL_CHR: 0.0,
