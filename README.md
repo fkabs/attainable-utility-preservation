@@ -6,7 +6,7 @@ A test-bed for the approach outlined in [this paper], further augmenting [this e
 1. Using Python 2.7 as the interpreter, acquire the libraries in `requirements.txt`.
 2. Clone using `--recursive` to snag the `pycolab` submodule:
 `git clone --recursive https://github.com/alexander-turner/attainable-utility-preservation.git`.
-3. Run `python -m experiments/charts` or `python -m experiments/ablation`, tweaking the code to include the desired subset of environments. 
+3. Run `python -m experiments/charts` or `python -m experiments/ablation`, tweaking the code to include the desired environments. 
 
 ## Environments
 
