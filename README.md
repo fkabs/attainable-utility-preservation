@@ -4,9 +4,8 @@ A test-bed for the approach outlined in [this paper], further augmenting [this e
 
 ## Installation
 1. Using Python 2.7 as the interpreter, acquire the libraries in `requirements.txt`.
-2. Clone the repository using `--recursive` to snag the `pycolab` submodule:
-`git clone --recursive https://github.com/alexander-turner/attainable-utility-preservation.git
-`.
+2. Clone using `--recursive` to snag the `pycolab` submodule:
+`git clone --recursive https://github.com/alexander-turner/attainable-utility-preservation.git`.
 3. Run `charts.py` or `ablation.py`, tweaking the code to include the desired subset of environments. 
 
 ## Environments
@@ -47,6 +46,7 @@ the agent and the human designer.
 ![](https://i.imgur.com/4xwQqNr.gif)
 
 ### `Survival`
+![](https://i.imgur.com/wyGnyql.png)
 ![](https://i.imgur.com/SEhU3Jx.gif)
 
 ### `Conveyor`
@@ -58,7 +58,7 @@ the agent and the human designer.
 ![](https://i.imgur.com/N8a1FsA.gif)
 
 ### `Sushi`
-![](https://i.imgur.com/wyGnyql.png)
+![](https://i.imgur.com/Nz0EVuY.png)
 ![](https://i.imgur.com/DEIOM03.gif)
 
 The `Conveyor-Sushi` variant induces similar behavior:

@@ -113,7 +113,7 @@ def run_exp(ind):
         for (idx, item) in enumerate(setting['iter']):
             env = game(**kwargs)
             tabular_agent = ModelFreeAUPAgent(env, trials=1, episodes=20, **{setting['keyword']: item})
-            if setting['label'] == 'N' and item == ModelFreeAUPAgent.default['N']:
+            if setting['keyword'] == 'N' and item == ModelFreeAUPAgent.default['N']:
                 perf[game.name] = tabular_agent.performance
                 np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance'), perf)
             counts[game.name][idx, :] = tabular_agent.counts[:]

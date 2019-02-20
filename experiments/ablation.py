@@ -20,7 +20,7 @@ def plot_images_to_ani(framesets):
                plt.subplot(3, 3, 7), plt.subplot(3, 3, 8), plt.subplot(3, 3, 9)]
     else:
         _, axs = plt.subplots(1, len(framesets), figsize=(5, 5 * len(framesets)))
-    #plt.tight_layout()
+    axs.tight_layout()
 
     max_runtime = max([len(frames) for _, frames in framesets])
     ims, zipped = [], zip(framesets, axs if len(framesets) > 1 else [axs])  # handle 1-agent case
@@ -51,7 +51,7 @@ def run_game(game, kwargs):
                        bbox_inches='tight', dpi=350)
     plt.close(render_fig.number)
 
-    print("Training finished for {}; {} elapsed.".format(game.name, datetime.datetime.now() - start_time))
+    print("Training finished for {}; {} elapsed.\n".format(game.name, datetime.datetime.now() - start_time))
     ani = plot_images_to_ani(movies)
     ani.save(os.path.join(os.path.dirname(__file__), 'gifs', game.variant_name + '.gif'),
              writer='imagemagick', dpi=350)
