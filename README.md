@@ -36,7 +36,7 @@ examples, the performance function would only be implicitly defined by the
 desired behavior the human designer wishes to achieve, but is inaccessible to
 the agent and the human designer.
 
----
+
 ### `Box`
 ![](https://i.imgur.com/lfPdzOB.png)
 ![](https://i.imgur.com/Khg8gQV.gif)
