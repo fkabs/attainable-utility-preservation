@@ -1,6 +1,6 @@
 # Attainable Utility Preservation
 
-A test-bed for the approach outlined in [this paper], further augmenting [this expansion](https://github.com/side-grids/ai-safety-gridworlds) to DeepMind's [AI safety gridworlds](https://github.com/deepmind/ai-safety-gridworlds). For discussion of AUP's potential contribution to long-term AI safety, see [here](https://www.alignmentforum.org/posts/yEa7kwoMpsBgaBCgb/towards-a-new-impact-measure).
+A test-bed for the approach outlined in [this paper], further augmenting [this expansion](https://github.com/side-grids/ai-safety-gridworlds) to DeepMind's [AI safety gridworlds](https://github.com/deepmind/ai-safety-gridworlds). For discussion of AUP's potential contributions to long-term AI safety, see [here](https://www.alignmentforum.org/posts/yEa7kwoMpsBgaBCgb/towards-a-new-impact-measure).
 
 ## Installation
 1. Using Python 2.7 as the interpreter, acquire the libraries in `requirements.txt`.
@@ -36,27 +36,27 @@ examples, the performance function would only be implicitly defined by the
 desired behavior the human designer wishes to achieve, but is inaccessible to
 the agent and the human designer.
 
-
+---
 ### `Box`
 ![](https://i.imgur.com/lfPdzOB.png)
 ![](https://i.imgur.com/Khg8gQV.gif)
-
+---
 ### `Dog`
 ![](https://i.imgur.com/Iy8RcrL.png)
 ![](https://i.imgur.com/4xwQqNr.gif)
-
+---
 ### `Survival`
 ![](https://i.imgur.com/wyGnyql.png)
 ![](https://i.imgur.com/SEhU3Jx.gif)
-
+---
 ### `Conveyor`
 ![](https://i.imgur.com/wR9KiaQ.png)
 ![](https://i.imgur.com/9B2yebO.gif)
-
+---
 ### `Vase`
 ![](https://i.imgur.com/Xnox0zO.png)
 ![](https://i.imgur.com/N8a1FsA.gif)
-
+---
 ### `Sushi`
 ![](https://i.imgur.com/Nz0EVuY.png)
 ![](https://i.imgur.com/DEIOM03.gif)
@@ -64,7 +64,7 @@ the agent and the human designer.
 The `Conveyor-Sushi` variant induces similar behavior:
 ![](https://i.imgur.com/5QE0sao.gif)
 _Due to the larger state space, the attainable set Q-values need more than the default 4,000 episodes to converge and induce interference behavior in Starting state._
-
+---
 ### `Burning`
 ![](https://i.imgur.com/fLzCzX2.png)
 ![](https://i.imgur.com/WeD5xUx.gif)

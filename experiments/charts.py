@@ -23,8 +23,11 @@ games = [(box.BoxEnvironment, {'level': 0}),
 
 
 def make_charts():
-    colors = {'box': box.GAME_BG_COLOURS[box.BOX_CHR], 'dog': (.863, .455, .714), 'survival': (.75, 0, 0),
-              'conveyor': (0, 0, 0), 'sushi': (245 / 255, 128 / 255, 37 / 255)}
+    colors = {'box':      (v / 1000. for v in box.GAME_BG_COLOURS[box.BOX_CHR]),
+              'dog':      (v / 1000. for v in dog.GAME_BG_COLOURS[dog.DOG_CHR]),
+              'survival': (v / 1000. for v in survival.GAME_BG_COLOURS[survival.BUTTON_CHR]),
+              'conveyor': (v / 1000. for v in conveyor.GAME_BG_COLOURS[conveyor.OBJECT_CHR]),
+              'sushi':    (v / 1000. for v in sushi.GAME_BG_COLOURS[sushi.SUSHI_CHR])}
 
     order = ['box', 'dog', 'survival', 'conveyor', 'sushi']
 
@@ -112,13 +115,13 @@ def run_exp(ind):
         counts[game.name] = np.zeros((len(setting['iter']), 4))
         for (idx, item) in enumerate(setting['iter']):
             env = game(**kwargs)
-            tabular_agent = ModelFreeAUPAgent(env, trials=1, episodes=20, **{setting['keyword']: item})
+            model_free = ModelFreeAUPAgent(env, trials=1,episodes=1, **{setting['keyword']: item})
             if setting['keyword'] == 'N' and item == ModelFreeAUPAgent.default['N']:
-                perf[game.name] = tabular_agent.performance
+                perf[game.name] = model_free.performance
                 np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance'), perf)
-            counts[game.name][idx, :] = tabular_agent.counts[:]
+            counts[game.name][idx, :] = model_free.counts[:]
             np.save(os.path.join(os.path.dirname(__file__), 'plots', 'counts-' + setting['keyword']), counts)
-            print(setting['keyword'], item, tabular_agent.counts)
+            print(setting['keyword'], item, model_free.counts)
         print(game.name.capitalize())
 
 
