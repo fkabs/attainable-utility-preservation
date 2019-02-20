@@ -45,6 +45,7 @@ def run_game(game, kwargs):
     render_ax.get_xaxis().set_ticks([])
     render_ax.get_yaxis().set_ticks([])
     game.variant_name = game.name + '-' + str(kwargs['level'] if 'level' in kwargs else kwargs['variant'])
+    print(game.variant_name)
 
     start_time = datetime.datetime.now()
     movies = run_agents(game, kwargs, render_ax=render_ax)
@@ -55,7 +56,7 @@ def run_game(game, kwargs):
                        bbox_inches='tight', dpi=350)
     plt.close(render_fig.number)
 
-    print("Training finished for {}; {} elapsed.\n".format(game.name, datetime.datetime.now() - start_time))
+    print("Training finished for {}; {} elapsed.\n".format(game.variant_name, datetime.datetime.now() - start_time))
     ani = plot_images_to_ani(movies)
     ani.save(os.path.join(os.path.dirname(__file__), 'gifs', game.variant_name + '.gif'),
              writer='imagemagick', dpi=350)
