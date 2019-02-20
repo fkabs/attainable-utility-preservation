@@ -6,6 +6,7 @@ import datetime
 import os
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import warnings
 
 
 def plot_images_to_ani(framesets):
@@ -20,7 +21,10 @@ def plot_images_to_ani(framesets):
                plt.subplot(3, 3, 7), plt.subplot(3, 3, 8), plt.subplot(3, 3, 9)]
     else:
         _, axs = plt.subplots(1, len(framesets), figsize=(5, 5 * len(framesets)))
-    plt.tight_layout()
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        plt.tight_layout()
 
     max_runtime = max([len(frames) for _, frames in framesets])
     ims, zipped = [], zip(framesets, axs if len(framesets) > 1 else [axs])  # handle 1-agent case

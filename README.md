@@ -57,11 +57,15 @@ the agent and the human designer.
 ### `Conveyor`
 ![](https://i.imgur.com/wR9KiaQ.png)
 ![](https://i.imgur.com/9B2yebO.gif)
+
 ---
+
 ### `Vase`
 ![](https://i.imgur.com/Xnox0zO.png)
 ![](https://i.imgur.com/N8a1FsA.gif)
+
 ---
+
 ### `Sushi`
 ![](https://i.imgur.com/Nz0EVuY.png)
 ![](https://i.imgur.com/DEIOM03.gif)
@@ -71,6 +75,7 @@ The `Conveyor-Sushi` variant induces similar behavior:
 _Due to the larger state space, the attainable set Q-values need more than the default 4,000 episodes to converge and induce interference behavior in Starting state._
 
 ---
+
 ### `Burning`
 ![](https://i.imgur.com/fLzCzX2.png)
 ![](https://i.imgur.com/WeD5xUx.gif)

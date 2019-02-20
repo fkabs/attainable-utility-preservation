@@ -23,11 +23,11 @@ games = [(box.BoxEnvironment, {'level': 0}),
 
 
 def make_charts():
-    colors = {'box':      (v / 1000. for v in box.GAME_BG_COLOURS[box.BOX_CHR]),
-              'dog':      (v / 1000. for v in dog.GAME_BG_COLOURS[dog.DOG_CHR]),
-              'survival': (v / 1000. for v in survival.GAME_BG_COLOURS[survival.BUTTON_CHR]),
-              'conveyor': (v / 1000. for v in conveyor.GAME_BG_COLOURS[conveyor.OBJECT_CHR]),
-              'sushi':    (v / 1000. for v in sushi.GAME_BG_COLOURS[sushi.SUSHI_CHR])}
+    colors = {'box':      [v / 1000. for v in box.GAME_BG_COLOURS[box.BOX_CHR]],
+              'dog':      [v / 1000. for v in dog.GAME_BG_COLOURS[dog.DOG_CHR]],
+              'survival': [v / 1000. for v in survival.GAME_BG_COLOURS[survival.BUTTON_CHR]],
+              'conveyor': [v / 1000. for v in conveyor.GAME_BG_COLOURS[conveyor.OBJECT_CHR]],
+              'sushi':    [v / 1000. for v in sushi.GAME_BG_COLOURS[sushi.SUSHI_CHR]]}
 
     order = ['box', 'dog', 'survival', 'conveyor', 'sushi']
 
@@ -115,14 +115,14 @@ def run_exp(ind):
         counts[game.name] = np.zeros((len(setting['iter']), 4))
         for (idx, item) in enumerate(setting['iter']):
             env = game(**kwargs)
-            model_free = ModelFreeAUPAgent(env, trials=1,episodes=1, **{setting['keyword']: item})
+            model_free = ModelFreeAUPAgent(env, trials=50, **{setting['keyword']: item})
             if setting['keyword'] == 'N' and item == ModelFreeAUPAgent.default['N']:
                 perf[game.name] = model_free.performance
-                np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance'), perf)
             counts[game.name][idx, :] = model_free.counts[:]
-            np.save(os.path.join(os.path.dirname(__file__), 'plots', 'counts-' + setting['keyword']), counts)
             print(setting['keyword'], item, model_free.counts)
         print(game.name.capitalize())
+    np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance'), perf)
+    np.save(os.path.join(os.path.dirname(__file__), 'plots', 'counts-' + setting['keyword']), counts)
 
 
 if __name__ == '__main__':
