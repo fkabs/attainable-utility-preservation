@@ -60,10 +60,10 @@ def make_charts():
             tick_labels.extend([setting['iter_disp'][i] if i % stride == 0 else '' for i in range(len(setting['iter']))])
             text.append(r'$\mathtt{' + game_name.capitalize() + '}$')
 
-            for ind, (label, color) in enumerate([("High impact,\nincomplete", "xkcd:maroon"),
-                                                  ("High impact,\ncomplete", (.8, 0, 0)),
+            for ind, (label, color) in enumerate([("High impact,\nincomplete", (.3, 0, 0)),
+                                                  ("High impact,\ncomplete", (.65, 0, 0)),
                                                   ("Low impact,\nincomplete", "xkcd:gray"),
-                                                  ("Low impact,\ncomplete", (39.0 / 255, 180.0 / 255, 104.0 / 255))]):
+                                                  ("Low impact,\ncomplete", (0.0, .624, 0.42))]):
                 ax.bar(x + offset * x_ind, data[:, ind], width, label=label, color=color,
                        bottom=np.sum(data[:, :ind], axis=1) if ind > 0 else 0, zorder=3)
 
