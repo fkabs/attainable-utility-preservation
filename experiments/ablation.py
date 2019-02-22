@@ -56,7 +56,7 @@ def run_game(game, kwargs):
                        bbox_inches='tight', dpi=350)
     plt.close(render_fig.number)
 
-    print("Training finished for {}; {} elapsed.\n".format(game.variant_name, datetime.datetime.now() - start_time))
+    print("Training finished; {} elapsed.\n".format(datetime.datetime.now() - start_time))
     ani = plot_images_to_ani(movies)
     ani.save(os.path.join(os.path.dirname(__file__), 'gifs', game.variant_name + '.gif'),
              writer='imagemagick', dpi=350)
@@ -92,14 +92,14 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     return movies
 
 
-games = [(conveyor.ConveyorEnvironment, {'variant': 'vase'}),
-         (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
-         (burning.BurningEnvironment, {'level': 0}),
-         (burning.BurningEnvironment, {'level': 1}),
-         (box.BoxEnvironment, {'level': 0}),
-         (sushi.SushiEnvironment, {'level': 0}),
-         (vase.VaseEnvironment, {'level': 0}),
-         (dog.DogEnvironment, {'level': 0}),
+games = [#(conveyor.ConveyorEnvironment, {'variant': 'vase'}),
+         #(conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
+         #(burning.BurningEnvironment, {'level': 0}),
+         #(burning.BurningEnvironment, {'level': 1}),
+         #(box.BoxEnvironment, {'level': 0}),
+         #(sushi.SushiEnvironment, {'level': 0}),
+         #(vase.VaseEnvironment, {'level': 0}),
+         #(dog.DogEnvironment, {'level': 0}),
          (survival.SurvivalEnvironment, {'level': 0})
          ]
 
