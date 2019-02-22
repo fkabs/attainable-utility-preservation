@@ -92,14 +92,14 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     return movies
 
 
-games = [#(conveyor.ConveyorEnvironment, {'variant': 'vase'}),
-         #(conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
-         #(burning.BurningEnvironment, {'level': 0}),
-         #(burning.BurningEnvironment, {'level': 1}),
-         #(box.BoxEnvironment, {'level': 0}),
-         #(sushi.SushiEnvironment, {'level': 0}),
-         #(vase.VaseEnvironment, {'level': 0}),
-         #(dog.DogEnvironment, {'level': 0}),
+games = [(conveyor.ConveyorEnvironment, {'variant': 'vase'}),
+         (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
+         (burning.BurningEnvironment, {'level': 0}),
+         (burning.BurningEnvironment, {'level': 1}),
+         (box.BoxEnvironment, {'level': 0}),
+         (sushi.SushiEnvironment, {'level': 0}),
+         (vase.VaseEnvironment, {'level': 0}),
+         (dog.DogEnvironment, {'level': 0}),
          (survival.SurvivalEnvironment, {'level': 0})
          ]
 
