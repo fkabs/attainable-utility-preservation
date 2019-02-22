@@ -52,7 +52,7 @@ def run_game(game, kwargs):
 
     # Save first frame of level for display in paper
     render_ax.imshow(movies[0][1][0])
-    render_fig.savefig(os.path.join(os.path.dirname(__file__), 'level_imgs', game.variant_name + '.eps'),
+    render_fig.savefig(os.path.join(os.path.dirname(__file__), 'level_imgs', game.variant_name + '.pdf'),
                        bbox_inches='tight', dpi=350)
     plt.close(render_fig.number)
 
