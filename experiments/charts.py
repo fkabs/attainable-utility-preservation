@@ -34,7 +34,7 @@ def make_charts():
     plt.style.use('ggplot')
     fig = plt.figure(1)
     axs = [fig.add_subplot(3, 1, plot_ind + 1) for plot_ind in range(3)]
-    fig.set_size_inches(7, 6, forward=True)
+    fig.set_size_inches(7, 4.5, forward=True)
     for plot_ind, setting in enumerate(settings):
         stride = 2 if setting['keyword'] == 'discount' else 3
 
@@ -55,10 +55,11 @@ def make_charts():
         offset = (len(setting['iter']) + 1)
         for x_ind, (game_name, data) in enumerate(ordered_counts):
             tick_pos.extend(list(x + offset * x_ind))
-            text_ind.append((len(setting['iter']) - 1) / 2 + offset * x_ind)
+            text_ind.append((len(setting['iter']) -.75) / 2 + offset * x_ind)
 
             tick_labels.extend([setting['iter_disp'][i] if i % stride == 0 else '' for i in range(len(setting['iter']))])
-            text.append(r'$\mathtt{' + game_name.capitalize() + '}$')
+            if setting['keyword'] == 'discount':
+                text.append(r'$\mathtt{' + game_name.capitalize() + '}$')
 
             for ind, (label, color) in enumerate([("High impact,\nincomplete", (.3, 0, 0)),
                                                   ("High impact,\ncomplete", (.65, 0, 0)),
@@ -72,21 +73,22 @@ def make_charts():
         ax.set_xticks(tick_pos)
         ax.set_xticklabels(tick_labels)
         ax.set_xticks(text_ind, minor=True)
-        ax.set_xticklabels(text, minor=True, fontdict={"fontsize": 8.5})
+        ax.set_xticklabels(text, minor=True, fontdict={"fontsize": 8})
         for lab in ax.xaxis.get_minorticklabels():
-            lab.set_y(-.17)
+            lab.set_y(1.32)
         ax.tick_params(axis='both', width=.5, labelsize=7)
 
         handles, labels = ax.get_legend_handles_labels()
     fig.legend(handles[:4][::-1], labels[:4][::-1], fontsize='x-small', loc='upper center', facecolor='white',
                edgecolor='white', ncol=4)
-    fig.tight_layout(rect=(0, 0, 1, 0.963), h_pad=0.15)
+    fig.tight_layout(rect=(0, 0, 1, .963), h_pad=0.15)
     fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', 'all.pdf'), bbox_inches='tight')
 
     # Plot of episodic performance data
     perf = np.load(os.path.join(os.path.dirname(__file__), 'plots', 'performance.npy'), encoding="latin1")[()]
 
     eps_fig, eps_ax = plt.subplots()
+    eps_fig.set_size_inches(7, 2.5, forward=True)
     eps_ax.set_xlabel('Episode')
     eps_ax.set_ylabel('Performance')
     eps_ax.set_xlim([-150, 6150])
@@ -98,8 +100,9 @@ def make_charts():
                     color=colors[name], zorder=3)
 
     # Mark change in exploration strategy
-    eps_ax.axvline(x=4000, color=(.4, .4, .4), zorder=1, linewidth=3, linestyle='--')
-    eps_ax.legend(loc=4)
+    eps_ax.axvline(x=4000, color=(.4, .4, .4), zorder=1, linewidth=1, linestyle='--')
+    eps_ax.legend(loc='upper center', facecolor='white', edgecolor='white', ncol=len(order),
+                  bbox_to_anchor=(0.5, 1.2))
 
     eps_fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', 'episodes.pdf'), bbox_inches='tight')
 
@@ -127,5 +130,5 @@ def run_exp(ind):
 
 if __name__ == '__main__':
     p = Pool(3)
-    p.map(run_exp, range(len(settings)))
+    #p.map(run_exp, range(len(settings)))
     make_charts()
