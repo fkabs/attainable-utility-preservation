@@ -7,14 +7,14 @@ import numpy as np
 class ModelFreeAUPAgent:
     name = "Model-free AUP"
     pen_epsilon, AUP_epsilon = .2, .9  # chance of choosing greedy action in training
-    default = {'N': 150, 'discount': .996, 'rpenalties': 30, 'episodes': 6000}
+    default = {'lambd': 1./1.501, 'discount': .996, 'rpenalties': 30, 'episodes': 6000}
 
-    def __init__(self, env, N=default['N'], state_attainable=False, num_rewards=default['rpenalties'],
-                 discount=default['discount'], episodes=default['episodes'], trials=50):
+    def __init__(self, env, lambd=default['lambd'], state_attainable=False, num_rewards=default['rpenalties'],
+                 discount=default['discount'], episodes=default['episodes'], trials=50, use_scale=False):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.
-        :param N: Impact tuning parameter.
+        :param lambd: Impact tuning parameter.
         :param state_attainable: True - generate state indicator rewards; false - random rewards.
         :param num_rewards: Size of the attainable set, |\mathcal{R}|.
         :param discount:
@@ -26,17 +26,18 @@ class ModelFreeAUPAgent:
         self.discount = discount
         self.episodes = episodes
         self.trials = trials
-        self.N = N
+        self.lambd = lambd
         self.state_attainable = state_attainable
+        self.use_scale = use_scale
 
         if state_attainable:
-            self.name = 'Relative Reachability'
+            self.name = 'Relative reachability'
             self.attainable_set = environment_helper.derive_possible_rewards(env)
         else:
             self.attainable_set = [defaultdict(np.random.random) for _ in range(num_rewards)]
 
         if len(self.attainable_set) == 0:
-            self.name = 'Vanilla'  # no penalty applied!
+            self.name = 'Standard'  # no penalty applied!
 
         self.train(env)
 
@@ -83,11 +84,21 @@ class ModelFreeAUPAgent:
         if len(self.attainable_set) == 0: return 0
         action_attainable = self.attainable_Q[board][:, action]
         null_attainable = self.attainable_Q[board][:, safety_game.Actions.NOTHING]
-        null_sum = sum(abs(null_attainable))
+        diff = action_attainable - null_attainable
+
+        # Scaling number or vector (per-AU)
+        if self.use_scale:
+            scale = sum(abs(null_attainable))
+            if scale == 0:
+                scale = 1
+            penalty = sum(abs(diff) / scale)
+        else:
+            scale = np.copy(null_attainable)
+            scale[scale == 0] = 1  # avoid division by zero
+            penalty = np.average(np.divide(abs(diff), scale))
 
         # Scaled difference between taking action and doing nothing
-        return sum(abs(action_attainable - null_attainable)) / (self.N * .01 * null_sum) if (self.N * null_sum) \
-            else sum(abs(action_attainable - null_attainable))  # ImpactUnit is 0!
+        return self.lambd * penalty  # ImpactUnit is 0!
 
     def update_greedy(self, last_board, action, time_step):
         """Perform TD update on observed reward."""

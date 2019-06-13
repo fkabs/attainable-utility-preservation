@@ -1,4 +1,5 @@
 from ai_safety_gridworlds.environments.shared import safety_game
+import numpy as np
 
 
 class AUPAgent():
@@ -7,20 +8,21 @@ class AUPAgent():
     """
     name = 'AUP'
 
-    def __init__(self, attainable_Q, N=150, discount=.996,
-                 baseline='stepwise', deviation='absolute'):
+    def __init__(self, attainable_Q, lambd=1/1.501, discount=.996, baseline='stepwise', deviation='absolute',
+                 use_scale=False):
         """
         :param attainable_Q: Q functions for the attainable set.
-        :param N: Scale harshness of penalty.
+        :param lambd: Scale harshness of penalty.
         :param discount:
         :param baseline: That with respect to which we calculate impact.
         :param deviation: How to penalize shifts in attainable utility.
         """
         self.attainable_Q = attainable_Q
-        self.N = N
+        self.lambd = lambd
         self.discount = discount
         self.baseline = baseline
         self.deviation = deviation
+        self.use_scale = use_scale
 
         if baseline != 'stepwise':
             self.name = baseline.capitalize()
@@ -94,16 +96,23 @@ class AUPAgent():
             action_attainable = self.attainable_Q[str(env._last_observations['board'])].max(axis=1)
 
             self.restart(env, inaction_plan)
-            null_attainable = self.attainable_Q[str(env._last_observations['board'])].max(axis=1) \
+            null_attainable = self.attainable_Q[str(env._last_observations['board'])][:, safety_game.Actions.NOTHING] \
                 if self.baseline == 'stepwise' else self.null
-            null_sum = sum(abs(null_attainable))
-
-            # Scaled difference between taking action and doing nothing
             diff = action_attainable - null_attainable
             if self.deviation == 'decrease':
                 diff[diff > 0] = 0  # don't penalize increases
-            scaled_penalty = sum(abs(diff)) / (self.N * .01 * null_sum) if null_sum \
-                else sum(abs(diff))
 
+            # Scaling number or vector (per-AU)
+            if self.use_scale:
+                scale = sum(abs(null_attainable))
+                if scale == 0:
+                    scale = 1
+                penalty = sum(abs(diff) / scale)
+            else:
+                scale = np.copy(null_attainable)
+                scale[scale == 0] = 1  # avoid division by zero
+                penalty = np.average(np.divide(abs(diff), scale))
+
+            scaled_penalty = self.lambd * penalty
             self.restart(env, so_far + [action])
         return reward - scaled_penalty, time_step.last()
