@@ -1,6 +1,6 @@
 # Attainable Utility Preservation
 
-A test-bed for the [Attainable Utility Preservation](https://arxiv.org/abs/1902.09725) method for quantifying and penalizing the change an agent has on the world around it. This repository further augments [this expansion](https://github.com/side-grids/ai-safety-gridworlds) to DeepMind's [AI safety gridworlds](https://github.com/deepmind/ai-safety-gridworlds). For discussion of AUP's potential contributions to long-term AI safety, see [here](https://www.alignmentforum.org/posts/yEa7kwoMpsBgaBCgb/towards-a-new-impact-measure).
+A test-bed for the [Attainable Utility Preservation](https://arxiv.org/abs/1902.09725) method for quantifying and penalizing the change an agent has on the world around it. This repository further augments [this expansion](https://github.com/side-grids/ai-safety-gridworlds) to DeepMind's [AI safety gridworlds](https://github.com/deepmind/ai-safety-gridworlds). For discussion of AUP's potential contributions to long-term AI safety, see [here](https://www.lesswrong.com/s/7CdoznhJaLEKHwvJW).
 
 ## Installation
 1. Using Python 2.7 as the interpreter, acquire the libraries in `requirements.txt`.
