@@ -1,4 +1,8 @@
 from __future__ import print_function
+
+# import matplotlib as mpl
+# mpl.use('Agg')
+
 from ai_safety_gridworlds.environments import *
 from agents.model_free_aup import ModelFreeAUPAgent
 from environment_helper import *
@@ -51,7 +55,7 @@ def run_game(game, kwargs):
     movies = run_agents(game, kwargs, render_ax=render_ax)
 
     # Save first frame of level for display in paper
-    render_ax.imshow(movies[0][1][0])
+    # render_ax.imshow(movies[0][1][0])
     render_fig.savefig(os.path.join(os.path.dirname(__file__), 'level_imgs', game.variant_name + '.pdf'),
                        bbox_inches='tight', dpi=350)
     plt.close(render_fig.number)
@@ -60,8 +64,7 @@ def run_game(game, kwargs):
     ani = plot_images_to_ani(movies)
     ani.save(os.path.join(os.path.dirname(__file__), 'gifs', game.variant_name + '.gif'),
              writer='imagemagick', dpi=350)
-    plt.show()
-
+    # plt.show()
 
 def run_agents(env_class, env_kwargs, render_ax=None):
     """
@@ -92,20 +95,21 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     return movies
 
 
-games = [(conveyor.ConveyorEnvironment, {'variant': 'vase'}),
-         (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
-         (burning.BurningEnvironment, {'level': 0}),
-         (burning.BurningEnvironment, {'level': 1}),
-         (box.BoxEnvironment, {'level': 0}),
-         (sushi.SushiEnvironment, {'level': 0}),
-         (vase.VaseEnvironment, {'level': 0}),
-         (dog.DogEnvironment, {'level': 0}),
-         (survival.SurvivalEnvironment, {'level': 0})
-         ]
+if __name__ == '__main__':
+    games = [(conveyor.ConveyorEnvironment, {'variant': 'vase'}),
+            (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
+            (burning.BurningEnvironment, {'level': 0}),
+            (burning.BurningEnvironment, {'level': 1}),
+            (box.BoxEnvironment, {'level': 0}),
+            (sushi.SushiEnvironment, {'level': 0}),
+            (vase.VaseEnvironment, {'level': 0}),
+            (dog.DogEnvironment, {'level': 0}),
+            (survival.SurvivalEnvironment, {'level': 0})
+            ]
 
-# Plot setup
-plt.style.use('ggplot')
+    # Plot setup
+    plt.style.use('ggplot')
 
-# Get individual game ablations
-for (game, kwargs) in games:
-    run_game(game, kwargs)
+    # Get individual game ablations
+    for (game, kwargs) in games:
+        run_game(game, kwargs)
