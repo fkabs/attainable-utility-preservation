@@ -61,7 +61,7 @@ def run_episode(agent, env, save_frames=False, render_ax=None, max_len=9):
     if hasattr(agent, 'get_actions'):
         actions, _ = agent.get_actions(env, steps_left=max_len)
         if env.name == 'survival':
-            actions.append(safety_game.Actions.NOTHING)  # disappearing frame
+            actions.append(safety_game.AGENT_LAST_ACTION)  # disappearing frame
         max_len = len(actions)
     for i in itertools.count():
         if time_step.last() or i >= max_len:

@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 
 from environment_helper import *
 from ai_safety_gridworlds.environments import *
+from ai_safety_gridworlds.environments.shared import safety_game
 from agents.model_free_aup import ModelFreeAUPAgent
 
 
@@ -121,7 +122,7 @@ def gen_exps(settings, games):
     return experiments
 
 
-def run_exp(keyword, exp):
+def run_exp(keyword, eaup, exp):
     game, game_kwargs = exp[0]
     iter = exp[1]
     res = {game.name : {}}
@@ -129,7 +130,7 @@ def run_exp(keyword, exp):
     print(keyword + ' --> ' + game.name + ': iter ' + str(iter))
     
     env = game(**game_kwargs)
-    model_free = ModelFreeAUPAgent(env, trials = 1, **{keyword: iter})
+    model_free = ModelFreeAUPAgent(env, trials = 1, eaup = eaup, **{keyword: iter})
     
     if keyword == 'lambd' and iter == ModelFreeAUPAgent.default['lambd']:
         res[game.name].update({'perf' : model_free.performance})
@@ -142,6 +143,13 @@ def run_exp(keyword, exp):
 if __name__ == '__main__':
     # set number of usable CPU cores
     NUM_CORES = mp.cpu_count()
+    
+    # set eaup variant
+    eaup = 'mean'
+    
+    # no no-op action for eaup variants
+    if eaup != None:
+        safety_game.AGENT_LAST_ACTION = 3
     
     # settings to test for
     settings = {
@@ -181,7 +189,7 @@ if __name__ == '__main__':
             counts[game.name] = np.zeros((len(settings[keyword]['iter']), 4))
             
         # distribute experiment-permutations on all cores
-        func = partial(run_exp, keyword)
+        func = partial(run_exp, keyword, eaup)
         pool = mp.Pool(NUM_CORES)
         results = pool.map(func, exp)
         

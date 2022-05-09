@@ -104,6 +104,13 @@ if __name__ == '__main__':
     # set number of usable CPU cores
     NUM_CORES = mp.cpu_count()
     
+    # set eaup variant
+    eaup = None
+    
+    # no no-op action for eaup variants
+    if eaup != None:
+        safety_game.AGENT_LAST_ACTION = 3
+    
     games = [
         (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
         (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
@@ -120,5 +127,6 @@ if __name__ == '__main__':
     plt.style.use('ggplot')
     
     # distribute experiments on all core
-    pool = mp.Pool(NUM_CORES)
-    results = pool.map(run_game, games)
+    # pool = mp.Pool(NUM_CORES)
+    # results = pool.map(run_game, games)
+    run_game(games[0])

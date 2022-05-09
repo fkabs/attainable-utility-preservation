@@ -2,25 +2,28 @@ from ai_safety_gridworlds.environments.shared import safety_game
 from collections import defaultdict
 import experiments.environment_helper as environment_helper
 import numpy as np
+import random
 
 
 class ModelFreeAUPAgent:
     name = "Model-free AUP"
     pen_epsilon, AUP_epsilon = .2, .9  # chance of choosing greedy action in training
-    default = {'lambd': 1./1.501, 'discount': .996, 'rpenalties': 30, 'episodes': 6000}
+    default = {'lambd': 1./1.501, 'discount': .996, 'rpenalties': 30, 'episodes': 1000}
 
     def __init__(self, env, lambd=default['lambd'], state_attainable=False, num_rewards=default['rpenalties'],
-                 discount=default['discount'], episodes=default['episodes'], trials=50, use_scale=False):
+                 discount=default['discount'], episodes=default['episodes'], trials=50, use_scale=False, eaup=None):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.
         :param lambd: Impact tuning parameter.
         :param state_attainable: True - generate state indicator rewards; false - random rewards.
         :param num_rewards: Size of the attainable set, |\mathcal{R}|.
-        :param discount:
-        :param episodes:
-        :param trials:
+        :param discount: Discount factor
+        :param episodes: Number of episodes
+        :param trials: Number of trials
+        :param eaup: Use enhanced AUP (penalizes using mean or random action values)
         """
+        
         self.actions = range(env.action_spec().maximum + 1)
         self.probs = [[1.0 / (len(self.actions) - 1) if i != k else 0 for i in self.actions] for k in self.actions]
         self.discount = discount
@@ -29,10 +32,11 @@ class ModelFreeAUPAgent:
         self.lambd = lambd
         self.state_attainable = state_attainable
         self.use_scale = use_scale
+        self.eaup = eaup
 
         if state_attainable:
             self.name = 'Relative reachability'
-            self.attainable_set = environment_helper.derive_possible_rewards(env)
+            self.attainable_set = environment_helper.derive_possible_rewards(env, eaup)
         else:
             self.attainable_set = [defaultdict(np.random.random) for _ in range(num_rewards)]
 
@@ -82,8 +86,16 @@ class ModelFreeAUPAgent:
 
     def get_penalty(self, board, action):
         if len(self.attainable_set) == 0: return 0
+        
         action_attainable = self.attainable_Q[board][:, action]
-        null_attainable = self.attainable_Q[board][:, safety_game.Actions.NOTHING]
+        
+        if self.eaup == 'mean':
+            null_attainable = np.mean(self.attainable_Q[board][:])
+        elif self.eaup == 'rand':
+            null_attainable = self.attainable_Q[board][:, random.choice(filter(lambda a: a != action, self.actions))]
+        else:
+            null_attainable = self.attainable_Q[board][:, safety_game.Actions.NOTHING]
+        
         diff = action_attainable - null_attainable
 
         # Scaling number or vector (per-AU)
