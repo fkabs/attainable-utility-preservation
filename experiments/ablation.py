@@ -3,14 +3,17 @@ from __future__ import print_function
 # import matplotlib as mpl
 # mpl.use('Agg')
 
-from ai_safety_gridworlds.environments import *
-from agents.model_free_aup import ModelFreeAUPAgent
-from environment_helper import *
-import datetime
 import os
+import warnings
+import datetime
+import itertools
+import multiprocessing as mp
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import warnings
+
+from environment_helper import *
+from ai_safety_gridworlds.environments import *
+from agents.model_free_aup import ModelFreeAUPAgent
 
 
 def plot_images_to_ani(framesets):
@@ -43,28 +46,30 @@ def plot_images_to_ani(framesets):
     return animation.ArtistAnimation(plt.gcf(), ims, interval=400, blit=True, repeat_delay=200)
 
 
-def run_game(game, kwargs):
+def run_game(game):
+    env_class, env_kwargs = game
     render_fig, render_ax = plt.subplots(1, 1)
     render_fig.set_tight_layout(True)
     render_ax.get_xaxis().set_ticks([])
     render_ax.get_yaxis().set_ticks([])
-    game.variant_name = game.name + '-' + str(kwargs['level'] if 'level' in kwargs else kwargs['variant'])
-    print(game.variant_name)
+    env_class.variant_name = env_class.name + '-' + str(env_kwargs['level'] if 'level' in env_kwargs else env_kwargs['variant'])
+    print(env_class.variant_name)
 
     start_time = datetime.datetime.now()
-    movies = run_agents(game, kwargs, render_ax=render_ax)
+    movies = run_agents(env_class, env_kwargs, render_ax=render_ax)
 
     # Save first frame of level for display in paper
     # render_ax.imshow(movies[0][1][0])
-    render_fig.savefig(os.path.join(os.path.dirname(__file__), 'level_imgs', game.variant_name + '.pdf'),
+    render_fig.savefig(os.path.join(os.path.dirname(__file__), 'level_imgs', env_class.variant_name + '.pdf'),
                        bbox_inches='tight', dpi=350)
     plt.close(render_fig.number)
 
     print("Training finished; {} elapsed.\n".format(datetime.datetime.now() - start_time))
     ani = plot_images_to_ani(movies)
-    ani.save(os.path.join(os.path.dirname(__file__), 'gifs', game.variant_name + '.gif'),
+    ani.save(os.path.join(os.path.dirname(__file__), 'gifs', env_class.variant_name + '.gif'),
              writer='imagemagick', dpi=350)
     # plt.show()
+
 
 def run_agents(env_class, env_kwargs, render_ax=None):
     """
@@ -78,12 +83,12 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     env = env_class(**env_kwargs)
     model_free = ModelFreeAUPAgent(env, trials=1)
     state = (ModelFreeAUPAgent(env, state_attainable=True, trials=1))
-    movies, agents = [], [ModelFreeAUPAgent(env, num_rewards=0, trials=1),  # vanilla
-                          AUPAgent(attainable_Q=model_free.attainable_Q, baseline='start'),
-                          AUPAgent(attainable_Q=model_free.attainable_Q, baseline='inaction'),
-                          AUPAgent(attainable_Q=model_free.attainable_Q, deviation='decrease'),
-                          AUPAgent(attainable_Q=state.attainable_Q, baseline='inaction', deviation='decrease', N=500),  # RR
-                          model_free,
+    movies, agents = [], [ModelFreeAUPAgent(env, num_rewards=0, trials=1),  # vanilla (standard q-learner)
+                          AUPAgent(attainable_Q=model_free.attainable_Q, baseline='start'),  # starting state
+                          AUPAgent(attainable_Q=model_free.attainable_Q, baseline='inaction'),  # incation
+                          AUPAgent(attainable_Q=model_free.attainable_Q, deviation='decrease'),  # decrease
+                          AUPAgent(attainable_Q=state.attainable_Q, baseline='inaction', deviation='decrease'),  # relative reachability
+                          model_free,  # model-free aup
                           AUPAgent(attainable_Q=model_free.attainable_Q)  # full AUP
                           ]
 
@@ -95,21 +100,22 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     return movies
 
 
-if __name__ == '__main__':
-    games = [(conveyor.ConveyorEnvironment, {'variant': 'vase'}),
-            (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
-            (burning.BurningEnvironment, {'level': 0}),
-            (burning.BurningEnvironment, {'level': 1}),
-            (box.BoxEnvironment, {'level': 0}),
-            (sushi.SushiEnvironment, {'level': 0}),
-            (vase.VaseEnvironment, {'level': 0}),
-            (dog.DogEnvironment, {'level': 0}),
-            (survival.SurvivalEnvironment, {'level': 0})
-            ]
+if __name__ == '__main__':    
+    games = [
+        (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
+        (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
+        (burning.BurningEnvironment, {'level': 0}),
+        (burning.BurningEnvironment, {'level': 1}),
+        (box.BoxEnvironment, {'level': 0}),
+        (sushi.SushiEnvironment, {'level': 0}),
+        (vase.VaseEnvironment, {'level': 0}),
+        (dog.DogEnvironment, {'level': 0}),
+        (survival.SurvivalEnvironment, {'level': 0})
+    ]
 
     # Plot setup
     plt.style.use('ggplot')
-
-    # Get individual game ablations
-    for (game, kwargs) in games:
-        run_game(game, kwargs)
+    
+    # distribute experiments on all core
+    pool = mp.Pool(len(games))
+    results = pool.map(run_game, games)
