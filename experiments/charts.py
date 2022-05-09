@@ -130,7 +130,7 @@ def run_exp(keyword, eaup, exp):
     print(keyword + ' --> ' + game.name + ': iter ' + str(iter))
     
     env = game(**game_kwargs)
-    model_free = ModelFreeAUPAgent(env, trials = 1, eaup = eaup, **{keyword: iter})
+    model_free = ModelFreeAUPAgent(env, trials = 50, eaup = eaup, **{keyword: iter})
     
     if keyword == 'lambd' and iter == ModelFreeAUPAgent.default['lambd']:
         res[game.name].update({'perf' : model_free.performance})
@@ -145,7 +145,7 @@ if __name__ == '__main__':
     NUM_CORES = mp.cpu_count()
     
     # set eaup variant
-    eaup = 'mean'
+    eaup = None
     
     # no no-op action for eaup variants
     if eaup != None:
