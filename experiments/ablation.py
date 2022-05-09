@@ -100,7 +100,10 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     return movies
 
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
+    # set number of usable CPU cores
+    NUM_CORES = mp.cpu_count()
+    
     games = [
         (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
         (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
@@ -117,5 +120,5 @@ if __name__ == '__main__':
     plt.style.use('ggplot')
     
     # distribute experiments on all core
-    pool = mp.Pool(len(games))
+    pool = mp.Pool(NUM_CORES)
     results = pool.map(run_game, games)
