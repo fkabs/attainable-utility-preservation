@@ -50,9 +50,9 @@ def run_episode(agent, env, save_frames=False, render_ax=None, max_len=9):
     def handle_frame(time_step):
         if save_frames:
             frames.append(np.moveaxis(time_step.observation['RGB'], 0, -1))
-        if render_ax:
-            render_ax.imshow(np.moveaxis(time_step.observation['RGB'], 0, -1), animated=True)
-            plt.pause(0.001)
+        # if render_ax:
+        #     render_ax.imshow(np.moveaxis(time_step.observation['RGB'], 0, -1), animated=True)
+        #     plt.pause(0.001)
 
     frames, actions = [], []
 
