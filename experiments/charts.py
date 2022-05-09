@@ -180,7 +180,7 @@ if __name__ == '__main__':
         for (game, _) in games.values():
             counts[game.name] = np.zeros((len(settings[keyword]['iter']), 4))
             
-        # distribute experiment-permutations on all core
+        # distribute experiment-permutations on all cores
         func = partial(run_exp, keyword)
         pool = mp.Pool(NUM_CORES)
         results = pool.map(func, exp)
