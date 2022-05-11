@@ -1,7 +1,7 @@
 from __future__ import print_function
 
-# import matplotlib as mpl
-# mpl.use('Agg')
+import matplotlib as mpl
+mpl.use('Agg')
 
 import os
 import itertools
@@ -16,7 +16,36 @@ from ai_safety_gridworlds.environments.shared import safety_game
 from agents.model_free_aup import ModelFreeAUPAgent
 
 
-def make_charts():
+# settings to test for
+settings = {
+    'discount': {
+        'label': r'$\gamma$',
+        'iter': [1 - 2 ** (-n) for n in range(3, 11)],
+        'iter_disp': ['{0:0.3f}'.format(1 - 2 ** (-n)).lstrip("0") for n in range(3, 11)] 
+    },
+    'lambd': {
+        'label': r'$\lambda$',
+        'iter': 1/np.arange(.001, 3.001, .3),
+        'iter_disp': ['{0:0.1f}'.format(round(l, 1)).lstrip("0") for l in 1/np.arange(.001, 3.001, .3)][::-1] 
+    },
+    'num_rewards': {
+        'label': r'$|\mathcal{R}|$',
+        'iter': range(0, 50, 5),
+        'iter_disp': range(0, 50, 5) 
+    }
+}
+
+# games/environments to test
+games = {
+    'box': (box.BoxEnvironment, {'level': 0}),
+    'dog': (dog.DogEnvironment, {'level': 0}),
+    'survival': (survival.SurvivalEnvironment, {'level': 0}),
+    'conveyor': (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
+    'sushi': (sushi.SushiEnvironment, {'level': 0})
+}
+
+
+def make_charts(prefix = ''):
     colors = {'box':      [v / 1000. for v in box.GAME_BG_COLOURS[box.BOX_CHR]],
               'dog':      [v / 1000. for v in dog.GAME_BG_COLOURS[dog.DOG_CHR]],
               'survival': [v / 1000. for v in survival.GAME_BG_COLOURS[survival.BUTTON_CHR]],
@@ -31,7 +60,7 @@ def make_charts():
     axs = [fig.add_subplot(3, 1, plot_ind + 1) for plot_ind in range(3)]
     fig.set_size_inches(7, 4, forward=True)
     for plot_ind, (keyword, setting) in enumerate(settings.items()):
-        counts = np.load(os.path.join(os.path.dirname(__file__), 'plots', 'counts-' + keyword + '.npy'),
+        counts = np.load(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'counts-' + keyword + '.npy'),
                          encoding="latin1")[()]
 
         stride = 3 if keyword == 'num_rewards' else 2
@@ -81,10 +110,10 @@ def make_charts():
     fig.legend(handles[:4][::-1], labels[:4][::-1], fontsize='x-small', loc='upper center', facecolor='white',
                edgecolor='white', ncol=4)
     fig.tight_layout(rect=(0, 0, 1, .97), h_pad=0.15)
-    fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', 'all.pdf'), bbox_inches='tight')
+    fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'counts.pdf'), bbox_inches='tight')
 
     # Plot of episodic performance data
-    perf = np.load(os.path.join(os.path.dirname(__file__), 'plots', 'performance.npy'), encoding="latin1")[()]
+    perf = np.load(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'performance.npy'), encoding="latin1")[()]
 
     eps_fig, eps_ax = plt.subplots()
     eps_fig.set_size_inches(7, 2, forward=True)
@@ -103,7 +132,7 @@ def make_charts():
     eps_ax.legend(loc='upper center', facecolor='white', edgecolor='white', ncol=len(order),
                   bbox_to_anchor=(0.5, 1.2))
 
-    eps_fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', 'episodes.pdf'), bbox_inches='tight')
+    eps_fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'episodes.pdf'), bbox_inches='tight')
     
     # plt.show()
 
@@ -144,68 +173,43 @@ if __name__ == '__main__':
     # set number of usable CPU cores
     NUM_CORES = mp.cpu_count()
     
-    # set eaup variant
-    eaup = None
-    
-    # no no-op action for eaup variants
-    if eaup != None:
-        safety_game.AGENT_LAST_ACTION = 3
-    
-    # settings to test for
-    settings = {
-        'discount': {
-            'label': r'$\gamma$',
-            'iter': [1 - 2 ** (-n) for n in range(3, 11)],
-            'iter_disp': ['{0:0.3f}'.format(1 - 2 ** (-n)).lstrip("0") for n in range(3, 11)] 
-        },
-        'lambd': {
-            'label': r'$\lambda$',
-            'iter': 1/np.arange(.001, 3.001, .3),
-            'iter_disp': ['{0:0.1f}'.format(round(l, 1)).lstrip("0") for l in 1/np.arange(.001, 3.001, .3)][::-1] 
-        },
-        'num_rewards': {
-            'label': r'$|\mathcal{R}|$',
-            'iter': range(0, 50, 5),
-            'iter_disp': range(0, 50, 5) 
-        }
-    }
-
-    # games/environments to test
-    games = {
-        'box': (box.BoxEnvironment, {'level': 0}),
-        'dog': (dog.DogEnvironment, {'level': 0}),
-        'survival': (survival.SurvivalEnvironment, {'level': 0}),
-        'conveyor': (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
-        'sushi': (sushi.SushiEnvironment, {'level': 0})
-    }
+    # set aup variants to test
+    eaups = [None, 'mean', 'rand']
 
     # run experiments
-    for (keyword, exp) in gen_exps(settings, games).items():        
-        # dicts to store agents results, counts and performances
-        res, counts, perf = dict(), dict(), dict()
-
-        # reset counts
-        for (game, _) in games.values():
-            counts[game.name] = np.zeros((len(settings[keyword]['iter']), 4))
-            
-        # distribute experiment-permutations on all cores
-        func = partial(run_exp, keyword, eaup)
-        pool = mp.Pool(NUM_CORES)
-        results = pool.map(func, exp)
+    for eaup in eaups:
+        prefix = 'aup_' if eaup is None else eaup + '_'
+    
+        # no no-op action for eaup variants
+        if eaup != None:
+            safety_game.AGENT_LAST_ACTION = 3
         
-        # set counts and perf based on results
-        for res in results:
-            game = list(res.keys())[0]
-            idx = list(res[game]['counts'].keys())[0]
-            counts[game][idx, :] = res[game]['counts'][idx]
-            
-            if keyword == 'lambd' and 'perf' in list(res[game].keys()):
-                perf[game] = res[game]['perf']
-            
-        # save results to disk
-        if keyword == 'lambd':
-            np.save(os.path.join(os.path.dirname(__file__), 'plots', 'performance'), perf)
-        
-        np.save(os.path.join(os.path.dirname(__file__), 'plots', 'counts-' + keyword), counts)
+        for (keyword, exp) in gen_exps(settings, games).items():        
+            # dicts to store agents results, counts and performances
+            res, counts, perf = dict(), dict(), dict()
 
-    make_charts()
+            # reset counts
+            for (game, _) in games.values():
+                counts[game.name] = np.zeros((len(settings[keyword]['iter']), 4))
+                
+            # distribute experiment-permutations on all cores
+            func = partial(run_exp, keyword, eaup)
+            pool = mp.Pool(NUM_CORES)
+            results = pool.map(func, exp)
+            
+            # set counts and perf based on results
+            for res in results:
+                game = list(res.keys())[0]
+                idx = list(res[game]['counts'].keys())[0]
+                counts[game][idx, :] = res[game]['counts'][idx]
+                
+                if keyword == 'lambd' and 'perf' in list(res[game].keys()):
+                    perf[game] = res[game]['perf']
+                
+            # save results to disk
+            if keyword == 'lambd':
+                np.save(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'performance'), perf)
+            
+            np.save(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'counts-' + keyword), counts)
+
+        make_charts(prefix)
