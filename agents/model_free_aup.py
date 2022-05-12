@@ -91,6 +91,8 @@ class ModelFreeAUPAgent:
         
         if self.eaup == 'mean':
             null_attainable = np.mean(self.attainable_Q[board][:])
+        elif self.eaup == 'oth':
+            null_attainable = np.mean(self.attainable_Q[board][tuple(filter(lambda a: a != action, self.actions))])
         elif self.eaup == 'rand':
             null_attainable = self.attainable_Q[board][:, random.choice(filter(lambda a: a != action, self.actions))]
         else:

@@ -1,7 +1,7 @@
 from __future__ import print_function
 
-# import matplotlib as mpl
-# mpl.use('Agg')
+import matplotlib as mpl
+mpl.use('Agg')
 
 import os
 import itertools
@@ -174,7 +174,7 @@ if __name__ == '__main__':
     NUM_CORES = mp.cpu_count()
     
     # set aup variants to test
-    eaups = [None, 'mean', 'rand']
+    eaups = [None, 'mean', 'oth', 'rand']
 
     # run experiments
     for eaup in eaups:
