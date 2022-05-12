@@ -11,7 +11,7 @@ class ModelFreeAUPAgent:
     default = {'lambd': 1./1.501, 'discount': .996, 'rpenalties': 30, 'episodes': 6000}
 
     def __init__(self, env, lambd=default['lambd'], state_attainable=False, num_rewards=default['rpenalties'],
-                 discount=default['discount'], episodes=default['episodes'], trials=50, use_scale=False, eaup=None):
+                 discount=default['discount'], episodes=default['episodes'], trials=50, use_scale=False, oaup=None):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.
@@ -21,7 +21,7 @@ class ModelFreeAUPAgent:
         :param discount: Discount factor
         :param episodes: Number of episodes
         :param trials: Number of trials
-        :param eaup: Use enhanced AUP (penalizes using mean or random action values)
+        :param oaup: Use optional AUP (penalize using different strategies)
         """
         
         self.actions = range(env.action_spec().maximum + 1)
@@ -32,11 +32,11 @@ class ModelFreeAUPAgent:
         self.lambd = lambd
         self.state_attainable = state_attainable
         self.use_scale = use_scale
-        self.eaup = eaup
+        self.oaup = oaup
 
         if state_attainable:
             self.name = 'Relative reachability'
-            self.attainable_set = environment_helper.derive_possible_rewards(env, eaup)
+            self.attainable_set = environment_helper.derive_possible_rewards(env, oaup)
         else:
             self.attainable_set = [defaultdict(np.random.random) for _ in range(num_rewards)]
 
@@ -89,11 +89,16 @@ class ModelFreeAUPAgent:
         
         action_attainable = self.attainable_Q[board][:, action]
         
-        if self.eaup == 'mean':
+        if self.oaup == 'adv':
+            policy = np.zeros(len(self.actions), dtype = float)
+            policy = self.epsilon / len(self.actions)
+            policy[np.argmax(self.attainable_Q[board])] = 1 - self.epsilon + self.epsilon / len(self.actions)
+            null_attainable = np.mean(self.attainable_Q[board][:] * policy)
+        elif self.oaup == 'mean':
             null_attainable = np.mean(self.attainable_Q[board][:])
-        elif self.eaup == 'oth':
+        elif self.oaup == 'oth':
             null_attainable = np.mean(self.attainable_Q[board][tuple(filter(lambda a: a != action, self.actions))])
-        elif self.eaup == 'rand':
+        elif self.oaup == 'rand':
             null_attainable = self.attainable_Q[board][:, random.choice(filter(lambda a: a != action, self.actions))]
         else:
             null_attainable = self.attainable_Q[board][:, safety_game.Actions.NOTHING]
