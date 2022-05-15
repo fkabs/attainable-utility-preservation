@@ -25,12 +25,14 @@ def make_charts(prefix = ''):
 
     order = ['box', 'dog', 'survival', 'conveyor', 'sushi']
     new_names = ['options', 'damage', 'correction', 'offset', 'interference']
+    settings_order = ['discount', 'lambd', 'num_rewards']
 
     plt.style.use('ggplot')
-    fig = plt.figure(1)
+    fig = plt.figure()
     axs = [fig.add_subplot(3, 1, plot_ind + 1) for plot_ind in range(3)]
     fig.set_size_inches(7, 4, forward=True)
-    for plot_ind, (keyword, setting) in enumerate(settings.items()):
+    for plot_ind, keyword in enumerate(settings_order):
+        setting = settings[keyword]
         counts = np.load(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'counts-' + keyword + '.npy'),
                          encoding="latin1")[()]
 
