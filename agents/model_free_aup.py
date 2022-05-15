@@ -93,11 +93,11 @@ class ModelFreeAUPAgent:
             pi_attainable = np.zeros((len(self.attainable_set), len(self.actions)), dtype = float)
             pi_attainable[:] = self.epsilon / len(self.actions)
             pi_attainable[:, tuple(np.argmax(self.attainable_Q[board], axis = 1))] = 1 - self.epsilon + self.epsilon / len(self.actions)
-            null_attainable = np.mean(self.attainable_Q[board][:] * pi_attainable)
+            null_attainable = np.mean(self.attainable_Q[board][:] * pi_attainable, axis = 1)
         elif self.oaup == 'mean':
-            null_attainable = np.mean(self.attainable_Q[board][:])
+            null_attainable = np.mean(self.attainable_Q[board][:], axis = 1)
         elif self.oaup == 'oth':
-            null_attainable = np.mean(self.attainable_Q[board][:, tuple(filter(lambda a: a != action, self.actions))])
+            null_attainable = np.mean(self.attainable_Q[board][:, tuple(filter(lambda a: a != action, self.actions))], axis = 1)
         elif self.oaup == 'rand':
             null_attainable = self.attainable_Q[board][:, random.choice(filter(lambda a: a != action, self.actions))]
         else:
