@@ -11,7 +11,7 @@ class ModelFreeAUPAgent:
     default = {'lambd': 1./1.501, 'discount': .996, 'rpenalties': 30, 'episodes': 6000}
 
     def __init__(self, env, lambd=default['lambd'], state_attainable=False, num_rewards=default['rpenalties'],
-                 discount=default['discount'], episodes=default['episodes'], trials=50, use_scale=False, oaup=None):
+                 discount=default['discount'], episodes=default['episodes'], trials=50, use_scale=False, vaup=None):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.
@@ -21,7 +21,7 @@ class ModelFreeAUPAgent:
         :param discount: Discount factor
         :param episodes: Number of episodes
         :param trials: Number of trials
-        :param oaup: Use optional AUP (penalize using different strategies)
+        :param vaup: Use variational AUP (penalize using different strategies)
         """
         
         self.actions = range(env.action_spec().maximum + 1)
@@ -32,11 +32,11 @@ class ModelFreeAUPAgent:
         self.lambd = lambd
         self.state_attainable = state_attainable
         self.use_scale = use_scale
-        self.oaup = oaup
+        self.vaup = vaup
 
         if state_attainable:
             self.name = 'Relative reachability'
-            self.attainable_set = environment_helper.derive_possible_rewards(env, oaup)
+            self.attainable_set = environment_helper.derive_possible_rewards(env, vaup)
         else:
             self.attainable_set = [defaultdict(np.random.random) for _ in range(num_rewards)]
 
@@ -89,16 +89,16 @@ class ModelFreeAUPAgent:
         
         action_attainable = self.attainable_Q[board][:, action]
         
-        if self.oaup == 'adv':
+        if self.vaup == 'adv':
             pi_attainable = np.zeros((len(self.attainable_set), len(self.actions)), dtype = float)
             pi_attainable[:] = self.epsilon / len(self.actions)
             pi_attainable[:, tuple(np.argmax(self.attainable_Q[board], axis = 1))] = 1 - self.epsilon + self.epsilon / len(self.actions)
-            null_attainable = np.mean(self.attainable_Q[board][:] * pi_attainable, axis = 1)
-        elif self.oaup == 'mean':
+            null_attainable = np.sum(self.attainable_Q[board][:] * pi_attainable, axis = 1)
+        elif self.vaup == 'mean':
             null_attainable = np.mean(self.attainable_Q[board][:], axis = 1)
-        elif self.oaup == 'oth':
+        elif self.vaup == 'oth':
             null_attainable = np.mean(self.attainable_Q[board][:, tuple(filter(lambda a: a != action, self.actions))], axis = 1)
-        elif self.oaup == 'rand':
+        elif self.vaup == 'rand':
             null_attainable = self.attainable_Q[board][:, random.choice(filter(lambda a: a != action, self.actions))]
         else:
             null_attainable = self.attainable_Q[board][:, safety_game.Actions.NOTHING]
