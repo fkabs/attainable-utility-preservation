@@ -124,7 +124,7 @@ def gen_exps(settings, games):
     return experiments
 
 
-def run_exp(keyword, oaup, exp):
+def run_exp(keyword, vaup, exp):
     game, game_kwargs = exp[0]
     iter = exp[1]
     res = {game.name : {}}
@@ -132,7 +132,7 @@ def run_exp(keyword, oaup, exp):
     print(keyword + ' --> ' + game.name + ': iter ' + str(iter))
     
     env = game(**game_kwargs)
-    model_free = ModelFreeAUPAgent(env, trials = 50, oaup = oaup, **{keyword: iter})
+    model_free = ModelFreeAUPAgent(env, trials = 50, vaup = vaup, **{keyword: iter})
     
     if keyword == 'lambd' and iter == ModelFreeAUPAgent.default['lambd']:
         res[game.name].update({'perf' : model_free.performance})
@@ -176,15 +176,15 @@ if __name__ == '__main__':
     
     # set aup variants to test
     action_driven = True
-    oaups = [None, 'adv', 'mean', 'oth', 'rand']
+    vaups = [None, 'adv', 'mean', 'oth', 'rand']
 
     # run experiments
-    for oaup in oaups:
-        prefix = 'aup_' if oaup is None else oaup + '_'
+    for vaup in vaups:
+        prefix = 'aup_' if vaup is None else vaup + '_'
         dir = 'actd' if action_driven else 'noop'
     
-        # no no-op action for oaup variants
-        if action_driven and oaup != None:
+        # no no-op action for vaup variants
+        if action_driven and vaup != None:
             safety_game.AGENT_LAST_ACTION = 3
         
         for (keyword, exp) in gen_exps(settings, games).items():        
@@ -196,7 +196,7 @@ if __name__ == '__main__':
                 counts[game.name] = np.zeros((len(settings[keyword]['iter']), 4))
                 
             # distribute experiment-permutations on all cores
-            func = partial(run_exp, keyword, oaup)
+            func = partial(run_exp, keyword, vaup)
             pool = mp.Pool(NUM_CORES)
             results = pool.map(func, exp)
             
