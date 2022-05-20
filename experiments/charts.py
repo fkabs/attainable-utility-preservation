@@ -16,7 +16,7 @@ from ai_safety_gridworlds.environments.shared import safety_game
 from agents.model_free_aup import ModelFreeAUPAgent
 
 
-def make_charts(prefix = ''):
+def make_charts(prefix = '', dir = ''):
     colors = {'box':      [v / 1000. for v in box.GAME_BG_COLOURS[box.BOX_CHR]],
               'dog':      [v / 1000. for v in dog.GAME_BG_COLOURS[dog.DOG_CHR]],
               'survival': [v / 1000. for v in survival.GAME_BG_COLOURS[survival.BUTTON_CHR]],
@@ -33,7 +33,7 @@ def make_charts(prefix = ''):
     fig.set_size_inches(7, 4, forward=True)
     for plot_ind, keyword in enumerate(settings_order):
         setting = settings[keyword]
-        counts = np.load(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'counts-' + keyword + '.npy'),
+        counts = np.load(os.path.join(os.path.dirname(__file__), 'plots', dir, prefix + 'counts-' + keyword + '.npy'),
                          encoding="latin1")[()]
 
         stride = 3 if keyword == 'num_rewards' else 2
@@ -83,10 +83,10 @@ def make_charts(prefix = ''):
     fig.legend(handles[:4][::-1], labels[:4][::-1], fontsize='x-small', loc='upper center', facecolor='white',
                edgecolor='white', ncol=4)
     fig.tight_layout(rect=(0, 0, 1, .97), h_pad=0.15)
-    fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'counts.pdf'), bbox_inches='tight')
+    fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', dir, prefix + 'counts.pdf'), bbox_inches='tight')
 
     # Plot of episodic performance data
-    perf = np.load(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'performance.npy'), encoding="latin1")[()]
+    perf = np.load(os.path.join(os.path.dirname(__file__), 'plots', dir, prefix + 'performance' + '.npy'), encoding="latin1")[()]
 
     eps_fig, eps_ax = plt.subplots()
     eps_fig.set_size_inches(7, 2, forward=True)
@@ -105,7 +105,7 @@ def make_charts(prefix = ''):
     eps_ax.legend(loc='upper center', facecolor='white', edgecolor='white', ncol=len(order),
                   bbox_to_anchor=(0.5, 1.2))
 
-    eps_fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'episodes.pdf'), bbox_inches='tight')
+    eps_fig.savefig(os.path.join(os.path.dirname(__file__), 'plots', dir, prefix + 'episodes.pdf'), bbox_inches='tight')
     
     # plt.show()
 
@@ -175,14 +175,16 @@ if __name__ == '__main__':
     }
     
     # set aup variants to test
+    action_driven = True
     oaups = [None, 'adv', 'mean', 'oth', 'rand']
 
     # run experiments
     for oaup in oaups:
         prefix = 'aup_' if oaup is None else oaup + '_'
+        dir = 'actd' if action_driven else 'noop'
     
         # no no-op action for oaup variants
-        if oaup != None:
+        if action_driven and oaup != None:
             safety_game.AGENT_LAST_ACTION = 3
         
         for (keyword, exp) in gen_exps(settings, games).items():        
@@ -209,8 +211,8 @@ if __name__ == '__main__':
                 
             # save results to disk
             if keyword == 'lambd':
-                np.save(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'performance'), perf)
+                np.save(os.path.join(os.path.dirname(__file__), 'plots', dir, prefix + 'performance'), perf)
             
-            np.save(os.path.join(os.path.dirname(__file__), 'plots', prefix + 'counts-' + keyword), counts)
+            np.save(os.path.join(os.path.dirname(__file__), 'plots', dir, prefix + 'counts-' + keyword), counts)
 
-        make_charts(prefix)
+        make_charts(prefix, dir)
