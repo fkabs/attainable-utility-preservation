@@ -179,7 +179,7 @@ if __name__ == '__main__':
     vaups = [None, 'adv', 'mean', 'oth', 'rand']
 
     # run experiments
-    for vaup in vaups:
+    for vaup in vaups[1:] if action_driven else vaups:
         prefix = 'aup_' if vaup is None else vaup + '_'
         dir = 'actd' if action_driven else 'noop'
     
