@@ -23,9 +23,11 @@ def plot_images_to_ani(framesets):
     :param framesets: [("agent_name", frames),...]
     """
     if len(framesets) == 7:
-        axs = [plt.subplot(3, 3, 2),
-               plt.subplot(3, 3, 4), plt.subplot(3, 3, 5), plt.subplot(3, 3, 6),
-               plt.subplot(3, 3, 7), plt.subplot(3, 3, 8), plt.subplot(3, 3, 9)]
+        axs = [plt.subplot(3, 3, i) for i in range(1, 10) if i not in [1, 3]]
+    if len(framesets) == 8:
+        axs = [plt.subplot(3, 3, i) for i in range(1, 10) if i != 2]
+    elif len(framesets) == 9:
+        axs = [plt.subplot(3, 3, i) for i in range(1, 10)]
     else:
         _, axs = plt.subplots(1, len(framesets), figsize=(5, 5 * len(framesets)))
 
