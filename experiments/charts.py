@@ -175,17 +175,18 @@ if __name__ == '__main__':
     }
     
     # set aup variants to test
-    action_driven = True
+    action_driven = False
     vaups = [None, 'adv', 'mean', 'oth', 'rand']
+    
+     # no no-op action for vaup variants
+    if action_driven:
+        vaups = vaups[1:]
+        safety_game.AGENT_LAST_ACTION = 3
 
     # run experiments
     for vaup in vaups[1:] if action_driven else vaups:
         prefix = 'aup_' if vaup is None else vaup + '_'
         dir = 'actd' if action_driven else 'noop'
-    
-        # no no-op action for vaup variants
-        if action_driven and vaup != None:
-            safety_game.AGENT_LAST_ACTION = 3
         
         for (keyword, exp) in gen_exps(settings, games).items():        
             # dicts to store agents results, counts and performances
