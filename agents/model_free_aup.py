@@ -33,6 +33,9 @@ class ModelFreeAUPAgent:
         self.state_attainable = state_attainable
         self.use_scale = use_scale
         self.vaup = vaup
+        
+        if self.vaup != None:
+            self.name = self.name + ' (' + self.vaup + ')'
 
         if state_attainable:
             self.name = 'Relative reachability'

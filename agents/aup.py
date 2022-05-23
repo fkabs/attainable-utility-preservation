@@ -26,6 +26,9 @@ class AUPAgent():
         self.deviation = deviation
         self.use_scale = use_scale
         self.vaup = vaup
+        
+        if self.vaup != None:
+            self.name = self.name + ' (' + self.vaup + ')'
 
         if baseline != 'stepwise':
             self.name = baseline.capitalize()
