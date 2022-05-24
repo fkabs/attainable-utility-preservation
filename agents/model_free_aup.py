@@ -106,7 +106,10 @@ class ModelFreeAUPAgent:
         else:
             null_attainable = self.attainable_Q[board][:, safety_game.Actions.NOTHING]
         
-        diff = action_attainable - null_attainable
+        if self.vaup == 'adv':
+            diff = null_attainable
+        else:
+            diff = action_attainable - null_attainable
 
         # Scaling number or vector (per-AU)
         if self.use_scale:
