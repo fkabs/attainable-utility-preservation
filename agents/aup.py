@@ -122,10 +122,7 @@ class AUPAgent():
             else:
                 null_attainable = self.null
             
-            if self.vaup == 'adv':
-                diff = null_attainable
-            else:
-                diff = action_attainable - null_attainable
+            diff = action_attainable - null_attainable
                 
             if self.deviation == 'decrease':
                 diff[diff > 0] = 0  # don't penalize increases
