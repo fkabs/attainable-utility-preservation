@@ -1,6 +1,5 @@
 from ai_safety_gridworlds.environments.shared import safety_game
 import numpy as np
-import random
 
 
 class AUPAgent():
@@ -10,14 +9,13 @@ class AUPAgent():
     name = 'AUP'
 
     def __init__(self, attainable_Q, lambd=1/1.501, discount=.996, baseline='stepwise', deviation='absolute',
-                 use_scale=False, vaup = None):
+                 use_scale=False):
         """
         :param attainable_Q: Q functions for the attainable set.
         :param lambd: Scale harshness of penalty.
         :param discount:
         :param baseline: That with respect to which we calculate impact.
         :param deviation: How to penalize shifts in attainable utility.
-        :param vaup: Use variational AUP (penalize using different strategies)
         """
         self.attainable_Q = attainable_Q
         self.lambd = lambd
@@ -25,10 +23,6 @@ class AUPAgent():
         self.baseline = baseline
         self.deviation = deviation
         self.use_scale = use_scale
-        self.vaup = vaup
-        
-        if self.vaup != None:
-            self.name = self.name + ' (' + self.vaup + ')'
 
         if baseline != 'stepwise':
             self.name = baseline.capitalize()
@@ -44,7 +38,6 @@ class AUPAgent():
 
     def get_actions(self, env, steps_left, so_far=[]):
         """Figure out the n-step optimal plan, returning it and its return.
-
         :param env: Simulator.
         :param steps_left: How many steps to plan over.
         :param so_far: Actions taken up until now.
@@ -84,7 +77,6 @@ class AUPAgent():
 
     def penalized_reward(self, env, action, steps_left, so_far=[]):
         """The penalized reward for taking the given action in the current state. Steps the environment forward.
-
         :param env: Simulator.
         :param action: The action in question.
         :param steps_left: How many steps are left in the plan.
@@ -104,26 +96,7 @@ class AUPAgent():
             self.restart(env, inaction_plan)
             null_attainable = self.attainable_Q[str(env._last_observations['board'])][:, safety_game.Actions.NOTHING] \
                 if self.baseline == 'stepwise' else self.null
-            
-            if self.baseline == 'stepwise':
-                if self.vaup == 'adv':
-                    pi_attainable = np.zeros((len(self.attainable_set), len(self.actions)), dtype = float)
-                    pi_attainable[:] = self.epsilon / len(self.actions)
-                    pi_attainable[:, tuple(np.argmax(self.attainable_Q[str(env._last_observations['board'])], axis = 1))] = 1 - self.epsilon + self.epsilon / len(self.actions)
-                    null_attainable = np.sum(self.attainable_Q[str(env._last_observations['board'])][:] * pi_attainable, axis = 1)
-                elif self.vaup == 'mean':
-                    null_attainable = np.mean(self.attainable_Q[str(env._last_observations['board'])][:], axis = 1)
-                elif self.vaup == 'oth':
-                    null_attainable = np.mean(self.attainable_Q[str(env._last_observations['board'])][:, tuple(filter(lambda a: a != action, self.actions))], axis = 1)
-                elif self.vaup == 'rand':
-                    null_attainable = self.attainable_Q[str(env._last_observations['board'])][:, random.choice(filter(lambda a: a != action, self.actions))]
-                else:
-                    null_attainable = self.attainable_Q[str(env._last_observations['board'])][:, safety_game.Actions.NOTHING]
-            else:
-                null_attainable = self.null
-            
             diff = action_attainable - null_attainable
-                
             if self.deviation == 'decrease':
                 diff[diff > 0] = 0  # don't penalize increases
 
