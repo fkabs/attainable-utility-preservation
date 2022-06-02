@@ -39,7 +39,7 @@ class ModelFreeAUPAgent:
 
         if state_attainable:
             self.name = 'Relative reachability'
-            self.attainable_set = environment_helper.derive_possible_rewards(env, vaup)
+            self.attainable_set = environment_helper.derive_possible_rewards(env)
         else:
             self.attainable_set = [defaultdict(np.random.random) for _ in range(num_rewards)]
 
@@ -133,7 +133,7 @@ class ModelFreeAUPAgent:
                 reward = self.attainable_set[attainable_idx](new_board) if self.state_attainable \
                     else self.attainable_set[attainable_idx][new_board]
                 new_Q, old_Q = self.attainable_Q[new_board][attainable_idx].max(), \
-                               self.attainable_Q[last_board][attainable_idx, action]
+                                self.attainable_Q[last_board][attainable_idx, action]
             else:
                 reward = time_step.reward - self.get_penalty(last_board, action)
                 new_Q, old_Q = self.AUP_Q[new_board].max(), self.AUP_Q[last_board][action]
