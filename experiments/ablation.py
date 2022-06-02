@@ -1,12 +1,12 @@
 from __future__ import print_function
 
-# import matplotlib as mpl
-# mpl.use('Agg')
+import matplotlib as mpl
+mpl.use('Agg')
 
 import os
 import warnings
 import datetime
-import itertools
+from functools import partial
 import multiprocessing as mp
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -22,14 +22,18 @@ def plot_images_to_ani(framesets):
 
     :param framesets: [("agent_name", frames),...]
     """
-    if len(framesets) == 7:
+    if len(framesets) == 5:
+        axs = [plt.subplot(2, 3, i) for i in range(1, 7) if i != 2]
+    elif len(framesets) == 6:
+        axs = [plt.subplot(2, 3, i) for i in range(1, 7)]
+    elif len(framesets) == 7:
         axs = [plt.subplot(3, 3, i) for i in range(1, 10) if i not in [1, 3]]
-    if len(framesets) == 8:
+    elif len(framesets) == 8:
         axs = [plt.subplot(3, 3, i) for i in range(1, 10) if i != 2]
     elif len(framesets) == 9:
         axs = [plt.subplot(3, 3, i) for i in range(1, 10)]
     else:
-        _, axs = plt.subplots(1, len(framesets), figsize=(5, 5 * len(framesets)))
+        axs = plt.subplots(1, len(framesets), figsize=(5 * len(framesets), 5))
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -48,32 +52,37 @@ def plot_images_to_ani(framesets):
     return animation.ArtistAnimation(plt.gcf(), ims, interval=400, blit=True, repeat_delay=200)
 
 
-def run_game(game):
+def run_game(env_variant, game):
     env_class, env_kwargs = game
     render_fig, render_ax = plt.subplots(1, 1)
-    render_fig.set_tight_layout(True)
+    
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        plt.tight_layout()
+    
     render_ax.get_xaxis().set_ticks([])
     render_ax.get_yaxis().set_ticks([])
     env_class.variant_name = env_class.name + '-' + str(env_kwargs['level'] if 'level' in env_kwargs else env_kwargs['variant'])
-    print(env_class.variant_name)
 
     start_time = datetime.datetime.now()
-    movies = run_agents(env_class, env_kwargs, render_ax=render_ax)
+    movies = run_agents(env_class, env_kwargs, env_variant, render_ax=render_ax)
 
     # Save first frame of level for display in paper
-    # render_ax.imshow(movies[0][1][0])
-    render_fig.savefig(os.path.join(os.path.dirname(__file__), 'level_imgs', env_class.variant_name + '.pdf'),
-                       bbox_inches='tight', dpi=350)
-    plt.close(render_fig.number)
+    if env_variant == 'aup':
+        render_ax.imshow(movies[0][1][0])
+        render_fig.savefig(os.path.join(os.path.dirname(__file__), 'level_imgs', env_class.variant_name + '.pdf'),
+                        bbox_inches='tight', dpi=350)
+        plt.close(render_fig.number)
 
     print("Training finished; {} elapsed.\n".format(datetime.datetime.now() - start_time))
     ani = plot_images_to_ani(movies)
-    ani.save(os.path.join(os.path.dirname(__file__), 'gifs', env_class.variant_name + '.gif'),
+    ani.save(os.path.join(os.path.dirname(__file__), 'gifs', env_variant, env_class.variant_name + '.gif'),
              writer='imagemagick', dpi=350)
+    plt.close()
     # plt.show()
 
 
-def run_agents(env_class, env_kwargs, render_ax=None):
+def run_agents(env_class, env_kwargs, env_variant, render_ax=None):
     """
     Generate and run agent variants.
 
@@ -83,21 +92,40 @@ def run_agents(env_class, env_kwargs, render_ax=None):
     """
     # Instantiate environment and agents
     env = env_class(**env_kwargs)
-    model_free = ModelFreeAUPAgent(env, trials=1)
-    state = (ModelFreeAUPAgent(env, state_attainable=True, trials=1))
-    movies, agents = [], [ModelFreeAUPAgent(env, num_rewards=0, trials=1),  # vanilla (standard q-learner)
-                          AUPAgent(attainable_Q=model_free.attainable_Q, baseline='start'),  # starting state
-                          AUPAgent(attainable_Q=model_free.attainable_Q, baseline='inaction'),  # incation
-                          AUPAgent(attainable_Q=model_free.attainable_Q, deviation='decrease'),  # decrease
-                          AUPAgent(attainable_Q=state.attainable_Q, baseline='inaction', deviation='decrease'),  # relative reachability
-                          model_free,  # model-free aup
-                          AUPAgent(attainable_Q=model_free.attainable_Q)  # full AUP
-                          ]
+    
+    if env_variant == 'aup':
+        model_free = ModelFreeAUPAgent(env, trials = 1)
+        state = (ModelFreeAUPAgent(env, state_attainable = True, trials = 1))
+        movies, agents = [], [ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
+                            AUPAgent(attainable_Q = model_free.attainable_Q, baseline = 'start'),  # starting state
+                            AUPAgent(attainable_Q = model_free.attainable_Q, baseline = 'inaction'),  # incation
+                            AUPAgent(attainable_Q = model_free.attainable_Q, deviation = 'decrease'),  # decrease
+                            AUPAgent(attainable_Q = state.attainable_Q, baseline = 'inaction', deviation = 'decrease'),  # relative reachability
+                            model_free,  # model-free aup
+                            AUPAgent(attainable_Q = model_free.attainable_Q)  # full AUP
+                            ]
+    
+    elif env_variant == 'noop':        
+        model_free = ModelFreeAUPAgent(env, trials = 1)
+        movies, agents = [], [ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
+                            model_free,  # model-free aup
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'mean'),  # mean variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'oth'),  # others variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'rand') # random variant
+                            ]
+    else:
+        movies, agents = [], [ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'mean'),  # mean variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'oth'),  # others variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'rand') # random variant
+                            ]
 
     for agent in agents:
         ret, _, perf, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax)
         movies.append((agent.name, frames))
-        print(agent.name, perf)
+        print(env_class.variant_name, agent.name, perf)
 
     return movies
 
@@ -105,30 +133,36 @@ def run_agents(env_class, env_kwargs, render_ax=None):
 if __name__ == '__main__':
     # set number of usable CPU cores
     NUM_CORES = mp.cpu_count()
-    
-    # set eaup variant
-    eaup = None
-    
-    # no no-op action for eaup variants
-    if eaup != None:
-        safety_game.AGENT_LAST_ACTION = 3
-    
-    games = [
-        (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
-        (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
-        (burning.BurningEnvironment, {'level': 0}),
-        (burning.BurningEnvironment, {'level': 1}),
-        (box.BoxEnvironment, {'level': 0}),
-        (sushi.SushiEnvironment, {'level': 0}),
-        (vase.VaseEnvironment, {'level': 0}),
-        (dog.DogEnvironment, {'level': 0}),
-        (survival.SurvivalEnvironment, {'level': 0})
-    ]
 
     # Plot setup
     plt.style.use('ggplot')
     
-    # distribute experiments on all core
-    # pool = mp.Pool(NUM_CORES)
-    # results = pool.map(run_game, games)
-    run_game(games[0])
+    # parameter for action-driven environments
+    env_variants = ['aup', 'noop', 'actd']
+    
+    for env_variant in env_variants:
+        # no no-op action for vaup variants
+        if env_variant == 'actd':
+            safety_game.AGENT_LAST_ACTION = 3
+        else:
+            safety_game.AGENT_LAST_ACTION = 4
+        
+        games = [
+            (box.BoxEnvironment, {'level': 0}),
+            (dog.DogEnvironment, {'level': 0}),
+            (survival.SurvivalEnvironment, {'level': 0}),
+            (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
+            (sushi.SushiEnvironment, {'level': 0}),
+            (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
+            (vase.VaseEnvironment, {'level': 0}),
+            (burning.BurningEnvironment, {'level': 0}),
+            (burning.BurningEnvironment, {'level': 1})
+        ]
+        
+        print('-'*32)
+        print(env_variant.upper())
+        print('-'*32)
+        print('\n')
+        
+        for game in games:
+            run_game(env_variant, game)
