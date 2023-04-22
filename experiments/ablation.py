@@ -109,16 +109,18 @@ def run_agents(env_class, env_kwargs, env_variant, render_ax=None):
         model_free = ModelFreeAUPAgent(env, trials = 1)
         movies, agents = [], [ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
                             model_free,  # model-free aup
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'avg'),  # average variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'oth'),  # average-others variant
                             ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'mean'),  # mean variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'oth'),  # others variant
                             ModelFreeAUPAgent(env, trials = 1, vaup = 'rand') # random variant
                             ]
     else:
         movies, agents = [], [ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'mean'),  # mean variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'avg'),  # avg variant
                             ModelFreeAUPAgent(env, trials = 1, vaup = 'oth'),  # others variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
                             ModelFreeAUPAgent(env, trials = 1, vaup = 'rand') # random variant
                             ]
 
@@ -152,11 +154,11 @@ if __name__ == '__main__':
             (dog.DogEnvironment, {'level': 0}),
             (survival.SurvivalEnvironment, {'level': 0}),
             (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
-            (sushi.SushiEnvironment, {'level': 0}),
-            (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
-            (vase.VaseEnvironment, {'level': 0}),
-            (burning.BurningEnvironment, {'level': 0}),
-            (burning.BurningEnvironment, {'level': 1})
+            (sushi.SushiEnvironment, {'level': 0})
+            # (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
+            # (vase.VaseEnvironment, {'level': 0}),
+            # (burning.BurningEnvironment, {'level': 0}),
+            # (burning.BurningEnvironment, {'level': 1})
         ]
         
         print('-'*32)

@@ -97,27 +97,33 @@ class ModelFreeAUPAgent:
             pi_attainable[:] = self.epsilon / len(self.actions)
             pi_attainable[:, tuple(np.argmax(self.attainable_Q[board], axis = 1))] = 1 - self.epsilon + self.epsilon / len(self.actions)
             null_attainable = np.sum(self.attainable_Q[board][:] * pi_attainable, axis = 1)
-        elif self.vaup == 'mean':
+            diff = abs(action_attainable - null_attainable)
+        elif self.vaup == 'avg':
             null_attainable = np.mean(self.attainable_Q[board][:], axis = 1)
+            diff = abs(action_attainable) - abs(null_attainable)
         elif self.vaup == 'oth':
             null_attainable = np.mean(self.attainable_Q[board][:, tuple(filter(lambda a: a != action, self.actions))], axis = 1)
+            diff = abs(action_attainable) - abs(null_attainable)
         elif self.vaup == 'rand':
             null_attainable = self.attainable_Q[board][:, random.choice(filter(lambda a: a != action, self.actions))]
+            diff = abs(action_attainable - null_attainable)
+        elif self.vaup == 'zero':
+            null_attainable = 0
+            diff = abs(action_attainable - null_attainable)
         else:
             null_attainable = self.attainable_Q[board][:, safety_game.Actions.NOTHING]
-        
-        diff = action_attainable - null_attainable
+            diff = abs(action_attainable - null_attainable)
 
         # Scaling number or vector (per-AU)
         if self.use_scale:
             scale = sum(abs(null_attainable))
             if scale == 0:
                 scale = 1
-            penalty = sum(abs(diff) / scale)
+            penalty = sum(diff / scale)
         else:
             scale = np.copy(null_attainable)
             scale[scale == 0] = 1  # avoid division by zero
-            penalty = np.average(np.divide(abs(diff), scale))
+            penalty = np.average(np.divide(diff, scale))
 
         # Scaled difference between taking action and doing nothing
         return self.lambd * penalty  # ImpactUnit is 0!
