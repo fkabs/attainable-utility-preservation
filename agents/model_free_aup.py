@@ -3,6 +3,8 @@ from collections import defaultdict
 import experiments.environment_helper as environment_helper
 import numpy as np
 import random
+import os
+from functools import partial
 
 
 class ModelFreeAUPAgent:
@@ -11,7 +13,7 @@ class ModelFreeAUPAgent:
     default = {'lambd': 1./1.501, 'discount': .996, 'rpenalties': 30, 'episodes': 6000}
 
     def __init__(self, env, lambd=default['lambd'], state_attainable=False, num_rewards=default['rpenalties'],
-                 discount=default['discount'], episodes=default['episodes'], trials=50, use_scale=False, vaup=None):
+                 discount=default['discount'], episodes=default['episodes'], trials=1, use_scale=False, vaup=None):
         """Trains using the simulator and e-greedy exploration to determine a greedy policy.
 
         :param env: Simulator.
@@ -35,7 +37,7 @@ class ModelFreeAUPAgent:
         self.vaup = vaup
         
         if self.vaup != None:
-            self.name = self.name + ' (' + self.vaup + ')'
+            self.name = 'Baseline (' + self.vaup + ')'
 
         if state_attainable:
             self.name = 'Relative reachability'
@@ -45,6 +47,11 @@ class ModelFreeAUPAgent:
 
         if len(self.attainable_set) == 0:
             self.name = 'Standard'  # no penalty applied!
+        
+        log_type = 'ablation' if trials <= 1 else 'counts'
+        env_type = 'actd' if len(self.actions) < 5 else 'noop'
+        sub_dir = log_type + '/' + env_type
+        self.log_dir = '/mnt/rl-reward/fk/attainable-utility-preservation/experiments/logs/' + sub_dir
 
         self.train(env)
 
@@ -53,10 +60,15 @@ class ModelFreeAUPAgent:
 
         # 0: high-impact, incomplete; 1: high-impact, complete; 2: low-impact, incomplete; 3: low-impact, complete
         self.counts = np.zeros(4)
+        
+        # dict for storing Q-values
+        log = {}
 
         for trial in range(self.trials):
-            self.attainable_Q = defaultdict(lambda: np.zeros((len(self.attainable_set), len(self.actions))))
-            self.AUP_Q = defaultdict(lambda: np.zeros(len(self.actions)))
+            self.attainable_Q = defaultdict(partial(np.zeros, (len(self.attainable_set), len(self.actions))))
+            # self.attainable_Q = defaultdict(lambda: np.zeros((len(self.attainable_set), len(self.actions))))
+            self.AUP_Q = defaultdict(partial(np.zeros, len(self.actions)))
+            # self.AUP_Q = defaultdict(lambda: np.zeros(len(self.actions)))
             if not self.state_attainable:
                 self.attainable_set = [defaultdict(np.random.random) for _ in range(len(self.attainable_set))]
             self.epsilon = self.pen_epsilon
@@ -73,9 +85,16 @@ class ModelFreeAUPAgent:
                 if episode % 10 == 0:
                     _, actions, self.performance[trial][episode / 10], _ = environment_helper.run_episode(self, env)
             self.counts[int(self.performance[trial, -1]) + 2] += 1  # -2 goes to idx 0
+            
+            log.update({trial: {'aup_q' : self.AUP_Q, 'attainable_q' : self.attainable_Q}})
 
         env.reset()
-
+        
+        if not os.path.exists(self.log_dir + '/' + env.name):
+            os.makedirs(self.log_dir + '/' + env.name)
+        
+        np.save(self.log_dir + '/' + env.name + '/' + self.name, log)
+    
     def act(self, obs):
         return self.AUP_Q[str(obs['board'])].argmax()
 
@@ -101,7 +120,7 @@ class ModelFreeAUPAgent:
         elif self.vaup == 'avg':
             null_attainable = np.mean(self.attainable_Q[board][:], axis = 1)
             diff = abs(action_attainable) - abs(null_attainable)
-        elif self.vaup == 'oth':
+        elif self.vaup == 'avg-oth':
             null_attainable = np.mean(self.attainable_Q[board][:, tuple(filter(lambda a: a != action, self.actions))], axis = 1)
             diff = abs(action_attainable) - abs(null_attainable)
         elif self.vaup == 'rand':

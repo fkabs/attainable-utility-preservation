@@ -111,7 +111,7 @@ def run_agents(env_class, env_kwargs, env_variant, render_ax=None):
                             model_free,  # model-free aup
                             ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
                             ModelFreeAUPAgent(env, trials = 1, vaup = 'avg'),  # average variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'oth'),  # average-others variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'avg-oth'),  # average-others variant
                             ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
                             ModelFreeAUPAgent(env, trials = 1, vaup = 'rand') # random variant
                             ]
@@ -119,7 +119,7 @@ def run_agents(env_class, env_kwargs, env_variant, render_ax=None):
         movies, agents = [], [ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
                             ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
                             ModelFreeAUPAgent(env, trials = 1, vaup = 'avg'),  # avg variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'oth'),  # others variant
+                            ModelFreeAUPAgent(env, trials = 1, vaup = 'avg-oth'),  # others variant
                             ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
                             ModelFreeAUPAgent(env, trials = 1, vaup = 'rand') # random variant
                             ]
@@ -141,6 +141,7 @@ if __name__ == '__main__':
     
     # parameter for action-driven environments
     env_variants = ['aup', 'noop', 'actd']
+    env_variants = ['actd']
     
     for env_variant in env_variants:
         # no no-op action for vaup variants
@@ -150,11 +151,12 @@ if __name__ == '__main__':
             safety_game.AGENT_LAST_ACTION = 4
         
         games = [
-            (box.BoxEnvironment, {'level': 0}),
-            (dog.DogEnvironment, {'level': 0}),
-            (survival.SurvivalEnvironment, {'level': 0}),
-            (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
-            (sushi.SushiEnvironment, {'level': 0})
+            (box.BoxEnvironment, {'level': 0})
+            # (dog.DogEnvironment, {'level': 0}),
+            # (survival.SurvivalEnvironment, {'level': 0}),
+            # (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
+            # (sushi.SushiEnvironment, {'level': 0})
+            # asd
             # (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
             # (vase.VaseEnvironment, {'level': 0}),
             # (burning.BurningEnvironment, {'level': 0}),
