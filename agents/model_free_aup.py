@@ -46,12 +46,12 @@ class ModelFreeAUPAgent:
             self.attainable_set = [defaultdict(np.random.random) for _ in range(num_rewards)]
 
         if len(self.attainable_set) == 0:
-            self.name = 'Standard'  # no penalty applied!
+            self.name = 'Q-learning'  # no penalty applied!
         
-        log_type = 'ablation' if trials <= 1 else 'counts'
+        log_type = 'ablation' if trials == 1 else 'counts'
         env_type = 'actd' if len(self.actions) < 5 else 'noop'
         sub_dir = log_type + '/' + env_type
-        self.log_dir = '/mnt/rl-reward/fk/attainable-utility-preservation/experiments/logs/' + sub_dir
+        self.log_dir = '/mnt/rl-reward/fk/attainable-utility-preservation/experiments/q_logs/' + sub_dir
 
         self.train(env)
 
@@ -93,7 +93,8 @@ class ModelFreeAUPAgent:
         if not os.path.exists(self.log_dir + '/' + env.name):
             os.makedirs(self.log_dir + '/' + env.name)
         
-        np.save(self.log_dir + '/' + env.name + '/' + self.name, log)
+        if self.vaup != None:
+            np.save(self.log_dir + '/' + env.name + '/' + self.name, log)
     
     def act(self, obs):
         return self.AUP_Q[str(obs['board'])].argmax()
@@ -114,7 +115,9 @@ class ModelFreeAUPAgent:
         if self.vaup == 'adv':
             pi_attainable = np.zeros((len(self.attainable_set), len(self.actions)), dtype = float)
             pi_attainable[:] = self.epsilon / len(self.actions)
-            pi_attainable[:, tuple(np.argmax(self.attainable_Q[board], axis = 1))] = 1 - self.epsilon + self.epsilon / len(self.actions)
+            ri_idx = np.arange(len(self.attainable_set))
+            a_idx = np.argmax(self.attainable_Q[board], axis = 1)
+            pi_attainable[ri_idx, a_idx] = 1 - self.epsilon + self.epsilon / len(self.actions)
             null_attainable = np.sum(self.attainable_Q[board][:] * pi_attainable, axis = 1)
             diff = abs(action_attainable - null_attainable)
         elif self.vaup == 'avg':
@@ -124,10 +127,12 @@ class ModelFreeAUPAgent:
             null_attainable = np.mean(self.attainable_Q[board][:, tuple(filter(lambda a: a != action, self.actions))], axis = 1)
             diff = abs(action_attainable) - abs(null_attainable)
         elif self.vaup == 'rand':
-            null_attainable = self.attainable_Q[board][:, random.choice(filter(lambda a: a != action, self.actions))]
+            ri_idx = np.arange(len(self.attainable_set))
+            a_idx = np.random.choice([a for a in self.action if a != action], len(self.attainable_set))
+            null_attainable = self.attainable_Q[board][ri_idx:, a_idx]
             diff = abs(action_attainable - null_attainable)
         elif self.vaup == 'zero':
-            null_attainable = 0
+            null_attainable = np.zeros(len(action_attainable))
             diff = abs(action_attainable - null_attainable)
         else:
             null_attainable = self.attainable_Q[board][:, safety_game.Actions.NOTHING]
@@ -143,8 +148,8 @@ class ModelFreeAUPAgent:
             scale = np.copy(null_attainable)
             scale[scale == 0] = 1  # avoid division by zero
             penalty = np.average(np.divide(diff, scale))
-
-        # Scaled difference between taking action and doing nothing
+        
+        # Scaled difference between taking action and baseline
         return self.lambd * penalty  # ImpactUnit is 0!
 
     def update_greedy(self, last_board, action, time_step):
@@ -167,6 +172,8 @@ class ModelFreeAUPAgent:
         # Learn the attainable reward functions
         for attainable_idx in range(len(self.attainable_set)):
             self.attainable_Q[last_board][attainable_idx, action] += calculate_update(attainable_idx)
+        
         if self.state_attainable:
             self.attainable_Q[last_board][:, action] = np.clip(self.attainable_Q[last_board][:, action], 0, 1)
+        
         self.AUP_Q[last_board][action] += calculate_update()

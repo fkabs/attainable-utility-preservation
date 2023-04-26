@@ -4,6 +4,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 
 import os
+import sys
 import itertools
 from functools import partial
 import multiprocessing as mp
@@ -134,9 +135,9 @@ def run_exp(keyword, vaup, exp):
     env = game(**game_kwargs)
     model_free = ModelFreeAUPAgent(env, trials = 50, vaup = vaup, **{keyword: iter})
     
+    # res[game.name].update({'perf' : {list(settings[keyword]['iter']).index(iter) : model_free.performance}})
     if keyword == 'lambd' and iter == ModelFreeAUPAgent.default['lambd']:
         res[game.name].update({'perf' : model_free.performance})
-    
     res[game.name].update({'counts' : {list(settings[keyword]['iter']).index(iter) : model_free.counts[:]}})
     
     return res
@@ -175,16 +176,18 @@ if __name__ == '__main__':
     }
     
     # set aup variants to test
-    action_driven = False
+    action_driven = True
     vaups = [None, 'zero', 'avg', 'avg-oth', 'adv', 'rand']
+    vaups = [None, 'adv']
+    
     
      # no no-op action for vaup variants
     if action_driven:
         vaups = vaups[1:]
         safety_game.AGENT_LAST_ACTION = 3
-
+    
     # run experiments
-    for vaup in vaups[1:] if action_driven else vaups:
+    for vaup in vaups:
         prefix = 'aup_' if vaup is None else vaup + '_'
         dir = 'actd' if action_driven else 'noop'
         
@@ -198,7 +201,7 @@ if __name__ == '__main__':
                 
             # distribute experiment-permutations on all cores
             func = partial(run_exp, keyword, vaup)
-            pool = mp.Pool(NUM_CORES)
+            pool = mp.Pool(NUM_CORES-1)
             results = pool.map(func, exp)
             
             # set counts and perf based on results

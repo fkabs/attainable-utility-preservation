@@ -96,33 +96,35 @@ def run_agents(env_class, env_kwargs, env_variant, render_ax=None):
     if env_variant == 'aup':
         model_free = ModelFreeAUPAgent(env, trials = 1)
         state = (ModelFreeAUPAgent(env, state_attainable = True, trials = 1))
-        movies, agents = [], [ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
-                            AUPAgent(attainable_Q = model_free.attainable_Q, baseline = 'start'),  # starting state
-                            AUPAgent(attainable_Q = model_free.attainable_Q, baseline = 'inaction'),  # incation
-                            AUPAgent(attainable_Q = model_free.attainable_Q, deviation = 'decrease'),  # decrease
-                            AUPAgent(attainable_Q = state.attainable_Q, baseline = 'inaction', deviation = 'decrease'),  # relative reachability
-                            model_free,  # model-free aup
-                            AUPAgent(attainable_Q = model_free.attainable_Q)  # full AUP
-                            ]
+        movies, agents = [], [
+            ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
+            AUPAgent(attainable_Q = model_free.attainable_Q, baseline = 'start'),  # starting state
+            AUPAgent(attainable_Q = model_free.attainable_Q, baseline = 'inaction'),  # incation
+            AUPAgent(attainable_Q = model_free.attainable_Q, deviation = 'decrease'),  # decrease
+            AUPAgent(attainable_Q = state.attainable_Q, baseline = 'inaction', deviation = 'decrease'),  # relative reachability
+            model_free,  # model-free aup
+            AUPAgent(attainable_Q = model_free.attainable_Q)  # full AUP
+        ]
     
-    elif env_variant == 'noop':        
-        model_free = ModelFreeAUPAgent(env, trials = 1)
-        movies, agents = [], [ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
-                            model_free,  # model-free aup
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'avg'),  # average variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'avg-oth'),  # average-others variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'rand') # random variant
-                            ]
+    elif env_variant == 'noop':
+        movies, agents = [], [
+            # ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
+            ModelFreeAUPAgent(env, trials = 1),  # model-free aup
+            # ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
+            # ModelFreeAUPAgent(env, trials = 1, vaup = 'avg'),  # average variant
+            # ModelFreeAUPAgent(env, trials = 1, vaup = 'avg-oth'),  # average-others variant
+            ModelFreeAUPAgent(env, trials = 1, vaup = 'adv')  # advantage variant
+            # ModelFreeAUPAgent(env, trials = 1, vaup = 'rand') # random variant
+        ]
     else:
-        movies, agents = [], [ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'avg'),  # avg variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'avg-oth'),  # others variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
-                            ModelFreeAUPAgent(env, trials = 1, vaup = 'rand') # random variant
-                            ]
+        movies, agents = [], [
+            ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
+            ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
+            ModelFreeAUPAgent(env, trials = 1, vaup = 'avg'),  # avg variant
+            ModelFreeAUPAgent(env, trials = 1, vaup = 'avg-oth'),  # average-others variant
+            ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
+            ModelFreeAUPAgent(env, trials = 1, vaup = 'rand') # random variant
+        ]
 
     for agent in agents:
         ret, _, perf, frames = run_episode(agent, env, save_frames=True, render_ax=render_ax)
@@ -141,7 +143,8 @@ if __name__ == '__main__':
     
     # parameter for action-driven environments
     env_variants = ['aup', 'noop', 'actd']
-    env_variants = ['actd']
+    env_variants = ['noop', 'actd']
+    env_variants = ['noop']
     
     for env_variant in env_variants:
         # no no-op action for vaup variants
@@ -151,11 +154,11 @@ if __name__ == '__main__':
             safety_game.AGENT_LAST_ACTION = 4
         
         games = [
-            (box.BoxEnvironment, {'level': 0})
-            # (dog.DogEnvironment, {'level': 0}),
-            # (survival.SurvivalEnvironment, {'level': 0}),
-            # (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
-            # (sushi.SushiEnvironment, {'level': 0})
+            (box.BoxEnvironment, {'level': 0}),
+            (dog.DogEnvironment, {'level': 0}),
+            (survival.SurvivalEnvironment, {'level': 0}),
+            (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
+            (sushi.SushiEnvironment, {'level': 0})
             # asd
             # (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
             # (vase.VaseEnvironment, {'level': 0}),
