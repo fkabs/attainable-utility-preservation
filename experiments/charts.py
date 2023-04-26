@@ -176,47 +176,45 @@ if __name__ == '__main__':
     }
     
     # set aup variants to test
-    action_driven = True
     vaups = [None, 'zero', 'avg', 'avg-oth', 'adv', 'rand']
-    vaups = [None, 'adv']
     
-    
-     # no no-op action for vaup variants
-    if action_driven:
-        vaups = vaups[1:]
-        safety_game.AGENT_LAST_ACTION = 3
-    
-    # run experiments
-    for vaup in vaups:
-        prefix = 'aup_' if vaup is None else vaup + '_'
-        dir = 'actd' if action_driven else 'noop'
+    for action_driven in [False, True]:
+        # no no-op action for vaup variants
+        if action_driven:
+            vaups = vaups[1:]
+            safety_game.AGENT_LAST_ACTION = 3
         
-        for (keyword, exp) in gen_exps(settings, games).items():        
-            # dicts to store agents results, counts and performances
-            res, counts, perf = dict(), dict(), dict()
-
-            # reset counts
-            for (game, _) in games.values():
-                counts[game.name] = np.zeros((len(settings[keyword]['iter']), 4))
-                
-            # distribute experiment-permutations on all cores
-            func = partial(run_exp, keyword, vaup)
-            pool = mp.Pool(NUM_CORES-1)
-            results = pool.map(func, exp)
+        # run experiments
+        for vaup in vaups:
+            prefix = 'aup_' if vaup is None else vaup + '_'
+            dir = 'actd' if action_driven else 'noop'
             
-            # set counts and perf based on results
-            for res in results:
-                game = list(res.keys())[0]
-                idx = list(res[game]['counts'].keys())[0]
-                counts[game][idx, :] = res[game]['counts'][idx]
-                
-                if keyword == 'lambd' and 'perf' in list(res[game].keys()):
-                    perf[game] = res[game]['perf']
-                
-            # save results to disk
-            if keyword == 'lambd':
-                np.save(os.path.join(os.path.dirname(__file__), 'plots', dir, prefix + 'performance'), perf)
-            
-            np.save(os.path.join(os.path.dirname(__file__), 'plots', dir, prefix + 'counts-' + keyword), counts)
+            for (keyword, exp) in gen_exps(settings, games).items():        
+                # dicts to store agents results, counts and performances
+                res, counts, perf = dict(), dict(), dict()
 
-        make_charts(prefix, dir)
+                # reset counts
+                for (game, _) in games.values():
+                    counts[game.name] = np.zeros((len(settings[keyword]['iter']), 4))
+                    
+                # distribute experiment-permutations on all cores
+                func = partial(run_exp, keyword, vaup)
+                pool = mp.Pool(NUM_CORES-1)
+                results = pool.map(func, exp)
+                
+                # set counts and perf based on results
+                for res in results:
+                    game = list(res.keys())[0]
+                    idx = list(res[game]['counts'].keys())[0]
+                    counts[game][idx, :] = res[game]['counts'][idx]
+                    
+                    if keyword == 'lambd' and 'perf' in list(res[game].keys()):
+                        perf[game] = res[game]['perf']
+                    
+                # save results to disk
+                if keyword == 'lambd':
+                    np.save(os.path.join(os.path.dirname(__file__), 'plots', dir, prefix + 'performance'), perf)
+                
+                np.save(os.path.join(os.path.dirname(__file__), 'plots', dir, prefix + 'counts-' + keyword), counts)
+
+            make_charts(prefix, dir)
