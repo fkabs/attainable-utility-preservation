@@ -128,7 +128,7 @@ class ModelFreeAUPAgent:
             diff = abs(action_attainable) - abs(null_attainable)
         elif self.vaup == 'rand':
             ri_idx = np.arange(len(self.attainable_set))
-            a_idx = np.random.choice([a for a in self.action if a != action], len(self.attainable_set))
+            a_idx = np.random.choice([a for a in self.actions if a != action], len(self.attainable_set))
             null_attainable = self.attainable_Q[board][ri_idx:, a_idx]
             diff = abs(action_attainable - null_attainable)
         elif self.vaup == 'zero':
