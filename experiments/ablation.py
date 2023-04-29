@@ -108,13 +108,13 @@ def run_agents(env_class, env_kwargs, env_variant, render_ax=None):
     
     elif env_variant == 'noop':
         movies, agents = [], [
-            # ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
+            ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
             ModelFreeAUPAgent(env, trials = 1),  # model-free aup
-            # ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
-            # ModelFreeAUPAgent(env, trials = 1, vaup = 'avg'),  # average variant
-            # ModelFreeAUPAgent(env, trials = 1, vaup = 'avg-oth'),  # average-others variant
-            ModelFreeAUPAgent(env, trials = 1, vaup = 'adv')  # advantage variant
-            # ModelFreeAUPAgent(env, trials = 1, vaup = 'rand') # random variant
+            ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
+            ModelFreeAUPAgent(env, trials = 1, vaup = 'avg'),  # average variant
+            ModelFreeAUPAgent(env, trials = 1, vaup = 'avg-oth'),  # average-others variant
+            ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
+            ModelFreeAUPAgent(env, trials = 1, vaup = 'rand') # random variant
         ]
     else:
         movies, agents = [], [
@@ -143,8 +143,6 @@ if __name__ == '__main__':
     
     # parameter for action-driven environments
     env_variants = ['aup', 'noop', 'actd']
-    env_variants = ['noop', 'actd']
-    env_variants = ['noop']
     
     for env_variant in env_variants:
         # no no-op action for vaup variants
@@ -159,7 +157,6 @@ if __name__ == '__main__':
             (survival.SurvivalEnvironment, {'level': 0}),
             (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
             (sushi.SushiEnvironment, {'level': 0})
-            # asd
             # (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
             # (vase.VaseEnvironment, {'level': 0}),
             # (burning.BurningEnvironment, {'level': 0}),

@@ -177,7 +177,6 @@ if __name__ == '__main__':
     
     # set aup variants to test
     vaups = [None, 'zero', 'avg', 'avg-oth', 'adv', 'rand']
-    vaups = ['rand']
     
     for action_driven in [False, True]:
         # no no-op action for vaup variants
