@@ -177,11 +177,12 @@ if __name__ == '__main__':
     
     # set aup variants to test
     vaups = [None, 'zero', 'avg', 'avg-oth', 'adv', 'rand']
+    vaups = ['rand']
     
     for action_driven in [False, True]:
         # no no-op action for vaup variants
         if action_driven:
-            vaups = vaups[1:]
+            # vaups = vaups[1:]
             safety_game.AGENT_LAST_ACTION = 3
         
         # run experiments
