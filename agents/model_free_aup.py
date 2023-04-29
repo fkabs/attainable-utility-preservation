@@ -122,10 +122,10 @@ class ModelFreeAUPAgent:
             diff = abs(action_attainable - null_attainable)
         elif self.vaup == 'avg':
             null_attainable = np.mean(self.attainable_Q[board][:], axis = 1)
-            diff = abs(action_attainable) - abs(null_attainable)
+            diff = abs(action_attainable - null_attainable)
         elif self.vaup == 'avg-oth':
             null_attainable = np.mean(self.attainable_Q[board][:, tuple(filter(lambda a: a != action, self.actions))], axis = 1)
-            diff = abs(action_attainable) - abs(null_attainable)
+            diff = abs(action_attainable - null_attainable)
         elif self.vaup == 'rand':
             ri_idx = np.arange(len(self.attainable_set))
             a_idx = np.random.choice([a for a in self.actions if a != action], len(self.attainable_set))
