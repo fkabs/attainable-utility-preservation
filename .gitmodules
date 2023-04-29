@@ -1,3 +1,4 @@
 [submodule "pycolab"]
 	path = pycolab
 	url = https://github.com/deepmind/pycolab
+	ignore = all
