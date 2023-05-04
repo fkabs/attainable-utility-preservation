@@ -119,7 +119,7 @@ def run_agents(env_class, env_kwargs, env_variant, render_ax=None):
     else:
         movies, agents = [], [
             ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
-            ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
+            # ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
             ModelFreeAUPAgent(env, trials = 1, vaup = 'avg'),  # avg variant
             ModelFreeAUPAgent(env, trials = 1, vaup = 'avg-oth'),  # average-others variant
             ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
@@ -143,6 +143,7 @@ if __name__ == '__main__':
     
     # parameter for action-driven environments
     env_variants = ['aup', 'noop', 'actd']
+    env_variants = ['actd']
     
     for env_variant in env_variants:
         # no no-op action for vaup variants
