@@ -110,7 +110,7 @@ def run_agents(env_class, env_kwargs, env_variant, render_ax=None):
         movies, agents = [], [
             ModelFreeAUPAgent(env, num_rewards = 0, trials = 1),  # vanilla (standard q-learner)
             ModelFreeAUPAgent(env, trials = 1),  # model-free aup
-            ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
+            # ModelFreeAUPAgent(env, trials = 1, vaup = 'zero'),  # zero variant
             ModelFreeAUPAgent(env, trials = 1, vaup = 'avg'),  # average variant
             ModelFreeAUPAgent(env, trials = 1, vaup = 'avg-oth'),  # average-others variant
             ModelFreeAUPAgent(env, trials = 1, vaup = 'adv'),  # advantage variant
