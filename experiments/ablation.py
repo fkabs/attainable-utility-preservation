@@ -143,7 +143,6 @@ if __name__ == '__main__':
     
     # parameter for action-driven environments
     env_variants = ['aup', 'noop', 'actd']
-    env_variants = ['actd']
     
     for env_variant in env_variants:
         # no no-op action for vaup variants
