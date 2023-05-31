@@ -14,4 +14,4 @@ _This repository further augments [this expansion](https://github.com/side-grids
 
 ---
 
-_Work under review at International IFIP Cross Domain (CD) Conference for Machine Learning & Knowledge Extraction (MAKE) [CD-MAKE 2023](https://cd-make.net/)_
+_Paper accepted at International IFIP Cross Domain (CD) Conference for Machine Learning & Knowledge Extraction (MAKE) [CD-MAKE 2023](https://cd-make.net/)_
