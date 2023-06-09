@@ -88,44 +88,44 @@ def run_game(env_variant, game):
 
 
 if __name__ == '__main__':
-    # # set number of usable CPU cores
-    # NUM_CORES = mp.cpu_count()
+    # set number of usable CPU cores
+    NUM_CORES = mp.cpu_count()
 
-    # # Plot setup
-    # plt.style.use('ggplot')
+    # Plot setup
+    plt.style.use('ggplot')
     
-    # # parameter for action-driven environments
-    # env_variants = ['noop', 'actd']
+    # parameter for action-driven environments
+    env_variants = ['noop', 'actd']
     
-    # for env_variant in env_variants:
-    #     # no no-op action for vaup variants
-    #     if env_variant == 'actd':
-    #         safety_game.AGENT_LAST_ACTION = 3
-    #     else:
-    #         safety_game.AGENT_LAST_ACTION = 4
+    for env_variant in env_variants:
+        # no no-op action for vaup variants
+        if env_variant == 'actd':
+            safety_game.AGENT_LAST_ACTION = 3
+        else:
+            safety_game.AGENT_LAST_ACTION = 4
         
-    #     games = [
-    #         (box.BoxEnvironment, {'level': 0}),
-    #         (dog.DogEnvironment, {'level': 0}),
-    #         (survival.SurvivalEnvironment, {'level': 0}),
-    #         (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
-    #         (sushi.SushiEnvironment, {'level': 0})
-    #         # (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
-    #         # (vase.VaseEnvironment, {'level': 0}),
-    #         # (burning.BurningEnvironment, {'level': 0}),
-    #         # (burning.BurningEnvironment, {'level': 1})
-    #     ]
+        games = [
+            (box.BoxEnvironment, {'level': 0}),
+            (dog.DogEnvironment, {'level': 0}),
+            (survival.SurvivalEnvironment, {'level': 0}),
+            (conveyor.ConveyorEnvironment, {'variant': 'vase'}),
+            (sushi.SushiEnvironment, {'level': 0})
+            # (conveyor.ConveyorEnvironment, {'variant': 'sushi'}),
+            # (vase.VaseEnvironment, {'level': 0}),
+            # (burning.BurningEnvironment, {'level': 0}),
+            # (burning.BurningEnvironment, {'level': 1})
+        ]
         
-    #     print('-'*32)
-    #     print(env_variant.upper())
-    #     print('-'*32)
-    #     print('\n')
+        print('-'*32)
+        print(env_variant.upper())
+        print('-'*32)
+        print('\n')
         
-    #     res = dict()
-    #     for game in games:
-    #         perf = run_game(env_variant, game)
-    #         res.update({game[0].name : perf})
+        res = dict()
+        for game in games:
+            perf = run_game(env_variant, game)
+            res.update({game[0].name : perf})
         
-    #     np.save(os.path.join(os.path.dirname(__file__), 'plots', env_variant, 'q-learning_performance'), res)
+        np.save(os.path.join(os.path.dirname(__file__), 'plots', env_variant, 'q-learning_performance'), res)
     
     make_charts()
