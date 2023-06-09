@@ -61,7 +61,7 @@ def make_charts():
                 eps_ax.plot(
                     range(0, len(perf[name][0]) * 10, 10),
                     np.average(perf[name], axis = 0),
-                    label = f'Baseline ({agent})',
+                    label = 'Baseline (' + agent + ')',
                     zorder = 3
                 )
                 
@@ -73,8 +73,8 @@ def make_charts():
             
                 save_path = os.path.join(
                     os.path.dirname(__file__),
-                    'plots',
-                    env_variant, env_new_names[ind] + '_' + agent + '_vs_q-learning.pdf'
+                    'plots', env_variant, 'comp',
+                    env_new_names[ind] + '_' + agent + '_vs_q-learning.pdf'
                 )
                 eps_fig.savefig(save_path, bbox_inches = 'tight')
                 plt.close(eps_fig)
